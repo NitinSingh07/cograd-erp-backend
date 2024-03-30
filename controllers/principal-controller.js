@@ -1,26 +1,23 @@
-
+const bcrypt = require('bcrypt');
+const PrincipalModel = require('../models/principalSchema.js'); // Rename import to avoid conflict
 
 const principalRegister = async (req, res) => {
     try {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPass = await bcrypt.hash(req.body.password, salt);
-
-        const admin = new Admin({
-            ...req.body,
-            password: hashedPass
+        const principal = new PrincipalModel({ // Instantiate as an object
+            ...req.body
         });
 
-        const existingAdminByEmail = await Admin.findOne({ email: req.body.email });
-        const existingSchool = await Admin.findOne({ schoolName: req.body.schoolName });
+        const existingPrincipalByEmail = await PrincipalModel.findOne({ email: req.body.email });
+        const existingSchool = await PrincipalModel.findOne({ schoolName: req.body.schoolName });
 
-        if (existingAdminByEmail) {
+        if (existingPrincipalByEmail) {
             res.send({ message: 'Email already exists' });
         }
         else if (existingSchool) {
             res.send({ message: 'School name already exists' });
         }
         else {
-            let result = await admin.save();
+            let result = await principal.save(); // Use the instantiated object for saving
             result.password = undefined;
             res.send(result);
         }
@@ -29,4 +26,4 @@ const principalRegister = async (req, res) => {
     }
 };
 
-module.exports = {principalRegister}
+module.exports = { principalRegister };
