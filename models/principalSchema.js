@@ -1,0 +1,28 @@
+const mongoose = require("mongoose")
+
+const principalSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    role: {
+        type: String,
+        default: "Principal"
+    },
+    schoolName: {
+        type: String,
+        unique: true,
+        required: true
+    }
+})
+
+module.exports = mongoose.model("principal",principalSchema)
