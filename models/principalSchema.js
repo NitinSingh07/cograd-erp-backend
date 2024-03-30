@@ -16,7 +16,7 @@ const principalSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        default: "Admin"
+        default: "Principal"
     },
     schoolName: {
         type: String,
