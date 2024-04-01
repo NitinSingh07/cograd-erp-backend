@@ -5,14 +5,27 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    rollNum: {
-        type: Number,
-        required: true
-    },
+    // rollNum: {
+    //     type: Number,
+    //     required: true
+    // },
     password: {
         type: String,
         required: true
     },
+    email: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        default: "Student"
+    },
+    schoolName: {
+        type: String,
+        unique: true,
+        required: true
+    }
     // fathersName: {
     //     type: String,
     //     required: true
