@@ -3,13 +3,15 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const app = express();
-const Routes = require("./routes/route.js");
+
 
 const teacherRouter = require("./routes/teacherRoute.js");
 const schoolRouter = require("./routes/school.js");
 const subjectRouter = require("./routes/subjectRoute.js");
 const classRouter = require("./routes/classRoute.js");
 const parentRouter = require("./routes/parentRoute.js");
+const studentRouter = require("./routes/studentRoute.js");
+
 
 const cloudinary = require("cloudinary").v2;
 
@@ -31,13 +33,20 @@ app.use("/school", schoolRouter);
 app.use("/subject", subjectRouter);
 app.use("/class", classRouter);
 app.use("/parent", parentRouter);
+app.use("/student", studentRouter);
+// app.use("/", Routes);
 
-app.use("/", Routes);
-
+// mongoose
+//   .connect("mongodb://localhost:27017/erp-backend")
+//   .then(console.log("Connected to MongoDB"))
+//   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 mongoose
-  .connect("mongodb://localhost:27017/erp-backend")
-  .then(console.log("Connected to MongoDB"))
-  .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+    .connect(process.env.MONGO_URL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
+    .then(console.log("Connected to MongoDB"))
+    .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);
