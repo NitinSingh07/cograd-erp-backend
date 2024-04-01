@@ -11,7 +11,7 @@ const subjectRouter = require("./routes/subjectRoute.js");
 const classRouter = require("./routes/classRoute.js");
 const parentRouter = require("./routes/parentRoute.js");
 const studentRouter = require("./routes/studentRoute.js");
-
+const classTeacher = require("./routes/classTeacherRoute.js")
 
 const cloudinary = require("cloudinary").v2;
 
@@ -34,6 +34,7 @@ app.use("/subject", subjectRouter);
 app.use("/class", classRouter);
 app.use("/parent", parentRouter);
 app.use("/student", studentRouter);
+app.use("/classTeacher", classTeacher);
 // app.use("/", Routes);
 
 // mongoose
@@ -41,12 +42,12 @@ app.use("/student", studentRouter);
 //   .then(console.log("Connected to MongoDB"))
 //   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 mongoose
-    .connect(process.env.MONGO_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    })
-    .then(console.log("Connected to MongoDB"))
-    .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
+  .connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(console.log("Connected to MongoDB"))
+  .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);
