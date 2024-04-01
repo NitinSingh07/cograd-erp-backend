@@ -2,14 +2,24 @@ const bcrypt = require('bcrypt');
 const StudentModel = require('../models/studentSchema.js'); // Rename import to avoid conflict
 
 const studentRegister = async (req, res) => {
+    const { name, email, password, role, schoolName } = req.body;
     try {
-        const student = new StudentModel({ ...req.body });
+        const salt = await bcrypt.genSalt(10);
+        const hashedPass = await bcrypt.hash(password, salt);
 
-        const existingStudentByEmail = await StudentModel.findOne({ email: req.body.email });
-        const existingSchool = await StudentModel.findOne({ schoolName: req.body.schoolName });
+        const student = new StudentModel({
+            name,
+            email,
+            password: hashedPass,
+            role,
+            schoolName, // corrected from 'school'
+        });
+
+        const existingStudentByEmail = await StudentModel.findOne({ email });
+        const existingSchool = await StudentModel.findOne({ schoolName });
 
         // Validate email domain
-        const emailDomain = req.body.email.split('@')[1];
+        const emailDomain = email.split('@')[1];
         const validDomain = emailDomain === 'cograd.in';
 
         if (existingStudentByEmail) {
@@ -28,11 +38,14 @@ const studentRegister = async (req, res) => {
     }
 };
 
+
 const studentLogIn = async (req, res) => {
-    if (req.body.email && req.body.password) {
-        let student = await StudentModel.findOne({ email: req.body.email });
+    const { email, password } = req.body;
+    try {
+        const student = await StudentModel.findOne({ email });
         if (student) {
-            if (req.body.password === student.password) {
+            const passwordMatch = await bcrypt.compare(password, student.password);
+            if (passwordMatch) {
                 student.password = undefined;
                 res.send(student);
             } else {
@@ -41,23 +54,24 @@ const studentLogIn = async (req, res) => {
         } else {
             res.send({ message: "User not found" });
         }
-    } else {
-        res.send({ message: "Email and password are required" });
+    } catch (err) {
+        res.status(500).json(err);
     }
 };
+
 const getStudentDetail = async (req, res) => {
     try {
-        let student = await StudentModel.findById(req.params.id);
+        const student = await StudentModel.findById(req.params.id);
         if (student) {
             student.password = undefined;
             res.send(student);
-        }
-        else {
-            res.send({ message: "No Student found" });
+        } else {
+            res.status(404).send({ message: "No student found" });
         }
     } catch (err) {
         res.status(500).json(err);
     }
 };
+
 
 module.exports = { studentRegister, studentLogIn, getStudentDetail };
