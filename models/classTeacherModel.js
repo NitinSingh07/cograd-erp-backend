@@ -15,19 +15,22 @@ const classTeacherSchema = new mongoose.Schema(
       type: String,
       default: "classTeacher",
     },
-    //right now i am taking school as input but it will be reffered 
+    className: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "class",
+      required: true,
+    },
+    //right now i am taking school as input but it will be reffered
     school: {
-        type: String,
-        required: true,
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "school",
+      required: true,
+    },
     // school: {
     //   type: mongoose.Schema.Types.ObjectId,
     //   ref: "school",
     //   required: true,
     // },
-   
-    
-    
   },
   { timestamps: true }
 );
