@@ -18,20 +18,20 @@ const schoolSchema = new mongoose.Schema({
     type: String,
     default: "principal",
   },
-  location: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  ownerName: {
-    type: String,
-    required: true,
-  },
-  contact: {
-    type: String,
-    unique: true,
-    required: true,
-  },
+  // location: {
+  //   type: String,
+  //   unique: true,
+  //   required: true,
+  // },
+  // ownerName: {
+  //   type: String,
+  //   required: true,
+  // },
+  // contact: {
+  //   type: String,
+  //   unique: true,
+  //   required: true,
+  // },
 });
 
 module.exports = mongoose.model("school", schoolSchema);
