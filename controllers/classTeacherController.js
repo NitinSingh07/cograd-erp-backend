@@ -40,7 +40,10 @@ const classTeacherRegister = async (req, res) => {
     } else {
       let result = await classTeacher.save();
       result.password = undefined;
-      res.send(result);
+      const response = await (
+        await result.populate("className", "className")
+      ).populate("school", "schoolName");
+      res.send(response);
     }
   } catch (err) {
     res.status(500).json(err);
