@@ -38,10 +38,10 @@ const teacherSchema = new mongoose.Schema(
         },
       },
     ],
-    salary: {
-      type: Number,
-      required: true,
-    },
+    // salary: {
+    //   type: Number,
+    //   required: true,
+    // },
     // attendance: [
     //   {
     //     date: {
@@ -56,28 +56,28 @@ const teacherSchema = new mongoose.Schema(
     //     },
     //   },
     // ],
-    timeline: [
-      {
-        date: {
-          type: Date,
-          //   required: true,
-        },
-        time: {
-          type: Date,
-          //   required: true,
-        },
-        topic: {
-          type: String,
-          //   required: true,
-          //   required: true,
-        },
-        class: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "class",
-          //   required: true,
-        },
-      },
-    ],
+    // timeline: [
+    //   {
+    //     date: {
+    //       type: Date,
+    //       //   required: true,
+    //     },
+    //     time: {
+    //       type: Date,
+    //       //   required: true,
+    //     },
+    //     topic: {
+    //       type: String,
+    //       //   required: true,
+    //       //   required: true,
+    //     },
+    //     class: {
+    //       type: mongoose.Schema.Types.ObjectId,
+    //       ref: "class",
+    //       //   required: true,
+    //     },
+    //   },
+    // ],
   },
   { timestamps: true }
 );

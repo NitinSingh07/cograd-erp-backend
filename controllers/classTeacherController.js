@@ -1,9 +1,8 @@
 const bcrypt = require("bcrypt");
 const classTeacherModel = require("../models/classTeacherModel"); // Rename import to avoid conflict
 const classModel = require("../models/classModel");
-
 const classTeacherRegister = async (req, res) => {
-  const { email, password, role, className, school } = req.body;
+  const { email, password, role, className, school, teacherId } = req.body;
   try {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
@@ -14,6 +13,7 @@ const classTeacherRegister = async (req, res) => {
       role,
       className,
       school,
+      teacherId,
     });
 
     const classExist = await classModel.findOne({ _id: className });
@@ -49,6 +49,7 @@ const classTeacherRegister = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
 
 const classTeacherLogIn = async (req, res) => {
   const { email, password } = req.body;

@@ -20,12 +20,16 @@ const classTeacherSchema = new mongoose.Schema(
       ref: "class",
       required: true,
     },
-    //right now i am taking school as input but it will be reffered
     school: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "school",
       required: true,
     },
+    teacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "teacher",
+      required: true,
+    }
     // school: {
     //   type: mongoose.Schema.Types.ObjectId,
     //   ref: "school",
