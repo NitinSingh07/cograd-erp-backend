@@ -8,8 +8,8 @@ const {
 const router = express.Router();
 
 router.post("/create", ClassCreate);
-router.get("/classList", classList);
-router.get("/classDetail", getClassDetail);
-router.delete("/deleteClass", deleteClass);
+router.get("/classList/:id", classList);
+router.get("/classDetail/:id", getClassDetail);
+router.delete("/deleteClass/:id", deleteClass);
 
 module.exports = router;
