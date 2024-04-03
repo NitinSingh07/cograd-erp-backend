@@ -11,6 +11,8 @@ const classRouter = require("./routes/classRoute.js");
 const parentRouter = require("./routes/parentRoute.js");
 const studentRouter = require("./routes/studentRoute.js");
 const classTeacher = require("./routes/classTeacherRoute.js");
+const resultRouter = require("./routes/examResultRoute.js");
+const examListRouter = require("./routes/examListRoute.js");
 
 const cloudinary = require("cloudinary").v2;
 
@@ -34,6 +36,8 @@ app.use("/class", classRouter);
 app.use("/parent", parentRouter);
 app.use("/student", studentRouter);
 app.use("/classTeacher", classTeacher);
+app.use("/examResult", resultRouter);
+app.use("/examList", examListRouter);
 // app.use("/", Routes);
 
 mongoose
