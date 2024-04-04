@@ -1,31 +1,39 @@
-
 const { DateTime } = require('luxon');
 const Attendance = require("../models/attendanceModel");
-const Student = require("../models/studentSchema"); // Import Student model
-
+const ClassTeacher = require("../models/classTeacherModel");
+const Student = require("../models/studentSchema");
 const takeAttendance = async (req, res) => {
   try {
-    const { studentId, status } = req.body;
+    const { classTeacherId, statuses } = req.body;
 
-    // Fetch student details based on studentId
-    const student = await Student.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+    // Find class teacher by ID
+    const classTeacher = await ClassTeacher.findById(classTeacherId);
+    if (!classTeacher) {
+      return res.status(404).json({ message: 'Class teacher not found' });
     }
 
-    // Generate current date in dd/mm/yy format
+    const classId = classTeacher.className;
+
+    const students = await Student.find({ className: classId });
+
     const currentDate = DateTime.local().toFormat('dd/MM/yy');
 
-    // Save attendance record to the database with current date
-    const attendanceRecord = new Attendance({
-      student: studentId,
-      date: currentDate,
-      status
-    });
+    let attendanceRecords = [];
 
-    await attendanceRecord.save();
+    // Create attendance records for each student
+    for (let i = 0; i < students.length; i++) {
+      const attendanceRecord = new Attendance({
+        student: students[i]._id,
+        date: currentDate,
+        status: statuses[i]
+      });
+      attendanceRecords.push(attendanceRecord);
+    }
 
-    res.status(201).json({ message: `Attendance recorded successfully for ${student.name}` });
+    // Save all attendance records to the database
+    await Attendance.insertMany(attendanceRecords);
+
+    res.status(201).json({ message: 'Attendance recorded successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
@@ -34,31 +42,83 @@ const takeAttendance = async (req, res) => {
 
 const updateAttendance = async (req, res) => {
   try {
-    const { studentId, status } = req.body;
+    const { classTeacherId, studentId, status } = req.body;
 
     // Generate current date in dd/mm/yy format
     const currentDate = DateTime.local().toFormat('dd/MM/yy');
-    // Fetch student details based on studentId
-    const student = await Student.findById(studentId);
-    // Find attendance record for today and the provided student ID
-    let attendanceRecord = await Attendance.findOne({ student: studentId, date: currentDate });
 
-    // If attendance record for today exists, update it
-    if (attendanceRecord) {
-      attendanceRecord.status = status;
-      await attendanceRecord.save();
-      res.status(200).json({ message: `Attendance updated successfully for today for ${student.name}` });
-    } else {
-      // If attendance record for today doesn't exist
-      res.status(404).json({ message: 'No attendance record found for today' });
-    }
+    // Update attendance record for today
+    let attendanceRecord = await Attendance.findOneAndUpdate(
+      { student: studentId, date: currentDate },
+      { status },
+      { new: true }
+    );
+
+    res.status(200).json({ message: `Attendance updated successfully for ${attendanceRecord.student} with status ${status}` });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+const getStudentList = async (req, res) => {
+  try {
+    const { classTeacherId } = req.params;
+
+    // Find class teacher by ID
+    const classTeacher = await ClassTeacher.findById(classTeacherId);
+    if (!classTeacher) {
+      return res.status(404).json({ message: 'Class teacher not found' });
+    }
+
+    // Get the class ID from the class teacher
+    const classId = classTeacher.className;
+
+    // Find all students belonging to the class
+    const students = await Student.find({ className: classId });
+
+    res.status(200).json({ students });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getStudentAttendanceByDate = async (req, res) => {
+  try {
+    const { classTeacherId, studentId, date } = req.params;
+
+    const attendance = await Attendance.findOne({ student: studentId, date }).populate('student', 'name');
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance not found for the specified student on the given date' });
+    }
+
+    res.status(200).json({ attendance });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getAllStudentsAttendanceByDate = async (req, res) => {
+  try {
+    const { classTeacherId, date } = req.params;
+
+    const attendance = await Attendance.find({ date }).populate('student', 'name');
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance not found for the specified date' });
+    }
+
+    res.status(200).json({ attendance });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   updateAttendance,
-  takeAttendance
-
-}
+  takeAttendance,
+  getStudentList,
+  getStudentAttendanceByDate,
+  getAllStudentsAttendanceByDate
+};
