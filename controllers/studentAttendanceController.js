@@ -1,5 +1,5 @@
 const { DateTime } = require('luxon');
-const Attendance = require("../models/attendanceModel");
+const Attendance = require("../models/studentAttendanceModel");
 const ClassTeacher = require("../models/classTeacherModel");
 const Student = require("../models/studentSchema");
 const takeAttendance = async (req, res) => {
