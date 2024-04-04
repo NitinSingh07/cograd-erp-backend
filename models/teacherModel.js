@@ -38,46 +38,7 @@ const teacherSchema = new mongoose.Schema(
         },
       },
     ],
-    // salary: {
-    //   type: Number,
-    //   required: true,
-    // },
-    // attendance: [
-    //   {
-    //     date: {
-    //       type: Date,
-    //       required: true,
-    //     },
-    //     presentCount: {
-    //       type: String,
-    //     },
-    //     absentCount: {
-    //       type: String,
-    //     },
-    //   },
-    // ],
-    // timeline: [
-    //   {
-    //     date: {
-    //       type: Date,
-    //       //   required: true,
-    //     },
-    //     time: {
-    //       type: Date,
-    //       //   required: true,
-    //     },
-    //     topic: {
-    //       type: String,
-    //       //   required: true,
-    //       //   required: true,
-    //     },
-    //     class: {
-    //       type: mongoose.Schema.Types.ObjectId,
-    //       ref: "class",
-    //       //   required: true,
-    //     },
-    //   },
-    // ],
+  
   },
   { timestamps: true }
 );

@@ -1,13 +1,27 @@
 const { DateTime } = require('luxon');
-const teacherAttendance = require("../models/teacherAttendanceModel");
+const TeacherAttendance = require("../models/teacherAttendanceModel");
+const School = require("../models/school");
 const Teacher = require("../models/teacherModel");
 
 const takeTeacherAttendance = async (req, res) => {
   try {
-    const { schoolName, statuses } = req.body;
+    const { schoolId, statuses } = req.body;
 
-    // Find teachers by school name
-    const teachers = await Teacher.find({ schoolName });
+    // Find the school by school Id
+    const school = await School.findOne({ _id: schoolId });
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    // Get all teachers in the school
+    const teachers = await Teacher.find({ school: school._id });
+    if (!teachers || teachers.length === 0) {
+      return res.status(404).json({ message: 'No teachers found in the school' });
+    }
+
+    if (statuses.length !== teachers.length) {
+      return res.status(400).json({ message: 'Mismatch in number of statuses and teachers' });
+    }
 
     const currentDate = DateTime.local().toFormat('dd/MM/yy');
 
@@ -15,7 +29,7 @@ const takeTeacherAttendance = async (req, res) => {
 
     // Create attendance records for each teacher
     for (let i = 0; i < teachers.length; i++) {
-      const attendanceRecord = new teacherAttendance({
+      const attendanceRecord = new TeacherAttendance({
         teacher: teachers[i]._id,
         date: currentDate,
         status: statuses[i]
@@ -23,8 +37,8 @@ const takeTeacherAttendance = async (req, res) => {
       attendanceRecords.push(attendanceRecord);
     }
 
-    // Save all attendance records to the database
-    await teacherAttendance.insertMany(attendanceRecords);
+    // Save all teacher attendance records to the database
+    await TeacherAttendance.insertMany(attendanceRecords);
 
     res.status(201).json({ message: 'Teacher attendance recorded successfully' });
   } catch (err) {
@@ -32,12 +46,11 @@ const takeTeacherAttendance = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 const getTeacherAttendanceByDate = async (req, res) => {
   try {
     const { schoolName, teacherId, date } = req.params;
 
-    const attendance = await teacherAttendance.findOne({ teacher: teacherId, date }).populate('teacher', 'name');
+    const attendance = await TeacherAttendance.findOne({ teacher: teacherId, date }).populate('teacher', 'name');
     if (!attendance) {
       return res.status(404).json({ message: 'Attendance not found for the specified teacher on the given date' });
     }
@@ -53,8 +66,8 @@ const getAllTeachersAttendanceByDate = async (req, res) => {
   try {
     const { schoolName, date } = req.params;
 
-    const attendance = await teacherAttendance.find({ date }).populate('teacher', 'name');
-    if (!attendance) {
+    const attendance = await TeacherAttendance.find({ date }).populate('teacher', 'name');
+    if (!attendance || attendance.length === 0) {
       return res.status(404).json({ message: 'Attendance not found for the specified date' });
     }
 
@@ -64,17 +77,21 @@ const getAllTeachersAttendanceByDate = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 const getTeachersBySchool = async (req, res) => {
   const { schoolId } = req.params;
 
   try {
     const teachers = await Teacher.find({ school: schoolId }).populate("teachSubjects.subject", "subjectName").select("-password");
-    
+
     res.json(teachers);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 module.exports = {
   takeTeacherAttendance,
   getTeachersBySchool,
