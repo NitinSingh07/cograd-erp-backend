@@ -13,7 +13,8 @@ const studentRouter = require("./routes/studentRoute.js");
 const classTeacher = require("./routes/classTeacherRoute.js");
 const resultRouter = require("./routes/examResultRoute.js");
 const examListRouter = require("./routes/examListRoute.js");
-const attendanceRouter = require("./routes/attendanceRoutes.js");
+const studentAttendanceRouter = require("./routes/studentAttendanceRoutes.js");
+const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
 
 const cloudinary = require("cloudinary").v2;
 
@@ -39,7 +40,8 @@ app.use("/student", studentRouter);
 app.use("/classTeacher", classTeacher);
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
-app.use("/attendance", attendanceRouter); 
+app.use("/studentAttendance", studentAttendanceRouter);
+app.use("/teacherAttendance", teacherAttendanceRouter);
 
 // app.use("/", Routes);
 

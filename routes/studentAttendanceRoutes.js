@@ -2,7 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
-const { takeAttendance, updateAttendance, getStudentList, getStudentAttendanceByDate, getAllStudentsAttendanceByDate } = require("../controllers/attendanceController");
+const { takeAttendance, updateAttendance, getStudentList, getStudentAttendanceByDate, getAllStudentsAttendanceByDate } = require("../controllers/studentAttendanceController");
 
 router.post("/mark/:classTeacherId", takeAttendance);
 // router.put("/mark/:classTeacherId", updateAttendance); // Use PUT method for updating
