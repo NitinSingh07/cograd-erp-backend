@@ -2,7 +2,6 @@ const { DateTime } = require('luxon');
 const TeacherAttendance = require("../models/teacherAttendanceModel");
 const School = require("../models/school");
 const Teacher = require("../models/teacherModel");
-
 const takeTeacherAttendance = async (req, res) => {
   try {
     const { schoolId, statuses } = req.body;
@@ -25,6 +24,12 @@ const takeTeacherAttendance = async (req, res) => {
 
     const currentDate = DateTime.local().toFormat('dd/MM/yy');
 
+    // Check if attendance is already recorded for the current date
+    const existingAttendance = await TeacherAttendance.findOne({ date: currentDate });
+    if (existingAttendance) {
+      return res.status(400).json({ message: 'Attendance has already been recorded for today' });
+    }
+
     let attendanceRecords = [];
 
     // Create attendance records for each teacher
@@ -46,6 +51,7 @@ const takeTeacherAttendance = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 const getTeacherAttendanceByDate = async (req, res) => {
   try {
     const { schoolName, teacherId, date } = req.params;

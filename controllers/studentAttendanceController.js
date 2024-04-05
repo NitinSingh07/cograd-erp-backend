@@ -16,7 +16,17 @@ const takeAttendance = async (req, res) => {
 
     const students = await Student.find({ className: classId });
 
+    if (statuses.length !== students.length) {
+      return res.status(400).json({ message: 'Mismatch in number of statuses and students' });
+    }
+
     const currentDate = DateTime.local().toFormat('dd/MM/yy');
+
+    // Check if attendance is already recorded for the current date
+    const existingAttendance = await Attendance.findOne({ date: currentDate });
+    if (existingAttendance) {
+      return res.status(400).json({ message: 'Attendance has already been recorded for today' });
+    }
 
     let attendanceRecords = [];
 
@@ -39,6 +49,7 @@ const takeAttendance = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 const updateAttendance = async (req, res) => {
   try {
