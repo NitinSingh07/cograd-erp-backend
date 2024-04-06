@@ -15,7 +15,7 @@ const resultRouter = require("./routes/examResultRoute.js");
 const examListRouter = require("./routes/examListRoute.js");
 const studentAttendanceRouter = require("./routes/studentAttendanceRoutes.js");
 const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
-
+const schoolExpenseRouter= require("./routes/schoolExpenseRoutes.js")
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
@@ -42,7 +42,7 @@ app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/teacherAttendance", teacherAttendanceRouter);
-
+app.use("/expense", schoolExpenseRouter);
 // app.use("/", Routes);
 
 mongoose
