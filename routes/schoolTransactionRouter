@@ -1,0 +1,15 @@
+const express = require("express");
+const router = express.Router();
+const {
+  addTransaction,
+  getTransactionsBySchool,getIncomeOrExpense,
+  getTransactionsBySchoolAndDate,
+} = require("../controllers/transactionController");
+
+router.post("/", addTransaction);
+router.get("/:schoolId", getTransactionsBySchool);
+// http://localhost:4000/transaction/income/660d8dc47c38601f49dcfcaf
+router.get("/:type/:schoolId", getIncomeOrExpense);
+router.get("/:schoolId/:date", getTransactionsBySchoolAndDate);
+
+module.exports = router;

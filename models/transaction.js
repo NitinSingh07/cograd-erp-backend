@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const schoolExpenseSchema = new mongoose.Schema({
+const transactionSchema = new mongoose.Schema({
   school: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "school",
@@ -21,6 +21,11 @@ const schoolExpenseSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  type: {
+    type: String,
+    enum: ["income", "expense"],
+    required: true,
+  },
 });
 
-module.exports = mongoose.model("expense", schoolExpenseSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);
