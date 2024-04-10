@@ -6,12 +6,13 @@ const {
   getClassDetail,
   deleteClass,
 } = require("../controllers/classController");
+
 router.post("/create", ClassCreate);
 router.get("/classList", classList);
 
 //get details of a specific class
 router.get("/classDetail/:id", getClassDetail);
-// to delete a class//not working
+// to delete a class//subjects should be there 
 router.delete("/deleteClass/:id", deleteClass);
 
 module.exports = router;
