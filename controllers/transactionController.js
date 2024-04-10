@@ -1,14 +1,24 @@
+// controllers/transactionController.js
 const Transaction = require("../models/transaction");
+const { getSchool } = require("../service/schoolAuth");
 
 const addTransaction = async (req, res) => {
   try {
-    const { schoolId, amount, description, type } = req.body;
-    if (!schoolId || !amount || !type || !["income", "expense"].includes(type)) {
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
+    
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { amount, description, type } = req.body;
+
+    if (!amount || !type || !["income", "expense"].includes(type)) {
       return res.status(400).json({ message: "Invalid transaction data" });
     }
 
     const transaction = new Transaction({
-      school: schoolId,
+      school: decodedToken.id, // Use the school ID from the decoded token
       amount,
       description,
       type,
@@ -25,9 +35,14 @@ const addTransaction = async (req, res) => {
 
 const getTransactionsBySchool = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    const transactions = await Transaction.find({ school: schoolId });
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const transactions = await Transaction.find({ school: decodedToken.id });
 
     res.status(200).json({ transactions });
   } catch (err) {
@@ -35,11 +50,19 @@ const getTransactionsBySchool = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const getIncomeOrExpense = async (req, res) => {
   try {
-    const { schoolId,type } = req.params;
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    const transactions = await Transaction.find({ school: schoolId ,type: type });
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { type } = req.params;
+
+    const transactions = await Transaction.find({ school: decodedToken.id, type });
 
     res.status(200).json({ transactions });
   } catch (err) {
@@ -50,18 +73,21 @@ const getIncomeOrExpense = async (req, res) => {
 
 const getTransactionsBySchoolAndDate = async (req, res) => {
   try {
-    const { schoolId, date } = req.params;
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    if (!schoolId || !date) {
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { date } = req.params;
+
+    if (!date) {
       return res.status(400).json({ message: "Missing required path parameters" });
     }
 
-    // const startDate = new Date(date);
-    // const endDate = new Date(date);
-    // endDate.setDate(endDate.getDate() + 1);
-
     const transactions = await Transaction.find({
-      school: mongoose.Types.ObjectId(schoolId),
+      school: decodedToken.id,
       date: new Date(date)
     });
 

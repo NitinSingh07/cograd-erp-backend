@@ -1,15 +1,21 @@
+// routes/transactionRoutes.js
 const express = require("express");
 const router = express.Router();
 const {
   addTransaction,
-  getTransactionsBySchool,getIncomeOrExpense,
+  getTransactionsBySchool,
+  getIncomeOrExpense,
   getTransactionsBySchoolAndDate,
 } = require("../controllers/transactionController");
+const { restrictTo } = require('../middleware/auth');
 
-router.post("/", addTransaction);
-router.get("/:schoolId", getTransactionsBySchool);
-// http://localhost:4000/transaction/income/660d8dc47c38601f49dcfcaf
-router.get("/:type/:schoolId", getIncomeOrExpense);
-router.get("/:schoolId/:date", getTransactionsBySchoolAndDate);
+// Route to add a new transaction
+router.post("/",  addTransaction);
+// Route to get transactions by school
+router.get("/",  getTransactionsBySchool);
+// Route to get income or expense transactions by school
+router.get("/:type",  getIncomeOrExpense);
+// Route to get transactions by school and date
+// router.get("/:date",  getTransactionsBySchoolAndDate);
 
 module.exports = router;
