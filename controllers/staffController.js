@@ -1,12 +1,20 @@
 // controllers/staffController.js
 const Staff = require('../models/staffModel');
+const { getSchool } = require('../service/schoolAuth');
 
 const addStaffMember = async (req, res) => {
   try {
-    const { school, name, salary, post } = req.body;
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
+
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { name, salary, post } = req.body; // Assuming school ID is not passed in the request body
 
     const staffMember = new Staff({
-      school,
+      school: decodedToken.id, // Use the school ID from the decoded token
       name,
       salary,
       post
@@ -18,12 +26,20 @@ const addStaffMember = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 const getStaffDetails = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    const staffMember = await Staff.find({ school: schoolId })
-    res.json(staffMember)
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const schoolId = decodedToken.id; // Extract the school ID from the decoded token
+
+    const staffMember = await Staff.find({ school: schoolId });
+    res.json(staffMember);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
