@@ -5,7 +5,7 @@ const { addStaffMember, getStaffDetails } = require('../controllers/staffControl
 const { restrictTo } = require('../middleware/auth');
 
 // Route to add a new staff member
-router.post('/', addStaffMember);
-router.get('/:schoolId' , getStaffDetails)
+router.post('/add', addStaffMember);
+router.get('/get' , getStaffDetails)
 
 module.exports = router;
