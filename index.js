@@ -43,7 +43,7 @@ app.use("/teacher", teacherRouter);
 //this one 
 app.use("/school", schoolRouter);
 app.use("/subject", subjectRouter);
-app.use("/class", classRouter);
+
 app.use("/parent", parentRouter);
 app.use("/student", studentRouter);
 app.use("/classTeacher", classTeacher);
@@ -55,6 +55,7 @@ app.use("/teacherAttendance",teacherAttendanceRouter);
 app.use(checkForAuthentication)
 app.use("/transaction", restrictTo(["PRINCIPAL"]),schoolTransactionRouter);
 app.use('/staff',restrictTo(["PRINCIPAL"]), staffRoutes);
+app.use("/class",restrictTo(["PRINCIPAL"]), classRouter);
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/cograd-erp")
