@@ -51,8 +51,9 @@ app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/teacherAttendance",teacherAttendanceRouter);
-app.use("/transaction", schoolTransactionRouter);
+
 app.use(checkForAuthentication)
+app.use("/transaction", restrictTo(["PRINCIPAL"]),schoolTransactionRouter);
 app.use('/staff',restrictTo(["PRINCIPAL"]), staffRoutes);
 
 mongoose
