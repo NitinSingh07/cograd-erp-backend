@@ -1,11 +1,16 @@
 const School = require("../models/school");
+const { setSchool } = require("../service/schoolAuth");
 
 exports.schoolRegister = async (req, res) => {
   try {
     const school = new School({
       ...req.body,
     });
-
+    // Generate token for the newly signed up school
+    const token = setSchool(school);
+    console.log(token);
+    // Set token in cookies
+    res.cookie("token", token);
     const existingSchoolByEmail = await School.findOne({
       email: req.body.email,
     });
@@ -33,6 +38,9 @@ exports.schoolLogIn = async (req, res) => {
     if (school) {
       if (req.body.password === school.password) {
         school.password = undefined;
+        const token = setSchool(school);
+        res.cookie("token",token)
+        console.log(token);
         res.send(school);
       } else {
         res.send({ message: "Invalid password" });

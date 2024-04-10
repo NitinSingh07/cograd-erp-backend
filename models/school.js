@@ -16,9 +16,10 @@ const schoolSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "principal",
+    default: "PRINCIPAL",
   },
-  
-});
+},
+{ timestamps: true }
+);
 
 module.exports = mongoose.model("school", schoolSchema);
