@@ -1,0 +1,21 @@
+// routes/transactionRoutes.js
+const express = require("express");
+const router = express.Router();
+const {
+  addTransaction,
+  getTransactionsBySchool,
+  getIncomeOrExpense,
+  getTransactionsBySchoolAndDate,
+} = require("../controllers/transactionController");
+const { restrictTo } = require("../middleware/auth");
+
+// Route to add a new transaction
+router.post("/", addTransaction);
+// Route to get transactions by school
+router.get("/", getTransactionsBySchool);
+// Route to get income or expense transactions by school
+router.get("/:type", getIncomeOrExpense);
+// Route to get transactions by school and date
+// router.get("/:date",  getTransactionsBySchoolAndDate);
+
+module.exports = router;

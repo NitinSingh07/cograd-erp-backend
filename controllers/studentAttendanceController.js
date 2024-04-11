@@ -2,7 +2,6 @@ const { DateTime } = require("luxon");
 const Attendance = require("../models/attendanceModel");
 const ClassTeacher = require("../models/classTeacherModel");
 const Student = require("../models/studentSchema");
-
 const takeAttendance = async (req, res) => {
   try {
     const { classTeacherId, statuses } = req.body;

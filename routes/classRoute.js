@@ -1,15 +1,18 @@
 const express = require("express");
+const router = express.Router();
 const {
   ClassCreate,
   classList,
   getClassDetail,
   deleteClass,
 } = require("../controllers/classController");
-const router = express.Router();
 
 router.post("/create", ClassCreate);
-router.get("/classList/:id", classList);
+router.get("/classList", classList);
+
+//get details of a specific class
 router.get("/classDetail/:id", getClassDetail);
+// to delete a class//subjects should be there 
 router.delete("/deleteClass/:id", deleteClass);
 
 module.exports = router;
