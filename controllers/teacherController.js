@@ -2,8 +2,8 @@ const bcrypt = require("bcrypt");
 const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
 
-exports.teacherRegister = async (req, res) => {
-  const { name, email, password, role, school, teachSubjects, salary } =
+const teacherRegister = async (req, res) => {
+  const { name, email, password, role, school, teachSubjects } =
     req.body;
   try {
     const salt = await bcrypt.genSalt(10);
@@ -50,3 +50,18 @@ exports.teacherRegister = async (req, res) => {
     res.status(500).json(err);
   }
 };
+const getTeachersBySchool = async (req, res) => {
+  const { schoolId } = req.params;
+
+  try {
+    const teachers = await Teacher.find({ school: schoolId }).populate("teachSubjects.subject", "subjectName").select("-password");
+    
+    res.json(teachers);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  getTeachersBySchool, teacherRegister
+}
