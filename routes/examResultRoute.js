@@ -8,6 +8,6 @@ const router = express.Router();
 
 router.post("/", addExamResult);
 router.get("/:id", findResultofStudent);
-router.get("/classResult", getClassExamResults);
+router.get("/classResult/:classId", getClassExamResults);
 
 module.exports = router;
