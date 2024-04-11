@@ -6,6 +6,7 @@ dotenv.config();
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOEKN;
+const fromNumber = process.env.TWILIO_FROM_NUMBER;
 
 const twilio = require("twilio");
 const client = new twilio.Twilio(accountSid, authToken);
@@ -17,7 +18,7 @@ async function sendSMS(message) {
     const response = await client.messages.create({
       body: message,
       to: "+919602787267", // Recipient's phone number
-      from: "+12565408134", // Your Twilio phone number
+      from: fromNumber, // Your Twilio phone number
     });
 
     return response.sid; // Return SID of the sent SMS
