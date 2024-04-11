@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const Parent = require("./models/parentModel");
+const dotenv = require("dotenv");
+dotenv.config();
 
-const accountSid = "AC647e6ce824cdf1b6621bdede61a44e31";
-const authToken = "20d3e0e7f70b2cdff50564e4c4cb9bf4";
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOEKN;
 
 const twilio = require("twilio");
 const client = new twilio.Twilio(accountSid, authToken);
