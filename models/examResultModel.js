@@ -8,7 +8,7 @@ const examResultSchema = new mongoose.Schema({
   },
   exams: [
     {
-      examName: {
+      exam: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "ExamList",
         required: true,

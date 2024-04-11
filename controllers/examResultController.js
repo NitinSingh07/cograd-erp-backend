@@ -70,31 +70,63 @@ exports.findResultofStudent = async (req, res) => {
 };
 
 exports.getClassExamResults = async (req, res) => {
-  //   const classId = req.params.classId;
-  //   const examName = req.query.examName; // Extract the examName from query parameters
-
-  const { classId, examName } = req.body;
+  const classId = req.params.classId;
+  const examName = req.query.examName; // Extract the examName from query parameters
 
   try {
     // Step 1: Retrieve the list of students belonging to the specified class
     const students = await Student.find({ className: classId });
 
-    // Step 2: Fetch exam results for each student for the required examName
-    const resultsPromises = students.map(async (student) => {
-      const examResult = await ExamResult.findOne({ student: student._id })
-        .populate("student", "name") // Populate the student details
-        .populate({
-          path: "exams.examName", // Populate the examName field within the exams array
-          match: { examName: examName }, // Filter the exams by examName
-          select: "examName subjects", // Select only the examName and subjects fields
+    if (examName) {
+      // Step 2: Fetch exam results for each student for the required examName
+      const resultsPromises = students.map(async (student) => {
+        const examResult = await ExamResult.findOne({
+          student: student._id,
+          "exams.examName": examName, // Filter by examName within the exams array
+        }).populate({
+          path: "exams.examName",
+          match: { _id: examName }, // Ensure the populated examName matches the provided examName
+          select: "examName subjects",
         });
 
-      return { student: student, examResult: examResult }; // Combine student and examResult
-    });
+        student.password = undefined;
 
-    // Step 3: Await all promises and send the list of students with their exam results
-    const results = await Promise.all(resultsPromises);
-    res.status(200).json(results); // Filter out students without exam results
+        return { student: student, examResult: examResult };
+      });
+
+      // Step 3: Await all promises and send the list of students with their exam results
+      const results = await Promise.all(resultsPromises);
+
+      // Step 4: Filter out students without exam results for the specified examName
+      const filteredResults = results.filter(
+        ({ examResult }) => examResult !== null
+      );
+
+      res.status(200).json(filteredResults);
+    } else {
+      const resultsPromises = students.map(async (student) => {
+        const examResult = await ExamResult.findOne({
+          student: student._id,
+        }).populate({
+          path: "exams.examName",
+          select: "examName subjects",
+        });
+
+        student.password = undefined;
+
+        return { student: student, examResult: examResult };
+      });
+
+      // Step 3: Await all promises and send the list of students with their exam results
+      const results = await Promise.all(resultsPromises);
+
+      // Step 4: Filter out students without exam results for the specified examName
+      const filteredResults = results.filter(
+        ({ examResult }) => examResult !== null
+      );
+
+      res.status(200).json(filteredResults);
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

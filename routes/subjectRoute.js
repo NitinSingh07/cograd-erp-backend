@@ -12,4 +12,4 @@ router.get("/allSubjects", allSubjects);
 router.get("/classSubjects/:id", classSubjects);
 router.get("/freeSubjects/:id", freeSubjectList);
 
-module.exports = router;
+module.exports = router; 

@@ -14,6 +14,7 @@ const classTeacher = require("./routes/classTeacherRoute.js");
 const resultRouter = require("./routes/examResultRoute.js");
 const examListRouter = require("./routes/examListRoute.js");
 const attendanceRouter = require("./routes/attendanceRoutes.js");
+const smsRoutes = require("./sendSMS.js");
 
 const cloudinary = require("cloudinary").v2;
 
@@ -39,12 +40,13 @@ app.use("/student", studentRouter);
 app.use("/classTeacher", classTeacher);
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
-app.use("/attendance", attendanceRouter); 
+app.use("/attendance", attendanceRouter);
+app.use("/api", smsRoutes);
 
 // app.use("/", Routes);
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/cograd-erp")
+  .connect("mongodb://localhost:27017/erp-backend")
   .then(console.log("Connected to MongoDB"))
   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 // mongoose
