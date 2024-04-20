@@ -33,22 +33,27 @@ exports.schoolRegister = async (req, res) => {
 };
 
 exports.schoolLogIn = async (req, res) => {
-  if (req.body.email && req.body.password) {
-    let school = await School.findOne({ email: req.body.email });
-    if (school) {
-      if (req.body.password === school.password) {
-        school.password = undefined;
-        const token = setSchool(school);
-        res.cookie("token",token)
-        console.log(token);
-        res.send(school);
-      } else {
-        res.send({ message: "Invalid password" });
-      }
-    } else {
-      res.send({ message: "School not found" });
+  try {
+    if (!req.body.email || !req.body.password) {
+      return res.status(400).send({ message: "Email and password are required" });
     }
-  } else {
-    res.send({ message: "Email and password are required" });
+    
+    let school = await School.findOne({ email: req.body.email });
+    if (!school) {
+      return res.status(404).send({ message: "School not found" });
+    }
+    
+    if (req.body.password !== school.password) {
+      return res.status(401).send({ message: "Invalid password" });
+    }
+    
+    // Remove password from the school object before sending it back
+    school.password = undefined;
+    const token = setSchool(school);
+    res.cookie("token", token);
+    return res.status(200).send(school);
+  } catch (error) {
+    console.error("Error logging in:", error);
+    return res.status(500).send({ message: "Internal server error" });
   }
 };
