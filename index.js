@@ -22,6 +22,17 @@ const { checkForAuthentication, restrictTo } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
+const allowedOrigins = [
+  "http://localhost:5173"
+];
+
+app.use(
+  cors({
+    credentials: true,
+    origin: allowedOrigins,
+    exposedHeaders: ["X-Total-Count"],
+  })
+);
 dotenv.config();
 
 cloudinary.config({
@@ -51,7 +62,7 @@ app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/teacherAttendance", teacherAttendanceRouter);
-app.use("/sms", smsRouter);
+// app.use("/sms", smsRouter);
 
 app.use(checkForAuthentication);
 app.use("/subject", subjectRouter);
@@ -60,7 +71,7 @@ app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
 
 mongoose
-  .connect("mongodb://localhost:27017/erp-backend")
+  .connect("mongodb://127.0.0.1:27017/cograd-erp")
   .then(console.log("Connected to MongoDB"))
   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 

@@ -11,7 +11,9 @@ function checkForAuthentication(req, res, next) {
 
     const token = tokenCookie;
     // Retrieve user information based on the token
+   
     const user = getSchool(token);
+    console.log("auth.js token",user);
     req.user = user;
     return next();
 }

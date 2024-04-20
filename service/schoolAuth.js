@@ -8,7 +8,7 @@ function setSchool(school) {
         email: school.email,
         role: school.role, 
     };
-    return jwt.sign(payload, secret);
+    return jwt.sign(payload, secret, { expiresIn: '1h' });
 }
 
 
