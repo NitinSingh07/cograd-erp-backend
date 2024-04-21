@@ -8,7 +8,7 @@ const {
 } = require("../controllers/classController");
 
 router.post("/create", ClassCreate);
-router.get("/classList", classList);
+router.get("/get", classList);
 
 //get details of a specific class
 router.get("/classDetail/:id", getClassDetail);
