@@ -29,7 +29,7 @@ function restrictTo(roles = []) {
         if (!roles.includes(req.user.role))
             return res.end("UnAuthorized")
 
-        return next();
+        return next(); // User is authorized
     }
 
 }

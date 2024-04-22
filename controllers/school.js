@@ -1,16 +1,10 @@
+const bcrypt = require("bcryptjs");
 const School = require("../models/school");
 const { setSchool } = require("../service/schoolAuth");
 
 exports.schoolRegister = async (req, res) => {
   try {
-    const school = new School({
-      ...req.body,
-    });
-    // Generate token for the newly signed up school
-    const token = setSchool(school);
-    console.log(token);
-    // Set token in cookies
-    res.cookie("token", token);
+    // Check if email or school name already exists
     const existingSchoolByEmail = await School.findOne({
       email: req.body.email,
     });
@@ -19,14 +13,25 @@ exports.schoolRegister = async (req, res) => {
     });
 
     if (existingSchoolByEmail) {
-      res.send({ message: "Email already exists" });
+      return res.send({ message: "Email already exists" });
     } else if (existingSchool) {
-      res.send({ message: "School name already exists" });
-    } else {
-      let result = await school.save();
-      result.password = undefined;
-      res.send(result);
+      return res.send({ message: "School name already exists" });
     }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(req.body.password, 10); // 10 is the salt rounds
+    const school = new School({
+      ...req.body,
+      password: hashedPassword, // Store the hashed password
+    });
+
+    // Generate token for the newly signed-up school
+    const token = setSchool(school);
+    res.cookie("token", token);
+
+    let result = await school.save();
+    result.password = undefined; // Do not send password back
+    res.send(result);
   } catch (err) {
     res.status(500).json(err);
   }
@@ -37,20 +42,22 @@ exports.schoolLogIn = async (req, res) => {
     if (!req.body.email || !req.body.password) {
       return res.status(400).send({ message: "Email and password are required" });
     }
-    
+
     let school = await School.findOne({ email: req.body.email });
     if (!school) {
       return res.status(404).send({ message: "School not found" });
     }
-    
-    if (req.body.password !== school.password) {
+
+    // Check if the password matches
+    const isMatch = await bcrypt.compare(req.body.password, school.password);
+    if (!isMatch) {
       return res.status(401).send({ message: "Invalid password" });
     }
-    
-    // Remove password from the school object before sending it back
-    school.password = undefined;
+
+    school.password = undefined; // Remove password from the response
     const token = setSchool(school);
     res.cookie("token", token);
+
     return res.status(200).send(school);
   } catch (error) {
     console.error("Error logging in:", error);
