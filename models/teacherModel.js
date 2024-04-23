@@ -17,7 +17,7 @@ const teacherSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "teacher",
+      default: "TEACHER",
     },
     school: {
       type: mongoose.Schema.Types.ObjectId,

@@ -39,30 +39,26 @@ exports.subjectCreate = async (req, res) => {
   }
 };
 
-
 exports.allSubjects = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
     
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+    const schoolId = decodedToken.id;
 
-    const subjects = await Subject.find({ school: schoolId }).populate(
-      "school",
-      "schoolName"
-    );
+    const subjects = await Subject.find({ school: schoolId }).populate("school", "schoolName");
 
     if (subjects.length > 0) {
-      res.send(subjects);
+      res.status(200).send(subjects); // 200 OK
     } else {
-      res.send({ message: "No subjects found" });
+      res.status(404).json({ message: "No subjects found" }); // 404 Not Found
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

@@ -35,25 +35,26 @@ exports.ClassCreate = async (req, res) => {
 
 exports.classList = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
 
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const schoolId = decodedToken.id; // Extract the school ID from the decoded token
+    const schoolId = decodedToken.id;
 
     const sclasses = await Class.find({ school: schoolId });
     if (sclasses.length > 0) {
-      res.send(sclasses);
+      res.status(200).json(sclasses); // 200 OK if classes exist
     } else {
-      res.send({ message: "No classes found" });
+      res.status(404).json({ message: "No classes found" }); // 404 if no classes
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Internal Server Error" }); // 500 for server errors
   }
 };
+
 
 exports.getClassDetail = async (req, res) => {
   try {
