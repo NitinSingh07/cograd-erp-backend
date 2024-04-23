@@ -48,7 +48,7 @@ exports.allSubjects = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+    const schoolId = decodedToken.id;
 
     const subjects = await Subject.find({ school: schoolId }).populate(
       "school",
@@ -56,12 +56,12 @@ exports.allSubjects = async (req, res) => {
     );
 
     if (subjects.length > 0) {
-      res.send(subjects);
+      res.status(200).send(subjects); // 200 OK
     } else {
-      res.send({ message: "No subjects found" });
+      res.status(404).json({ message: "No subjects found" }); // 404 Not Found
     }
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

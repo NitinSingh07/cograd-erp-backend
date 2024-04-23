@@ -1,20 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const { 
-    takeTeacherAttendance, 
-    getTeacherAttendanceByDate, 
-    getAllTeachersAttendanceByDate,
-    getTeachersBySchool 
+const {
+  takeTeacherAttendance,
+  getTeacherAttendanceByDate,
+  getAllTeachersAttendanceByDate,
+  getTeachersBySchool,
 } = require("../controllers/teacherAttendanceController");
-
-// Route for marking attendance
+//school id will be extracted from the token , you need to do just this for the attendance
+//  "statuses": ["p", "a", "p", "p"] 
 router.post("/mark", takeTeacherAttendance);
 
-// Route for getting teachers by school
-router.get("/get/:schoolId", getTeachersBySchool);
+router.get("/get", getTeachersBySchool);
 
-// Routes for getting teacher attendance
-router.get('/:schoolName/:teacherId/:date', getTeacherAttendanceByDate);
-router.get('/:schoolName/:date', getAllTeachersAttendanceByDate);
+router.get("/:teacherId/:date", getTeacherAttendanceByDate);
+router.post("/getByDate", getAllTeachersAttendanceByDate);
 
 module.exports = router;

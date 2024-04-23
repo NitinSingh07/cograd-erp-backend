@@ -1,97 +1,134 @@
-const { DateTime } = require('luxon');
+const { getSchool } = require("../service/schoolAuth");
 const TeacherAttendance = require("../models/teacherAttendanceModel");
 const School = require("../models/school");
 const Teacher = require("../models/teacherModel");
+const { DateTime } = require("luxon");
+
 const takeTeacherAttendance = async (req, res) => {
   try {
-    const { schoolId, statuses } = req.body;
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
 
-    // Find the school by school Id
-    const school = await School.findOne({ _id: schoolId });
-    if (!school) {
-      return res.status(404).json({ message: 'School not found' });
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Get all teachers in the school
-    const teachers = await Teacher.find({ school: school._id });
+    const schoolId = decodedToken.id;
+    const { statuses, date } = req.body; // get the date from request body
+
+    const teachers = await Teacher.find({ school: schoolId });
     if (!teachers || teachers.length === 0) {
-      return res.status(404).json({ message: 'No teachers found in the school' });
+      return res.status(404).json({ message: "No teachers found in the school" });
     }
 
     if (statuses.length !== teachers.length) {
-      return res.status(400).json({ message: 'Mismatch in number of statuses and teachers' });
+      return res.status(400).json({ message: "Mismatch in number of statuses and teachers" });
     }
 
-    const currentDate = DateTime.local().toFormat('dd/MM/yy');
+    // Check if attendance is already recorded for the given date and school
+    const existingAttendance = await TeacherAttendance.findOne({
+      date,
+      school: schoolId,
+    });
 
-    // Check if attendance is already recorded for the current date
-    const existingAttendance = await TeacherAttendance.findOne({ date: currentDate });
     if (existingAttendance) {
-      return res.status(400).json({ message: 'Attendance has already been recorded for today' });
+      return res.status(400).json({ message: `Attendance has already been recorded for ${date}` });
     }
-
-    let attendanceRecords = [];
 
     // Create attendance records for each teacher
-    for (let i = 0; i < teachers.length; i++) {
-      const attendanceRecord = new TeacherAttendance({
-        teacher: teachers[i]._id,
-        date: currentDate,
-        status: statuses[i]
-      });
-      attendanceRecords.push(attendanceRecord);
-    }
+    const attendanceRecords = teachers.map((teacher, index) => ({
+      teacher: teacher._id,
+      date,
+      status: statuses[index],
+      school: schoolId,
+    }));
 
-    // Save all teacher attendance records to the database
     await TeacherAttendance.insertMany(attendanceRecords);
 
-    res.status(201).json({ message: 'Teacher attendance recorded successfully' });
+    res.status(201).json({ message: "Teacher attendance recorded successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const getTeacherAttendanceByDate = async (req, res) => {
   try {
-    const { schoolName, teacherId, date } = req.params;
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
 
-    const attendance = await TeacherAttendance.findOne({ teacher: teacherId, date }).populate('teacher', 'name');
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { teacherId, date } = req.params; // date from params as string
+    const schoolId = decodedToken.id;
+
+    const attendance = await TeacherAttendance.findOne({
+      teacher: teacherId,
+      date,
+      school: schoolId,
+    }).populate("teacher", "name");
+
     if (!attendance) {
-      return res.status(404).json({ message: 'Attendance not found for the specified teacher on the given date' });
+      return res.status(404).json({ message: `Attendance not found for ${date}` });
     }
 
     res.status(200).json({ attendance });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const getAllTeachersAttendanceByDate = async (req, res) => {
   try {
-    const { schoolName, date } = req.params;
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
 
-    const attendance = await TeacherAttendance.find({ date }).populate('teacher', 'name');
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { date } = req.body; // date from request body
+    const schoolId = decodedToken.id;
+
+    const attendance = await TeacherAttendance.find({
+      date, // using date as a string
+      school: schoolId,
+    }).populate("teacher", "name");
+
     if (!attendance || attendance.length === 0) {
-      return res.status(404).json({ message: 'Attendance not found for the specified date' });
+      return res.status(404).json({ message: `No attendance found for ${date}` });
     }
 
     res.status(200).json({ attendance });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
 const getTeachersBySchool = async (req, res) => {
-  const { schoolId } = req.params;
-
   try {
-    const teachers = await Teacher.find({ school: schoolId }).populate("teachSubjects.subject", "subjectName").select("-password");
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
 
-    res.json(teachers);
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const schoolId = decodedToken.id;
+
+    const teachers = await Teacher.find({
+      school: schoolId,
+    }).populate("teachSubjects.subject", "subjectName").select("-password");
+
+    if (!teachers || teachers.length === 0) {
+      return res.status(404).json({ message: "No teachers found in the school" });
+    }
+
+    res.status(200).json(teachers);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -102,5 +139,5 @@ module.exports = {
   takeTeacherAttendance,
   getTeachersBySchool,
   getTeacherAttendanceByDate,
-  getAllTeachersAttendanceByDate
+  getAllTeachersAttendanceByDate,
 };

@@ -58,12 +58,18 @@ app.use("/classTeacher", classTeacher);
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 app.use("/studentAttendance", studentAttendanceRouter);
-app.use("/teacherAttendance", teacherAttendanceRouter);
+
 // app.use("/sms", smsRouter);
 
 app.use(checkForAuthentication);
+
 app.use("/school", schoolRouter);
-app.use("/subject", subjectRouter);
+app.use(
+  "/teacherAttendance",
+  restrictTo(["PRINCIPAL"]),
+  teacherAttendanceRouter
+);
+app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
