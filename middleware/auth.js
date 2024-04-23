@@ -2,18 +2,18 @@ const { getSchool } = require("../service/schoolAuth");
 
 //Authentication
 function checkForAuthentication(req, res, next) {
-   
+
     const tokenCookie = req.cookies?.token;
     req.user = null;
 
-    if (!tokenCookie )
+    if (!tokenCookie)
         return next();
 
     const token = tokenCookie;
     // Retrieve user information based on the token
-   
+
     const user = getSchool(token);
-    console.log("auth.js token",user);
+    console.log("auth.js token", user);
     req.user = user;
     return next();
 }
@@ -33,9 +33,37 @@ function restrictTo(roles = []) {
     }
 
 }
+const { getTeacher } = require("../service/teacherAuth");
 
+function checkForTeacherAuthentication(req, res, next) {
+    const token = req.cookies?.teacherToken;
+    req.teacher = null;
+
+    if (!token) {
+        return next(); // If no token, move on
+    }
+
+    const teacher = getTeacher(token);
+    req.teacher = teacher;
+    return next(); // Token valid, continue
+}
+
+function restrictTeacherTo(roles = []) {
+    return function (req, res, next) {
+        if (!req.teacher) {
+            return res.status(401).send("Unauthorized");
+        }
+
+        if (!roles.includes(req.teacher.role)) {
+            return res.status(403).send("Forbidden");
+        }
+
+        return next(); // User authorized, continue
+    };
+}
 
 module.exports = {
     checkForAuthentication,
-    restrictTo
+    restrictTo, checkForTeacherAuthentication,
+    restrictTeacherTo,
 };
