@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const StudentModel = require("../models/studentSchema.js"); // Rename import to avoid conflict
+const { setStudent } = require("../service/studentAuth.js");
 
 const studentRegister = async (req, res) => {
   const { name, email, password, role, className, schoolName } = req.body;
@@ -24,9 +25,9 @@ const studentRegister = async (req, res) => {
     const validDomain = emailDomain === "cograd.in";
 
     if (existingStudentByEmail) {
-      res.send({ message: "Email already exists" });
+      res.status(401).send({ message: "Email already exists" });
     } else if (!validDomain) {
-      res.send({
+      res.status(401).send({
         message: "Email domain is not valid. It should be @cograd.in",
       });
     } else {
@@ -50,12 +51,15 @@ const studentLogIn = async (req, res) => {
       const passwordMatch = await bcrypt.compare(password, student.password);
       if (passwordMatch) {
         student.password = undefined;
-        res.send(student);
+
+        const token = setStudent(student);
+        res.cookie("studentToken", token);
+        res.status(200).send(student);
       } else {
-        res.send({ message: "Invalid password" });
+        res.status(401).send({ message: "Invalid password" });
       }
     } else {
-      res.send({ message: "User not found" });
+      res.status(401).send({ message: "User not found" });
     }
   } catch (err) {
     res.status(500).json(err);
