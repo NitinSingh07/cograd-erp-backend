@@ -1,13 +1,13 @@
-
 const { getSchool } = require("../service/schoolAuth");
 
 const Subject = require("../models/subjectModel");
 const Teacher = require("../models/teacherModel");
+
 exports.subjectCreate = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
-    
+
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -39,12 +39,11 @@ exports.subjectCreate = async (req, res) => {
   }
 };
 
-
 exports.allSubjects = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
-    
+
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -70,7 +69,7 @@ exports.classSubjects = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
-    
+
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -98,7 +97,7 @@ exports.freeSubjectList = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
-    
+
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -120,5 +119,3 @@ exports.freeSubjectList = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-
