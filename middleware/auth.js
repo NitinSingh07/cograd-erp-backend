@@ -13,7 +13,7 @@ function checkForAuthentication(req, res, next) {
     // Retrieve user information based on the token
 
     const user = getSchool(token);
-    console.log("auth.js token", user);
+    // console.log("auth.js token", user);
     req.user = user;
     return next();
 }
@@ -45,6 +45,7 @@ function checkForTeacherAuthentication(req, res, next) {
 
     const teacher = getTeacher(token);
     req.teacher = teacher;
+    
     return next(); // Token valid, continue
 }
 

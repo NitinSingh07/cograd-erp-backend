@@ -1,13 +1,21 @@
 const bcrypt = require("bcryptjs");
 const Teacher = require("../models/teacherModel");
 const { setTeacher } = require("../service/teacherAuth");
+const { getSchool } = require("../service/schoolAuth");
 
 // Teacher Registration
 const teacherRegister = async (req, res) => {
-    const { name, email, password, school, teachSubjects } = req.body;
-
     try {
-        if (!name || !email || !password || !school || !teachSubjects) {
+        const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+        const decodedToken = getSchool(token); // Decode the token to extract school information
+
+        if (!decodedToken || !decodedToken.id) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const { name, email, password, teachSubjects } = req.body;
+
+        if (!name || !email || !password || !teachSubjects) {
             return res.status(400).json({ message: "All fields are required." });
         }
 
@@ -20,14 +28,12 @@ const teacherRegister = async (req, res) => {
         const teacher = new Teacher({
             name,
             email,
-            school,
+            school: decodedToken.id, // Use the school ID from the decoded token
             teachSubjects,
             password: hashedPassword,
         });
 
         const savedTeacher = await teacher.save();
-        const token = setTeacher(savedTeacher);
-        res.cookie("teacherToken", token); // Storing teacher token in cookies
 
         // Removing sensitive data from the response
         savedTeacher.password = undefined;
@@ -52,10 +58,10 @@ const teacherLogin = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ message: "Invalid password." });
         }
-
+        console.log("right ");
         const token = setTeacher(teacher);
         res.cookie("teacherToken", token);
-
+        console.log(token);
         teacher.password = undefined;
         return res.status(200).json(teacher);
     } catch (error) {

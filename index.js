@@ -18,7 +18,7 @@ const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
-const { checkForAuthentication, restrictTo } = require("./middleware/auth.js");
+const { checkForAuthentication, restrictTo , checkForTeacherAuthentication,restrictTeacherTo } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
@@ -49,7 +49,7 @@ app.use(express.urlencoded({ extended: false }));
 // app.use(checkForAuthentication())-------wrong
 //, you're directly calling the function checkForAuthentication() instead of passing it as a middleware function reference.
 
-app.use("/teacher", teacherRouter);
+
 //this one
 
 app.use("/parent", parentRouter);
@@ -62,22 +62,29 @@ app.use("/studentAttendance", studentAttendanceRouter);
 // app.use("/sms", smsRouter);
 
 app.use(checkForAuthentication);
-
+app.use(checkForTeacherAuthentication);
 app.use("/school", schoolRouter);
-app.use(
-  "/teacherAttendance",
-  restrictTo(["PRINCIPAL"]),
-  teacherAttendanceRouter
-);
+
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
+//teacherReg route contains registration and attendance, restricted by principal
+app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
+
+//teacher route contains only login , and logout route
+app.use("/teacher",  teacherRouter);
+
+// mongoose
+//   .connect("mongodb://localhost:27017/erp-backend")
+//   .then(console.log("Connected to MongoDB"))
+//   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
 mongoose
-  .connect("mongodb://localhost:27017/erp-backend")
+  .connect("mongodb://127.0.0.1:27017/cograd-erp")
   .then(console.log("Connected to MongoDB"))
   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);
