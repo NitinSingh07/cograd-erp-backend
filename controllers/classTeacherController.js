@@ -1,18 +1,29 @@
 const bcrypt = require("bcrypt");
-const classTeacherModel = require("../models/classTeacherModel"); // Rename import to avoid conflict
+const classTeacherModel = require("../models/classTeacherModel");
 const classModel = require("../models/classModel");
+const { getSchool } = require("../service/schoolAuth");
+
 const classTeacherRegister = async (req, res) => {
-  const { email, password, role, className, school, teacherId } = req.body;
   try {
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
+
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { email, password, className, teacherId } = req.body;
+    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
 
     const classTeacher = new classTeacherModel({
       email,
       password: hashedPass,
-      role,
+      role:"CLASS-TEACHER",
       className,
-      school,
+      school: schoolId,
       teacherId,
     });
 
@@ -23,7 +34,6 @@ const classTeacherRegister = async (req, res) => {
     });
     const existingClass = await classTeacherModel.findOne({ className });
 
-    // Validate email domain
     const emailDomain = email.split("@")[1];
     const validDomain = emailDomain === "cograd.in";
 
@@ -38,18 +48,15 @@ const classTeacherRegister = async (req, res) => {
         message: "Email domain is not valid. It should be @cograd.in",
       });
     } else {
-      let result = await classTeacher.save();
+      const result = await classTeacher.save();
       result.password = undefined;
-      const response = await (
-        await result.populate("className", "className")
-      ).populate("school", "schoolName");
+      const response = await result.populate("className", "className");
       res.send(response);
     }
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: err.message });
   }
 };
-
 
 const classTeacherLogIn = async (req, res) => {
   const { email, password } = req.body;
@@ -71,27 +78,32 @@ const classTeacherLogIn = async (req, res) => {
       res.send({ message: "User not found" });
     }
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: err.message });
   }
 };
 
-//details by schoolname
 const getClassTeacherDetail = async (req, res) => {
   try {
-    const schoolName = req.params.school; // Assuming the parameter is the school name
-    const classTeacher = await classTeacherModel.findOne({
-      school: schoolName,
-    });
-    if (classTeacher) {
-      classTeacher.password = undefined;
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
+
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+
+    const classTeacher = await classTeacherModel.find({ school: schoolId });
+    if (classTeacher.length) {
+      classTeacher.forEach((ct) => {
+        ct.password = undefined; // Hide the password
+      });
       res.send(classTeacher);
     } else {
-      res
-        .status(404)
-        .send({ message: "No classTeacher found for this school" });
+      res.status(404).send({ message: "No classTeacher found for this school" });
     }
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ message: err.message });
   }
 };
 

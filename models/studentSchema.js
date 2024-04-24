@@ -20,7 +20,7 @@ const studentSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "student",
+    default: "STUDENT",
   },
   className: {
     type: mongoose.Schema.Types.ObjectId,

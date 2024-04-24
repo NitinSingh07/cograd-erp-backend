@@ -13,7 +13,7 @@ const classTeacherSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "classTeacher",
+      default: "CLASS-TEACHER",
     },
     className: {
       type: mongoose.Schema.Types.ObjectId,

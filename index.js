@@ -54,7 +54,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/parent", parentRouter);
 app.use("/student", studentRouter);
-app.use("/classTeacher", classTeacher);
+
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 app.use("/studentAttendance", studentAttendanceRouter);
@@ -64,7 +64,7 @@ app.use("/studentAttendance", studentAttendanceRouter);
 app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
 app.use("/school", schoolRouter);
-
+app.use("/classTeacher",restrictTo(["PRINCIPAL"]), classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
