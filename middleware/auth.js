@@ -1,4 +1,5 @@
 const { getSchool } = require("../service/schoolAuth");
+const { getClassTeacher } = require("../service/classTeacherAuth");
 
 //Authentication
 function checkForAuthentication(req, res, next) {
@@ -63,7 +64,7 @@ function restrictTeacherTo(roles = []) {
     };
 }
 function checkForClassTeacherAuthentication(req, res, next) {
-    const token = req.cookies?.teacherToken; // Assuming "teacherToken" is the token for class teachers
+    const token = req.cookies?.classTeacherToken;
     req.classTeacher = null;
   
     if (!token) {

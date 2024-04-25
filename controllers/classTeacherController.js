@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const classTeacherModel = require("../models/classTeacherModel");
 const classModel = require("../models/classModel");
 const { getSchool } = require("../service/schoolAuth");
-const { setClassTeacher ,getClassTeacher} = require("../service/classTeacherAuth");
+const { setClassTeacher, getClassTeacher } = require("../service/classTeacherAuth");
 const classTeacherRegister = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
@@ -21,7 +21,7 @@ const classTeacherRegister = async (req, res) => {
     const classTeacher = new classTeacherModel({
       email,
       password: hashedPass,
-      role:"CLASS-TEACHER",
+      role: "CLASS-TEACHER",
       className,
       school: schoolId,
       teacherId,
@@ -79,13 +79,15 @@ const classTeacherLogIn = async (req, res) => {
     classTeacher.password = undefined;
 
     // Generate a JWT token for the class teacher
-    const token = setClassTeacher(classTeacher);
+    const classTeacherToken = setClassTeacher(classTeacher);
 
     // Set the token in a cookie
-    res.cookie("ClassteacherToken:", token, { httpOnly: true });
-    console.log("classTeacherToken",token);
+    // Set the token in a cookie
+    res.cookie("classTeacherToken", classTeacherToken, { httpOnly: true });
+
+    console.log("classTeacherToken", classTeacherToken);
     // Send a successful response
-    
+
     res.status(200).json(classTeacher);
   } catch (error) {
     console.error("Error during class teacher login:", error);

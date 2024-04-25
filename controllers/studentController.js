@@ -1,9 +1,11 @@
 const bcrypt = require("bcrypt");
 const StudentModel = require("../models/studentSchema.js"); // Rename import to avoid conflict
 const { setStudent } = require("../service/studentAuth.js");
-
+const {getSchool} = require("../service/schoolAuth.js");
 const studentRegister = async (req, res) => {
-  const { name, email, password, role, className, schoolName } = req.body;
+  const { name, email, password,  className } = req.body;
+  const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+  const decodedToken = getSchool(token); // Decode the token to extract school information
   try {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
@@ -12,9 +14,9 @@ const studentRegister = async (req, res) => {
       name,
       email,
       password: hashedPass,
-      role,
+      
       className,
-      schoolName, // corrected from 'school'
+      schoolName: decodedToken.id// corrected from 'school'
     });
 
     const existingStudentByEmail = await StudentModel.findOne({ email });

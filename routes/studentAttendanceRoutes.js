@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 const { takeAttendance, updateAttendance, getStudentList, getStudentAttendanceByDate, 
     getAllStudentsAttendanceByDate } = require("../controllers/studentAttendanceController");
-
+//login to classTeacher first before taking attendance 
 router.post("/mark", takeAttendance);
 // router.put("/mark/:classTeacherId", updateAttendance); // Use PUT method for updating
 router.get('/students/:classTeacherId', getStudentList);

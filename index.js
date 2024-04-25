@@ -18,7 +18,7 @@ const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
-const { checkForAuthentication,checkForClassTeacherAuthentication, restrictTo , checkForTeacherAuthentication,restrictTeacherTo } = require("./middleware/auth.js");
+const { checkForAuthentication, checkForClassTeacherAuthentication, restrictTo, checkForTeacherAuthentication, restrictTeacherTo } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
@@ -53,18 +53,19 @@ app.use(express.urlencoded({ extended: false }));
 //this one
 
 app.use("/parent", parentRouter);
-app.use("/student", studentRouter);
+
 
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
-app.use("/studentAttendance", studentAttendanceRouter);
+
 
 // app.use("/sms", smsRouter);
 
 app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
-app.use(checkForClassTeacherAuthentication); 
-
+app.use(checkForClassTeacherAuthentication);
+app.use("/studentAttendance", studentAttendanceRouter);
+app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
 app.use("/classTeacher", classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
@@ -75,7 +76,7 @@ app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
 app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
 
 //teacher route contains only login , and logout route
-app.use("/teacher",  teacherRouter);
+app.use("/teacher", teacherRouter);
 
 // mongoose
 //   .connect("mongodb://localhost:27017/erp-backend")
