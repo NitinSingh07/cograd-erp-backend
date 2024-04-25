@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const classTeacherModel = require("../models/classTeacherModel");
 const classModel = require("../models/classModel");
 const { getSchool } = require("../service/schoolAuth");
-
+const { setClassTeacher ,getClassTeacher} = require("../service/classTeacherAuth");
 const classTeacherRegister = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
@@ -57,31 +57,43 @@ const classTeacherRegister = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 const classTeacherLogIn = async (req, res) => {
-  const { email, password } = req.body;
   try {
+    const { email, password } = req.body;
+
+    // Find the class teacher by email
     let classTeacher = await classTeacherModel.findOne({ email });
-    if (classTeacher) {
-      const passwordMatch = await bcrypt.compare(
-        password,
-        classTeacher.password
-      );
-      if (passwordMatch) {
-        classTeacher.password = undefined;
-        classTeacher = await classTeacher.populate("className");
-        res.send(classTeacher);
-      } else {
-        res.send({ message: "Invalid password" });
-      }
-    } else {
-      res.send({ message: "User not found" });
+
+    if (!classTeacher) {
+      return res.status(404).json({ message: "Class teacher not found" });
     }
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    // Compare the provided password with the stored hashed password
+    const isMatch = await bcrypt.compare(password, classTeacher.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Hide the password in the response
+    classTeacher.password = undefined;
+
+    // Generate a JWT token for the class teacher
+    const token = setClassTeacher(classTeacher);
+
+    // Set the token in a cookie
+    res.cookie("ClassteacherToken:", token, { httpOnly: true });
+    console.log("classTeacherToken",token);
+    // Send a successful response
+    
+    res.status(200).json(classTeacher);
+  } catch (error) {
+    console.error("Error during class teacher login:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
+module.exports = { classTeacherLogIn };
 const getClassTeacherDetail = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies

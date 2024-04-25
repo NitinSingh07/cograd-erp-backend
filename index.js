@@ -18,7 +18,7 @@ const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
-const { checkForAuthentication, restrictTo , checkForTeacherAuthentication,restrictTeacherTo } = require("./middleware/auth.js");
+const { checkForAuthentication,checkForClassTeacherAuthentication, restrictTo , checkForTeacherAuthentication,restrictTeacherTo } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
@@ -63,8 +63,10 @@ app.use("/studentAttendance", studentAttendanceRouter);
 
 app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
+app.use(checkForClassTeacherAuthentication); 
+
 app.use("/school", schoolRouter);
-app.use("/classTeacher",restrictTo(["PRINCIPAL"]), classTeacher);
+app.use("/classTeacher", classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
