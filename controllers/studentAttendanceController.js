@@ -1,36 +1,45 @@
-const { DateTime } = require("luxon");
 const Attendance = require("../models/StudentAttendanceModel");
 const ClassTeacher = require("../models/classTeacherModel");
 const Student = require("../models/studentSchema");
+const { getClassTeacher } = require("../service/classTeacherAuth");
+
+// Take student attendance
 const takeAttendance = async (req, res) => {
   try {
-    const { classTeacherId, statuses } = req.body;
+    const token = req.cookies?.classTeacherToken; // Get token from cookies
+    console.log(token);
+    const decodedToken = getClassTeacher(token); // Decode to get class teacher ID
+    console.log(decodedToken);
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    // Find class teacher by ID
+    const classTeacherId = decodedToken.id;
+    const { statuses, date } = req.body; // Get statuses and date from the body
+
     const classTeacher = await ClassTeacher.findById(classTeacherId);
+
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
     }
 
     const classId = classTeacher.className;
-
     const students = await Student.find({ className: classId });
 
-    const currentDate = DateTime.local().toFormat("dd/MM/yy");
+    // Check if attendance already exists for this date
+    const existingAttendance = await Attendance.findOne({ date, classId });
 
-    let attendanceRecords = [];
-
-    // Create attendance records for each student
-    for (let i = 0; i < students.length; i++) {
-      const attendanceRecord = new Attendance({
-        student: students[i]._id,
-        date: currentDate,
-        status: statuses[i],
-      });
-      attendanceRecords.push(attendanceRecord);
+    if (existingAttendance) {
+      return res.status(400).json({ message: `Attendance already recorded for ${date}` });
     }
 
-    // Save all attendance records to the database
+    // Create attendance records
+    const attendanceRecords = students.map((student, index) => ({
+      student: student._id,
+      date,
+      status: statuses[index],
+    }));
+
     await Attendance.insertMany(attendanceRecords);
 
     res.status(201).json({ message: "Attendance recorded successfully" });
@@ -40,44 +49,51 @@ const takeAttendance = async (req, res) => {
   }
 };
 
+// Update student attendance for the current date
 const updateAttendance = async (req, res) => {
   try {
-    const { classTeacherId, studentId, status } = req.body;
+    const token = req.cookies?.token; // Get token from cookies
+    const decodedToken = getClassTeacher(token);
 
-    // Generate current date in dd/mm/yy format
-    const currentDate = DateTime.local().toFormat("dd/MM/yy");
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    // Update attendance record for today
+    const { studentId, status } = req.body; // Get student ID and status
+    const { date } = req.params; // Date from the URL parameter
+
+    // Update attendance record
     let attendanceRecord = await Attendance.findOneAndUpdate(
-      { student: studentId, date: currentDate },
+      { student: studentId, date },
       { status },
       { new: true }
     );
 
-    res
-      .status(200)
-      .json({
-        message: `Attendance updated successfully for ${attendanceRecord.student} with status ${status}`,
-      });
+    res.status(200).json({
+      message: `Attendance updated successfully for ${attendanceRecord.student} with status ${status}`,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Get student list for a class teacher
 const getStudentList = async (req, res) => {
   try {
-    const { classTeacherId } = req.params;
+    const token = req.cookies?.token;
+    const decodedToken = getClassTeacher(token);
 
-    // Find class teacher by ID
-    const classTeacher = await ClassTeacher.findById(classTeacherId);
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classTeacher = await ClassTeacher.findById(decodedToken.id);
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
     }
 
-    // Get the class ID from the class teacher
     const classId = classTeacher.className;
-
-    // Find all students belonging to the class
     const students = await Student.find({ className: classId });
 
     res.status(200).json({ students });
@@ -87,21 +103,18 @@ const getStudentList = async (req, res) => {
   }
 };
 
+// Get attendance for a specific student and date
 const getStudentAttendanceByDate = async (req, res) => {
   try {
-    const { classTeacherId, studentId, date } = req.params;
+    const { studentId, date } = req.params;
 
     const attendance = await Attendance.findOne({
       student: studentId,
       date,
     }).populate("student", "name");
+
     if (!attendance) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "Attendance not found for the specified student on the given date",
-        });
+      return res.status(404).json({ message: `Attendance not found for ${date}` });
     }
 
     res.status(200).json({ attendance });
@@ -111,18 +124,15 @@ const getStudentAttendanceByDate = async (req, res) => {
   }
 };
 
+// Get all students' attendance for a specific date
 const getAllStudentsAttendanceByDate = async (req, res) => {
   try {
-    const { classTeacherId, date } = req.params;
+    const { date } = req.params;
 
-    const attendance = await Attendance.find({ date }).populate(
-      "student",
-      "name"
-    );
-    if (!attendance) {
-      return res
-        .status(404)
-        .json({ message: "Attendance not found for the specified date" });
+    const attendance = await Attendance.find({ date }).populate("student", "name");
+
+    if (!attendance || attendance.length === 0) {
+      return res.status(404).json({ message: `No attendance found for ${date}` });
     }
 
     res.status(200).json({ attendance });
