@@ -22,6 +22,7 @@ const {
   checkForAuthentication,
   restrictTo,
   checkForTeacherAuthentication,
+  checkForClassTeacherAuthentication,
   restrictTeacherTo,
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
@@ -80,15 +81,15 @@ app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
 //teacher route contains only login , and logout route
 app.use("/teacher", teacherRouter);
 
+mongoose
+  .connect("mongodb://127.0.0.1:27017/cograd-erp")
+  .then(console.log("Connected to MongoDB"))
+  .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+
 // mongoose
 //   .connect("mongodb://localhost:27017/erp-backend")
 //   .then(console.log("Connected to MongoDB"))
 //   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
-
-mongoose
-  .connect("mongodb://localhost:27017/erp-backend")
-  .then(console.log("Connected to MongoDB"))
-  .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);
