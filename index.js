@@ -24,6 +24,7 @@ const {
   checkForTeacherAuthentication,
   checkForClassTeacherAuthentication,
   restrictTeacherTo,
+  checkForClassTeacherAuthentication,
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 

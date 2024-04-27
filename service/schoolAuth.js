@@ -1,25 +1,24 @@
-
-const jwt = require('jsonwebtoken')
-const secret = "itisVarunUapdhyaySecretKey"
+const jwt = require("jsonwebtoken");
+const secret = "itisVarunUapdhyaySecretKey";
 
 function setSchool(school) {
-    const payload = {
-        id: school.id,
-        email: school.email,
-        role: school.role, 
-    };
-    return jwt.sign(payload, secret, { expiresIn: '1h' });
+  const payload = {
+    id: school.id,
+    email: school.email,
+    role: school.role,
+  };
+  return jwt.sign(payload, secret, { expiresIn: "1h" });
 }
-
 
 function getSchool(token) {
-    if (!token) return null
-    try {
-        return jwt.verify(token, secret)
-    } catch (error) {
-        return null
-    }
+  if (!token) return null;
+  try {
+    return jwt.verify(token, secret);
+  } catch (error) {
+    return null;
+  }
 }
 module.exports = {
-    setSchool, getSchool
-}
+  setSchool,
+  getSchool,
+};

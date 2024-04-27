@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const Teacher = require("../models/teacherModel");
+const Subject = require("../models/subjectModel");
 const { setTeacher } = require("../service/teacherAuth");
 const { getSchool } = require("../service/schoolAuth");
 
@@ -33,7 +34,24 @@ const teacherRegister = async (req, res) => {
       password: hashedPassword,
     });
 
-    const savedTeacher = await teacher.save();
+    let savedTeacher = await teacher.save();
+
+    // Iterate over teachSubjects array
+    for (const subjectInfo of teachSubjects) {
+      const { subject } = subjectInfo;
+
+      // Find the subject by its ID
+      const subjectFind = await Subject.findById(subject);
+
+      if (!subjectFind) {
+        return res.status(404).json({ message: "Subject not found" });
+      }
+
+      // Assign teacher's ID to the subject
+      subjectFind.teacher = teacher._id;
+      // Save the updated subject
+      await subjectFind.save();
+    }
 
     // Removing sensitive data from the response
     savedTeacher.password = undefined;

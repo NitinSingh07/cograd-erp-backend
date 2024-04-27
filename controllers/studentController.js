@@ -1,22 +1,37 @@
 const bcrypt = require("bcrypt");
 const StudentModel = require("../models/studentSchema.js"); // Rename import to avoid conflict
 const { setStudent } = require("../service/studentAuth.js");
-const {getSchool} = require("../service/schoolAuth.js");
+const { getSchool } = require("../service/schoolAuth.js");
+const getDataUri = require("../utils/dataUri.js");
+const cloudinary = require("cloudinary").v2;
+
 const studentRegister = async (req, res) => {
-  const { name, email, password,  className } = req.body;
+  const { name, email, password, className } = req.body;
   const token = req.cookies?.token; // Retrieve the JWT token from the cookies
   const decodedToken = getSchool(token); // Decode the token to extract school information
   try {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
 
+    //Done using multer
+    const file = req.file;
+    console.log(file);
+
+    if (!file) {
+      return res.status(400).json({ message: "Photo is required" });
+    }
+
+    const photoUri = getDataUri(file);
+
+    const myCloud = await cloudinary.uploader.upload(photoUri.content);
+
     const student = new StudentModel({
       name,
       email,
       password: hashedPass,
-      
+      profile: myCloud.secure_url,
       className,
-      schoolName: decodedToken.id// corrected from 'school'
+      schoolName: decodedToken.id, // corrected from 'school'
     });
 
     const existingStudentByEmail = await StudentModel.findOne({ email });
@@ -38,7 +53,7 @@ const studentRegister = async (req, res) => {
       const response = await (
         await result.populate("className", "className")
       ).populate("schoolName", "schoolName");
-      res.send(response);
+      res.status(200).json(response);
     }
   } catch (err) {
     res.status(500).json(err);
@@ -104,9 +119,37 @@ const studentList = async (req, res) => {
   }
 };
 
+const schoolStudentList = async (req, res) => {
+  try {
+    // const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    // const decodedToken = getSchool(token);
+
+    // if (!decodedToken || !decodedToken.id) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
+
+    const schoolId = req.params.id;
+
+    const studentList = await StudentModel.find({
+      schoolName: schoolId,
+    })
+      .populate("className", "className")
+      .select("-password");
+
+    if (studentList.length > 0) {
+      res.status(200).json(studentList);
+    } else {
+      res.status(404).send({ message: "No student found" });
+    }
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
 module.exports = {
   studentList,
   studentRegister,
   studentLogIn,
   getStudentDetail,
+  schoolStudentList,
 };
