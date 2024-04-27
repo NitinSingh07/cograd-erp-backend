@@ -68,7 +68,6 @@ function checkForClassTeacherAuthentication(req, res, next) {
 
   const classTeacher = getClassTeacher(token); // Validate token
   req.classTeacher = classTeacher; // Set class teacher information
-
   return next(); // Token is valid, continue
 }
 

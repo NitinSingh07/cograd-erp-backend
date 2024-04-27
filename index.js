@@ -24,7 +24,6 @@ const {
   checkForTeacherAuthentication,
   checkForClassTeacherAuthentication,
   restrictTeacherTo,
-  checkForClassTeacherAuthentication,
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
@@ -71,12 +70,13 @@ app.use(checkForClassTeacherAuthentication);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
-app.use("/classTeacher", restrictTo(["PRINCIPAL"]), classTeacher);
+//for login of class teacher only
+app.use("/classTeacher",  classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
-//teacherReg route contains registration and attendance, restricted by principal
+//teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
 app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
 
 //teacher route contains only login , and logout route

@@ -1,3 +1,4 @@
+const { decode } = require("jsonwebtoken");
 const Attendance = require("../models/StudentAttendanceModel");
 const ClassTeacher = require("../models/classTeacherModel");
 const Student = require("../models/studentSchema");
@@ -27,8 +28,8 @@ const takeAttendance = async (req, res) => {
     const students = await Student.find({ className: classId });
 
     // Check if attendance already exists for this date
-    const existingAttendance = await Attendance.findOne({ date, classId });
-
+    const existingAttendance = await Attendance.findOne({ date});
+    
     if (existingAttendance) {
       return res.status(400).json({ message: `Attendance already recorded for ${date}` });
     }
@@ -36,13 +37,17 @@ const takeAttendance = async (req, res) => {
     // Create attendance records
     const attendanceRecords = students.map((student, index) => ({
       student: student._id,
+      classTeacher: classTeacher,
       date,
       status: statuses[index],
     }));
-
     await Attendance.insertMany(attendanceRecords);
-
-    res.status(201).json({ message: "Attendance recorded successfully" });
+    const populatedAttendance = await Attendance.find({ date }).populate("student", "name"); // Populate student name
+console.log(populatedAttendance);
+    res.status(201).json({
+      message: "Attendance recorded successfully",
+      attendance: populatedAttendance,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
@@ -54,7 +59,7 @@ const updateAttendance = async (req, res) => {
   try {
     const token = req.cookies?.token; // Get token from cookies
     const decodedToken = getClassTeacher(token);
-
+    console.log(decodedToken);
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -81,8 +86,9 @@ const updateAttendance = async (req, res) => {
 // Get student list for a class teacher
 const getStudentList = async (req, res) => {
   try {
-    const token = req.cookies?.token;
-    const decodedToken = getClassTeacher(token);
+    const classTeacherToken = req.cookies?.classTeacherToken;
+    const decodedToken = getClassTeacher(classTeacherToken);
+    console.log(decodedToken);
 
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
