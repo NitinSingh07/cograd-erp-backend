@@ -8,11 +8,13 @@ const {
 } = require("../controllers/teacherAttendanceController");
 
 const { teacherRegister } = require("../controllers/teacherController");
-const { classTeacherRegister } = require("../controllers/classTeacherController");
+const {
+  classTeacherRegister,
+} = require("../controllers/classTeacherController");
 //school id will be extracted from the token , you need to do just this for the attendance
-//  "statuses": ["p", "a", "p", "p"] 
+//  "statuses": ["p", "a", "p", "p"]
 router.post("/mark", takeTeacherAttendance);
-router.post("/register", classTeacherRegister);
+router.post("/classRegister", classTeacherRegister);
 router.get("/get", getTeachersBySchool);
 
 router.get("/:teacherId/:date", getTeacherAttendanceByDate);

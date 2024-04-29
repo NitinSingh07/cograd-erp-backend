@@ -38,7 +38,24 @@ const teacherSchema = new mongoose.Schema(
         },
       },
     ],
-  
+    timeline: [
+      {
+        startTime: {
+          type: Date,
+        },
+        endTime: {
+          type: Date,
+        },
+        subject: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "subject",
+        },
+        class: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "class",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

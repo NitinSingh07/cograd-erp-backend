@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
-const { setTeacher } = require("../service/teacherAuth");
+const { setTeacher, getTeacher } = require("../service/teacherAuth");
 const { getSchool } = require("../service/schoolAuth");
 
 // Teacher Registration
@@ -88,7 +88,69 @@ const teacherLogin = async (req, res) => {
   }
 };
 
+const addTimeline = async (req, res) => {
+  const { startTime, endTime, subjectId, classId } = req.body;
+  try {
+    // const token = req.cookies?.token;
+    // const decodedToken = getTeacher(token);
+
+    // if (!decodedToken || !decodedToken.id) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
+
+    const teacherId = req.params.id;
+
+    // const teacherId = decodedToken.id;
+
+    const teacher = await Teacher.findById(teacherId);
+    const subject = await Subject.findById(subjectId);
+
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher not found" });
+    }
+    if (!subject) {
+      return res.status(404).json({ error: "Subject not found" });
+    }
+
+    teacher.timeline.push({
+      startTime,
+      endTime,
+      subject: subjectId,
+      class: classId,
+    });
+
+    await teacher.save();
+
+    res.status(200).json({ message: "Timeline updated successfully" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+const fetchTeacherTimeline = async (req, res) => {
+  const teacherId = req.params.id;
+
+  try {
+    const teacher = await Teacher.findById(teacherId).populate({
+      path: "timeline",
+      populate: { path: "class subject" }, // Populate the 'class' and 'subject' fields in the timeline entries
+    });
+
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher not found" });
+    }
+
+    const timeline = teacher.timeline;
+
+    res.status(200).json({ timeline });
+  } catch (err) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   teacherRegister,
   teacherLogin,
+  addTimeline,
+  fetchTeacherTimeline,
 };
