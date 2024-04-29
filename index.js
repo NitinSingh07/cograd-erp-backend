@@ -28,7 +28,10 @@ const {
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://cograd-erp.vercel.app",
+];
 
 app.use(
   cors({
@@ -71,7 +74,7 @@ app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
 //for login of class teacher only
-app.use("/classTeacher",  classTeacher);
+app.use("/classTeacher", classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
@@ -83,7 +86,7 @@ app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
 app.use("/teacher", teacherRouter);
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/cograd-erp")
+  .connect("mongodb://localhost:27017/erp-backend")
   .then(console.log("Connected to MongoDB"))
   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 

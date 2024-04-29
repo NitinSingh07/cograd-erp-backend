@@ -14,4 +14,9 @@ router.post("/login", studentLogIn);
 router.get("/:id", getStudentDetail);
 router.get("/studentList/:id", studentList);
 router.get("/get/:id", schoolStudentList);
+router.post("/logout", (req, res) => {
+  // Clear the token cookie
+  res.clearCookie("token");
+  res.send({ message: "Logged out successfully" });
+});
 module.exports = router;

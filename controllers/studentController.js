@@ -63,15 +63,17 @@ const studentRegister = async (req, res) => {
 const studentLogIn = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const student = await StudentModel.findOne({ email });
+    const student = await StudentModel.findOne({ email })
+      .populate("className", "className")
+      .populate("schoolName", "schoolName");
     if (student) {
       const passwordMatch = await bcrypt.compare(password, student.password);
       if (passwordMatch) {
         student.password = undefined;
 
         const token = setStudent(student);
-        res.cookie("studentToken", token);
-        res.status(200).send(student);
+        res.cookie("token", token);
+        res.status(200).json(student);
       } else {
         res.status(401).send({ message: "Invalid password" });
       }
