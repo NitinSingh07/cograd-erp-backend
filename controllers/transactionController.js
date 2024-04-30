@@ -11,7 +11,7 @@ const addTransaction = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { amount, description, type } = req.body;
+    const { amount, description, type , receipt } = req.body;
 
     if (!amount || !type || !["income", "expense"].includes(type)) {
       return res.status(400).json({ message: "Invalid transaction data" });
@@ -22,6 +22,7 @@ const addTransaction = async (req, res) => {
       amount,
       description,
       type,
+      receipt
     });
 
     await transaction.save();

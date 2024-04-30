@@ -28,7 +28,7 @@ exports.schoolRegister = async (req, res) => {
     // Generate token for the newly signed-up school
     const token = setSchool(school);
     res.cookie("token", token);
-console.log("school-token",token);
+    console.log("school-token", token);
     let result = await school.save();
     result.password = undefined; // Do not send password back
     res.send(result);
