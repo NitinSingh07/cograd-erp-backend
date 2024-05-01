@@ -17,7 +17,7 @@ const studentAttendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["p", "a"],
+    enum: ["p", "a","l"],
     default: "a",
   },
 });

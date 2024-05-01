@@ -85,15 +85,15 @@ app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
 //teacher route contains only login , and logout route
 app.use("/teacher", teacherRouter);
 //mongodb collection 
-// mongoose
-//   .connect("mongodb+srv://varun802vu:2LnAVVkvVm1e7AIr@cluster0.1rercds.mongodb.net/")
-//   .then(console.log("Connected to MongoDB"))
-//   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
-
-  mongoose
-  .connect("mongodb://127.0.0.1:27017/cograd-erp")
+mongoose
+  .connect("mongodb+srv://varun802vu:2LnAVVkvVm1e7AIr@cluster0.1rercds.mongodb.net/")
   .then(console.log("Connected to MongoDB"))
   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+
+  // mongoose
+  // .connect("mongodb://127.0.0.1:27017/cograd-erp")
+  // .then(console.log("Connected to MongoDB"))
+  // .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
 
   // mongoose
