@@ -9,7 +9,7 @@ const teacherAttendanceSchema = new mongoose.Schema({
   school:{
     type: mongoose.Schema.Types.ObjectId,
     ref: "school",
-    required: true,
+    // required: true,
   },
   date: {
     type: String,

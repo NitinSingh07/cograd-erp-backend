@@ -44,7 +44,6 @@ function checkForTeacherAuthentication(req, res, next) {
 
   return next(); // Token valid, continue
 }
-
 function restrictTeacherTo(roles = []) {
   return function (req, res, next) {
     if (!req.teacher) {

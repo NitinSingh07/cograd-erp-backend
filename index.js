@@ -14,7 +14,8 @@ const classTeacher = require("./routes/classTeacherRoute.js");
 const resultRouter = require("./routes/examResultRoute.js");
 const examListRouter = require("./routes/examListRoute.js");
 const studentAttendanceRouter = require("./routes/studentAttendanceRoutes.js");
-const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
+const teacherAttendanceByPrincipalRouter = require("./routes/teacherAttendanceByPrincipalRoutes.js");
+const teacherAttendanceRouter = require("./routes/teacherAttendanceRouter.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
@@ -80,7 +81,9 @@ app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
-app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
+app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceByPrincipalRouter);
+app.use("/teacherAttendance", teacherAttendanceRouter);
+
 
 //teacher route contains only login , and logout route
 app.use("/teacher", teacherRouter);
