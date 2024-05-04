@@ -149,91 +149,48 @@ const getAllStudentsAttendanceByDate = async (req, res) => {
 };
 const checkConsecutiveAbsences = async (req, res) => {
   try {
-    const classTeachers = await ClassTeacher.find();
+    // Fetch all unique students from the attendance records
+    const students = await Attendance.distinct("student");
 
-    const consecutiveAbsentees = await Attendance.aggregate([
-      {
-        // Group by student and collect all attendance records
-        $group: {
-          _id: "$student",
-          attendance: {
-            $push: { status: "$status", date: "$date" },
-          },
-        },
-      },
-      {
-        // Sort the 'attendance' array by 'date' in descending order
-        $project: {
-          student: "$_id",
-          sortedAttendance: {
-            $sortArray: { input: "$attendance", sortBy: { date: -1 } },
-          },
-        },
-      },
-      {
-        // Get the last three records
-        $project: {
-          student: "$student",
-          lastThree: { $slice: ["$sortedAttendance", 0, 3] },
-        },
-      },
-      {
-        // Check if the last three are all 'a' and their dates are consecutive
-        $match: {
-          $and: [
-            { "lastThree": { $size: 3 } },
-            { "lastThree.status": { $all: ["a"] } },
-            {
-              $expr: {
-                $and: [
-                  {
-                    $eq: [
-                      { $subtract: [{ $arrayElemAt: ["$lastThree[0].date", 0] }, 1] },
-                      { $arrayElemAt: ["$lastThree[1].date", 0] },
-                    ],
-                  },
-                  {
-                    $eq: [
-                      { $subtract: [{ $arrayElemAt: ["$lastThree[1].date", 0] }, 1] },
-                      { $arrayElemAt: ["$lastThree[2].date", 0] },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      },
-      {
-        // Join with the student collection to get additional information
-        $lookup: {
-          from: "students",
-          localField: "student",
-          foreignField: "_id",
-          as: "studentInfo",
-        },
-      },
-    ]);
+    const results = [];
+    const absenceThreshold = 3;
 
-    console.log("Consecutive Absentees:", consecutiveAbsentees);
+    for (const studentId of students) {
+      // Find the last three attendance records for this student, ordered by date (most recent first)
+      const attendances = await Attendance.find({ student: studentId })
+        .sort({ date: -1 })
+        .limit(absenceThreshold);
 
-    // Notify class teachers about the detected consecutive absentees
-    consecutiveAbsentees.forEach((absentee) => {
-      const studentName = absentee.studentInfo[0]?.name;
+      // Check if there are exactly three records and they are all marked "a" for absent
+      if (
+        attendances.length === absenceThreshold &&
+        attendances.every((attendance) => attendance.status === "a")
+      ) {
+        // Get student details to include in the notification
+        const student = await Student.findById(studentId);
 
-      classTeachers.forEach((teacher) => {
-        console.log(`Notification to ${teacher.name}: ${studentName} has been absent for three consecutive days.`);
+        // Add the student to the notification list
+        if (student) {
+          results.push({ studentName: student.name, studentId: student._id });
+        }
+      }
+    }
+
+    if (results.length > 0) {
+      res.status(200).json({
+        message: "Students with three consecutive absences detected.",
+        students: results,
       });
-    });
-
-    res.status(200).json({ message: "Consecutive absences checked." });
-  } catch (err) {
-    console.error(err);
+    } else {
+      res.status(200).json({
+        message: "No students with three consecutive absences.",
+      });
+    }
+  } catch (error) {
+    console.error("Error checking consecutive absences:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 module.exports = {
   updateAttendance,
   takeAttendance,
