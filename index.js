@@ -25,6 +25,7 @@ const {
   checkForTeacherAuthentication,
   checkForClassTeacherAuthentication,
   restrictTeacherTo,
+  checkForParentAuthentication,
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
@@ -71,6 +72,7 @@ app.use("/examList", examListRouter);
 app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
 app.use(checkForClassTeacherAuthentication);
+app.use(checkForParentAuthentication)
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
