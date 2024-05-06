@@ -3,6 +3,9 @@ const classTeacherModel = require("../models/classTeacherModel");
 const classModel = require("../models/classModel");
 const { getSchool } = require("../service/schoolAuth");
 const { setClassTeacher, getClassTeacher } = require("../service/classTeacherAuth");
+const express = require("express");
+const router = express.Router();
+
 const classTeacherRegister = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
@@ -95,7 +98,32 @@ const classTeacherLogIn = async (req, res) => {
   }
 };
 
-module.exports = { classTeacherLogIn };
+
+const checkClassTeacher = async (req, res) => {
+  try {
+    try {
+      const { teacherId } = req.params;
+  
+      const classTeacher = await classTeacherModel.findOne({ teacherId });
+  
+      if (classTeacher) {
+        return res.status(200).json({ isClassTeacher: true, classTeacher });
+      } else {
+        return res.status(200).json({ isClassTeacher: false });
+      }
+    } catch (err) {
+      console.error("Error checking class teacher status:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  } catch (error) {
+    console.error("Error during class teacher login:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+
 const getClassTeacherDetail = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
@@ -125,4 +153,5 @@ module.exports = {
   classTeacherRegister,
   classTeacherLogIn,
   getClassTeacherDetail,
+  checkClassTeacher
 };

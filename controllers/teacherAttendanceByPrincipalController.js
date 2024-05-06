@@ -122,7 +122,7 @@ const getTeachersBySchool = async (req, res) => {
 
     const teachers = await Teacher.find({
       school: schoolId,
-    }).populate("teachSubjects.subject", "subjectName").select("-password");
+    }).populate("teachSubjects.subject", "subName").select("-password");
 
     if (!teachers || teachers.length === 0) {
       return res.status(404).json({ message: "No teachers found in the school" });
