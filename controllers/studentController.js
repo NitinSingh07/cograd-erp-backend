@@ -123,30 +123,41 @@ const studentList = async (req, res) => {
 
 const schoolStudentList = async (req, res) => {
   try {
-    // const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    // const decodedToken = getSchool(token);
 
+
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
+    console.log(decodedToken);
     // if (!decodedToken || !decodedToken.id) {
     //   return res.status(401).json({ message: "Unauthorized" });
     // }
 
-    const schoolId = req.params.id;
+    const schoolId = decodedToken.id; // Extract the school ID from the decoded token
 
+    // }
     const studentList = await StudentModel.find({
       schoolName: schoolId,
     })
-      .populate("className", "className")
+      .populate("className")
       .select("-password");
 
-    if (studentList.length > 0) {
-      res.status(200).json(studentList);
+    const totalStudents = studentList.length; // Get the total count of students
+
+    if (totalStudents > 0) {
+      res.status(200).json({
+        totalStudents, // Include the total student count in the response
+        studentList, // Send the student list
+      });
     } else {
-      res.status(404).send({ message: "No student found" });
+      res.status(404).json({ message: "No students found" });
     }
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).json({ message: "Internal server error", error: err });
   }
 };
+
+
+
 
 module.exports = {
   studentList,
@@ -154,4 +165,6 @@ module.exports = {
   studentLogIn,
   getStudentDetail,
   schoolStudentList,
+
+
 };
