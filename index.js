@@ -90,7 +90,7 @@ app.use(
 );
 app.use("/teacherAttendance", teacherAttendanceRouter);
 
-//teacher route contains only login , and logout route
+//teacher route contains only login , and logout route, teachelist
 app.use("/teacher", teacherRouter);
 //mongodb collection
 mongoose

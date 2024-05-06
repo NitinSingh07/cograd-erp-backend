@@ -88,6 +88,44 @@ const teacherLogin = async (req, res) => {
   }
 };
 
+
+
+const getteacherList = async (req, res) => {
+  try {
+
+
+    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    const decodedToken = getSchool(token); // Decode the token to extract school information
+    console.log(decodedToken);
+    // if (!decodedToken || !decodedToken.id) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
+
+    const schoolId = decodedToken.id; // Extract the school ID from the decoded token
+
+    // }
+    const teacherList = await Teacher.find({
+      school: schoolId,
+    })
+     
+      .select("-password");
+
+    const totalTeachers = teacherList.length; // Get the total count of students
+
+    if (totalTeachers > 0) {
+      res.status(200).json({
+        totalTeachers, // Include the total student count in the response
+        teacherList, // Send the student list
+      });
+    } else {
+      res.status(404).json({ message: "No Teachers  found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error", error: err });
+  }
+};
+
+
 const addTimeline = async (req, res) => {
   const { startTime, endTime, subjectId, classId } = req.body;
   try {
@@ -153,4 +191,5 @@ module.exports = {
   teacherLogin,
   addTimeline,
   fetchTeacherTimeline,
+  getteacherList
 };
