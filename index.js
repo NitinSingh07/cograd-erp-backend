@@ -14,7 +14,8 @@ const classTeacher = require("./routes/classTeacherRoute.js");
 const resultRouter = require("./routes/examResultRoute.js");
 const examListRouter = require("./routes/examListRoute.js");
 const studentAttendanceRouter = require("./routes/studentAttendanceRoutes.js");
-const teacherAttendanceRouter = require("./routes/teacherAttendanceRoutes.js");
+const teacherAttendanceByPrincipalRouter = require("./routes/teacherAttendanceByPrincipalRoutes.js");
+const teacherAttendanceRouter = require("./routes/teacherAttendanceRouter.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
@@ -24,6 +25,7 @@ const {
   checkForTeacherAuthentication,
   checkForClassTeacherAuthentication,
   restrictTeacherTo,
+  checkForParentAuthentication,
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
@@ -70,6 +72,7 @@ app.use("/examList", examListRouter);
 app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
 app.use(checkForClassTeacherAuthentication);
+app.use(checkForParentAuthentication);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
@@ -80,25 +83,32 @@ app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
-app.use("/teacherReg", restrictTo(["PRINCIPAL"]), teacherAttendanceRouter);
+app.use(
+  "/teacherReg",
+  restrictTo(["PRINCIPAL"]),
+  teacherAttendanceByPrincipalRouter
+);
+app.use("/teacherAttendance", teacherAttendanceRouter);
 
 //teacher route contains only login , and logout route
 app.use("/teacher", teacherRouter);
 //mongodb collection
-// mongoose
-//   .connect("mongodb+srv://varun802vu:2LnAVVkvVm1e7AIr@cluster0.1rercds.mongodb.net/")
-//   .then(console.log("Connected to MongoDB"))
-//   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+mongoose
+  .connect(
+    "mongodb+srv://varun802vu:2LnAVVkvVm1e7AIr@cluster0.1rercds.mongodb.net/"
+  )
+  .then(console.log("Connected to MongoDB"))
+  .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
 // mongoose
 // .connect("mongodb://127.0.0.1:27017/cograd-erp")
 // .then(console.log("Connected to MongoDB"))
 // .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
-mongoose
-  .connect("mongodb://localhost:27017/erp-backend")
-  .then(console.log("Connected to MongoDB"))
-  .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+// mongoose
+// .connect("mongodb://localhost:27017/erp-backend")
+// .then(console.log("Connected to MongoDB"))
+// .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);

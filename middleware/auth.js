@@ -44,7 +44,6 @@ function checkForTeacherAuthentication(req, res, next) {
 
   return next(); // Token valid, continue
 }
-
 function restrictTeacherTo(roles = []) {
   return function (req, res, next) {
     if (!req.teacher) {
@@ -84,6 +83,41 @@ function restrictClassTeacherTo(roles = []) {
     return next(); // User is authorized
   };
 }
+const { getParent } = require("../service/parentAuth");
+
+function checkForParentAuthentication(req, res, next) {
+  const token = req.cookies?.parentToken || req.headers['authorization']?.split(" ")[1];
+
+  req.parent = null;
+
+  if (!token) {
+    return next(); // No token, proceed
+  }
+
+  const parent = getParent(token);
+  req.parent = parent; // Set parent information if the token is valid
+
+  return next(); // Continue to the next middleware
+}
+// function restrictParentTo(roles = []) {
+//   return function (req, res, next) {
+//     if (!req.parent) {
+//       return res.status(401).json({ message: "Unauthorized" });
+//     }
+
+//     if (!roles.includes(req.parent.role)) {
+//       return res.status(403).json({ message: "Forbidden" });
+//     }
+
+//     return next(); // User is authorized
+//   };
+// }
+
+// module.exports = {
+//   restrictParentTo,
+// };
+
+
 module.exports = {
   checkForAuthentication,
   restrictTo,
@@ -91,4 +125,5 @@ module.exports = {
   restrictTeacherTo,
   checkForClassTeacherAuthentication,
   restrictClassTeacherTo,
+  checkForParentAuthentication
 };

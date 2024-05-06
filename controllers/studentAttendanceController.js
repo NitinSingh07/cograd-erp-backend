@@ -28,8 +28,8 @@ const takeAttendance = async (req, res) => {
     const students = await Student.find({ className: classId });
 
     // Check if attendance already exists for this date
-    const existingAttendance = await Attendance.findOne({ date});
-    
+    const existingAttendance = await Attendance.findOne({ date });
+
     if (existingAttendance) {
       return res.status(400).json({ message: `Attendance already recorded for ${date}` });
     }
@@ -43,7 +43,7 @@ const takeAttendance = async (req, res) => {
     }));
     await Attendance.insertMany(attendanceRecords);
     const populatedAttendance = await Attendance.find({ date }).populate("student", "name"); // Populate student name
-console.log(populatedAttendance);
+    console.log(populatedAttendance);
     res.status(201).json({
       message: "Attendance recorded successfully",
       attendance: populatedAttendance,
@@ -147,11 +147,54 @@ const getAllStudentsAttendanceByDate = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const checkConsecutiveAbsences = async (req, res) => {
+  try {
+    // Fetch all unique students from the attendance records
+    const students = await Attendance.distinct("student");
 
+    const results = [];
+    const absenceThreshold = 3;
+
+    for (const studentId of students) {
+      // Find the last three attendance records for this student, ordered by date (most recent first)
+      const attendances = await Attendance.find({ student: studentId })
+        .sort({ date: -1 })
+        .limit(absenceThreshold);
+
+      // Check if there are exactly three records and they are all marked "a" for absent
+      if (
+        attendances.length === absenceThreshold &&
+        attendances.every((attendance) => attendance.status === "a")
+      ) {
+        // Get student details to include in the notification
+        const student = await Student.findById(studentId);
+
+        // Add the student to the notification list
+        if (student) {
+          results.push({ studentName: student.name, studentId: student._id });
+        }
+      }
+    }
+
+    if (results.length > 0) {
+      res.status(200).json({
+        message: "Students with three consecutive absences detected.",
+        students: results,
+      });
+    } else {
+      res.status(200).json({
+        message: "No students with three consecutive absences.",
+      });
+    }
+  } catch (error) {
+    console.error("Error checking consecutive absences:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 module.exports = {
   updateAttendance,
   takeAttendance,
   getStudentList,
   getStudentAttendanceByDate,
-  getAllStudentsAttendanceByDate,
+  getAllStudentsAttendanceByDate, checkConsecutiveAbsences
 };
