@@ -31,8 +31,8 @@ const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://cograd-erp.vercel.app",
+  origin= 'http://localhost:5173',
+
 ];
 
 app.use(

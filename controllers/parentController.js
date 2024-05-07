@@ -73,6 +73,7 @@ exports.parentLogin = async (req, res) => {
     const parentToken = setParent(parent);
 
     // Set the token in the response or in a cookie (optional)
+    res.cookie("parentToken", parentToken);
     res.status(200).json({
       message: "Parent logged in successfully",
       parentToken: parentToken,
