@@ -18,11 +18,15 @@ const takeTeacherAttendance = async (req, res) => {
 
     const teachers = await Teacher.find({ school: schoolId });
     if (!teachers || teachers.length === 0) {
-      return res.status(404).json({ message: "No teachers found in the school" });
+      return res
+        .status(404)
+        .json({ message: "No teachers found in the school" });
     }
 
     if (statuses.length !== teachers.length) {
-      return res.status(400).json({ message: "Mismatch in number of statuses and teachers" });
+      return res
+        .status(400)
+        .json({ message: "Mismatch in number of statuses and teachers" });
     }
 
     // Check if attendance is already recorded for the given date and school
@@ -32,7 +36,9 @@ const takeTeacherAttendance = async (req, res) => {
     });
 
     if (existingAttendance) {
-      return res.status(400).json({ message: `Attendance has already been recorded for ${date}` });
+      return res
+        .status(400)
+        .json({ message: `Attendance has already been recorded for ${date}` });
     }
 
     // Create attendance records for each teacher
@@ -45,7 +51,9 @@ const takeTeacherAttendance = async (req, res) => {
 
     await TeacherAttendance.insertMany(attendanceRecords);
 
-    res.status(201).json({ message: "Teacher attendance recorded successfully" });
+    res
+      .status(201)
+      .json({ message: "Teacher attendance recorded successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
@@ -71,7 +79,9 @@ const getTeacherAttendanceByDate = async (req, res) => {
     }).populate("teacher", "name");
 
     if (!attendance) {
-      return res.status(404).json({ message: `Attendance not found for ${date}` });
+      return res
+        .status(404)
+        .json({ message: `Attendance not found for ${date}` });
     }
 
     res.status(200).json({ attendance });
@@ -122,10 +132,14 @@ const getTeachersBySchool = async (req, res) => {
 
     const teachers = await Teacher.find({
       school: schoolId,
-    }).populate("teachSubjects.subject", "subName").select("-password");
+    })
+      .populate("teachSubjects.subject", "subName")
+      .select("-password");
 
     if (!teachers || teachers.length === 0) {
-      return res.status(404).json({ message: "No teachers found in the school" });
+      return res
+        .status(404)
+        .json({ message: "No teachers found in the school" });
     }
 
     res.status(200).json(teachers);
@@ -134,6 +148,7 @@ const getTeachersBySchool = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const editTeacherAttendance = async (req, res) => {
   try {
     const { teacherId, date, status } = req.body;
@@ -157,7 +172,6 @@ const editTeacherAttendance = async (req, res) => {
   }
 };
 
-
 const getAllTeachersAttendanceByDate = async (req, res) => {
   try {
     const token = req.cookies?.token;
@@ -176,7 +190,9 @@ const getAllTeachersAttendanceByDate = async (req, res) => {
     }).populate("teacher", "name email"); // Populate teacher name and email
 
     if (!attendance || attendance.length === 0) {
-      return res.status(404).json({ message: `No attendance found for ${date}` });
+      return res
+        .status(404)
+        .json({ message: `No attendance found for ${date}` });
     }
 
     return res.status(200).json(attendance);
@@ -193,5 +209,5 @@ module.exports = {
   getTeacherAttendanceByDate,
   getAllTeachersAttendanceByDate,
   editTeacherAttendance,
-  getAllTeachersAttendanceByDate
+  getAllTeachersAttendanceByDate,
 };
