@@ -71,8 +71,8 @@ const studentLogIn = async (req, res) => {
       if (passwordMatch) {
         student.password = undefined;
 
-        const token = setStudent(student);
-        res.cookie("token", token);
+        const studentToken = setStudent(student);
+        res.cookie("studentToken", studentToken);
         res.status(200).json(student);
       } else {
         res.status(401).send({ message: "Invalid password" });

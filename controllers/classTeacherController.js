@@ -86,7 +86,7 @@ const classTeacherLogIn = async (req, res) => {
 
     // Set the token in a cookie
     // Set the token in a cookie
-    res.cookie("classTeacherToken", classTeacherToken, { httpOnly: true });
+    res.cookie("classTeacherToken", classTeacherToken);
 
     console.log("classTeacherToken", classTeacherToken);
     // Send a successful response
