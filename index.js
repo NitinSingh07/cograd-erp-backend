@@ -19,6 +19,7 @@ const teacherAttendanceRouter = require("./routes/teacherAttendanceRouter.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
+const driverRoutes = require("./routes/driverRoute");
 const {
   checkForAuthentication,
   restrictTo,
@@ -78,6 +79,7 @@ app.use("/classTeacher", classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
+app.use("/driver", restrictTo(["PRINCIPAL"]), driverRoutes);
 app.use("/class", classRouter);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
 app.use(
