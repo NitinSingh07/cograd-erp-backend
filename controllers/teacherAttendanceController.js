@@ -3,20 +3,23 @@ const { getTeacher } = require("../service/teacherAuth");
 const DateTime = require("luxon").DateTime;
 const getTeacherAttendance = async (req, res) => {
   try {
-    const token = req.cookies?.teacherToken; // Retrieve the teacher's token from cookies
-    const decodedToken = getTeacher(token); // Validate and decode the token
+     // Retrieve the teacher's token from cookies and decode it
+     const token = req.cookies?.teacherToken;
+   
+ 
+     const decodedToken = getTeacher(token);
+ 
+     // If token decoding fails, return an unauthorized response
+     if (!decodedToken) {
+       return res.status(401).json({ message: "Unauthorized" });
+     }
+ 
+     const teacherId = decodedToken.id; // Get teacher ID from the token
 
-    if (!decodedToken) {
-      return res.status(401).json({ message: "Unauthorized" }); // Return 401 if the token is invalid
-    }
-
-    const teacherId = decodedToken.id; // Get teacher ID from request parameters
-    console.log(teacherId);
     // Fetch attendance records for the teacher
     const attendanceRecords = await TeacherAttendance.find({
       teacher: teacherId
     });
-    console.log(attendanceRecords)
 
     if (!attendanceRecords || attendanceRecords.length === 0) {
       return res.status(404).json({ message: "No attendance records found" }); // Return 404 if no records found
@@ -77,54 +80,50 @@ const markSelfAttendance = async (req, res) => {
     res.status(500).json({ message: "Internal server error" }); // General error handling
   }
 };
+
+
 const calculateAttendance = async (req, res) => {
   try {
-    // Retrieve the teacher's token from cookies and decode it
     const token = req.cookies?.teacherToken;
-    console.log("Teacher token:", token);
-    
-    const decodedToken = getTeacher(token);
-    console.log("Decoded token:", decodedToken);
 
-    // If token decoding fails, return an unauthorized response
+    const decodedToken = getTeacher(token);
+
     if (!decodedToken) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+    const teacherId = decodedToken.id; // Teacher ID
 
-    const teacherId = decodedToken.id; // Get teacher ID from the token
-    console.log("Teacher ID:", teacherId);
-
-    // Get the target month from the request body
-    const { month: targetMonth } = req.body;
-
-    // Retrieve all attendance records for this teacher
+    const { month: targetMonth } = req.body; // Month from request
+    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero
     const attendanceRecords = await TeacherAttendance.find({
       teacher: teacherId,
     });
 
+    const matchingAttendanceRecords = attendanceRecords.filter((record) => {
+      const recordMonth = record.date.split("-")[1]; // Get the month part from the date
+      console.log("Record date:", record.date, "| Extracted month:", recordMonth);
 
-    // Filter records to include only those with a matching month
-    const matchingAttendanceRecords = attendanceRecords.filter(record => {
-      const dateParts = record.date.split('-'); // Split the date string
-      const recordMonth = dateParts[1]; // Extract the month
-      
-      return recordMonth === targetMonth; // Check if the extracted month matches
+      return recordMonth === normalizedTargetMonth; // Ensure they match exactly
     });
-    // Initialize counters for present, absent, and leave
+
+
+    if (matchingAttendanceRecords.length === 0) {
+      console.log("No records found for the specified month.");
+    }
+
     let presentCount = 0;
     let absentCount = 0;
     let leaveCount = 0;
 
-    // Count the status occurrences for matching records
-    matchingAttendanceRecords.forEach(record => {
+    matchingAttendanceRecords.forEach((record) => {
       switch (record.status) {
-        case 'p':
+        case "p":
           presentCount++;
           break;
-        case 'a':
+        case "a":
           absentCount++;
           break;
-        case 'l':
+        case "l":
           leaveCount++;
           break;
       }
@@ -132,11 +131,10 @@ const calculateAttendance = async (req, res) => {
 
     console.log("Present count:", presentCount, "| Absent count:", absentCount, "| Leave count:", leaveCount);
 
-    // Return the results as a JSON response
     res.status(200).json({
       message: "Attendance calculated successfully",
       data: {
-        month: targetMonth,
+        month: normalizedTargetMonth,
         presentCount,
         absentCount,
         leaveCount,
@@ -147,6 +145,7 @@ const calculateAttendance = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 module.exports = {
