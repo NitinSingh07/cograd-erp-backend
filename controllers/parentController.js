@@ -35,17 +35,21 @@ exports.parentRegister = async (req, res) => {
 
     const myCloud = await cloudinary.uploader.upload(photoUri.content);
 
+    const formattedStudents = students.map((student) => ({
+      studentId: student.studentId,
+      fees: student.fees, // If fees are not provided, default to 0
+    }));
+
     const parent = new ParentModel({
       name,
       email,
       password: hashedPassword,
       qualification,
       designation,
-      photo: myCloud.secure_url,
       contact,
-      students,
+      photo: myCloud.secure_url,
+      students, // Assign the formatted students array
     });
-
     // Save the parent to the database
     const result = await parent.save();
 
@@ -92,5 +96,112 @@ exports.parentLogin = async (req, res) => {
   } catch (error) {
     console.error("Error logging in parent:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.calculateRemainingAmount = async (req, res) => {
+  try {
+    const parentId = req.params.id;
+
+    // Find the parent by ID
+    const parent = await ParentModel.findById(parentId).populate({
+      path: "students.studentId",
+      select: "-password", // Exclude the password field
+      populate: {
+        path: "className", // Path to the referenced model
+        select: "className", // Select the fields you want to include
+      },
+    });
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found" });
+    }
+
+    // Calculate total fees of all students
+    const totalFees = parent.students.reduce((total, student) => {
+      return total + student.fees;
+    }, 0);
+
+    // Calculate total amount paid by the parent
+    const totalPaidAmount = parent.payments.reduce((total, payment) => {
+      return total + payment.paidAmount;
+    }, 0);
+
+    const totalFeesDetails = parent.students;
+    const totalFeesPaidDetails = parent.payments;
+
+    // Calculate remaining amount
+    const remainingAmount = totalFees - totalPaidAmount;
+
+    res.status(200).json({
+      totalFees,
+      totalPaidAmount,
+      remainingAmount,
+      totalFeesDetails,
+      totalFeesPaidDetails,
+    });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+exports.updateFeesPaid = async (req, res) => {
+  try {
+    const parentId = req.params.id;
+    const { amountPaid } = req.body;
+
+    const parent = await ParentModel.findById(parentId);
+
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found" });
+    }
+
+    // Calculate total fees of all students
+    const totalFees = parent.students.reduce((total, student) => {
+      return total + student.fees;
+    }, 0);
+
+    // Calculate total amount paid by the parent
+    const totalPaidAmount = parent.payments.reduce((total, payment) => {
+      return total + payment.paidAmount;
+    }, 0);
+
+    const date = Date.now();
+    const remainingAmount = totalFees - (totalPaidAmount + amountPaid);
+
+    parent.payments.push({
+      paidAmount: amountPaid,
+      date: date,
+      remainingAmount: remainingAmount,
+    });
+
+    // Save the updated parent document
+    await parent.save();
+
+    res.status(200).json({ message: "Payment updated successfully" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+exports.parentDetails = async (req, res) => {
+  try {
+    const parentId = req.params.id;
+
+    const parent = await ParentModel.findById(parentId).populate({
+      path: "students.studentId",
+      select: "-password", // Exclude the password field
+      populate: {
+        path: "className", // Path to the referenced model
+        select: "className", // Select the fields you want to include
+      },
+    });
+
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found" });
+    }
+
+    res.status(200).json(parent);
+  } catch (err) {
+    res.status(500).json(err);
   }
 };
