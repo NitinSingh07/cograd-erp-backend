@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const School = require("../models/school");
-const { setSchool } = require("../service/schoolAuth");
+const { setSchool, getSchool } = require("../service/schoolAuth");
 
 exports.schoolRegister = async (req, res) => {
   try {
@@ -66,3 +66,80 @@ exports.schoolLogIn = async (req, res) => {
     return res.status(500).send({ message: "Internal server error" });
   }
 };
+
+exports.schoolList = async (req, res) => {
+  try {
+    const schools = await School.find({}, { _id: 1, schoolName: 1 });
+    if (schools && schools.length > 0) {
+      return res.status(200).json(schools);
+    } else {
+      return res.status(402).json({ message: "No school found" });
+    }
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+};
+
+// exports.parentVerificationList = async (req, res) => {
+//   try {
+//     const token = req.cookies?.token;
+//     const decodedToken = getSchool(token); // Decode the token to extract school information
+//     if (!decodedToken || !decodedToken.id) {
+//       return res.status(401).json({ message: "Unauthorized" });
+//     }
+
+//     const school = await School.findById(decodedToken.id);
+//     if (!school) {
+//       return res.status(404).json({ err: "School not found" });
+//     }
+
+//     // Populate the parentVerification array with parent and student details
+//     await school
+//       .populate("parentVerification.parent")
+//       .populate("parentVerification.student")
+//       .execPopulate();
+
+//     res.status(200).json(school.parentVerification);
+//   } catch (err) {
+//     return res.status(500).json(err);
+//   }
+// };
+
+// exports.parentVerificationAction = async (req, res) => {
+//   try {
+//     const { studentId, parentId, action } = req.body;
+//     const token = req.cookies?.token;
+//     const decodedToken = getSchool(token); // Decode the token to extract school information
+//     if (!decodedToken || !decodedToken.id) {
+//       return res.status(401).json({ message: "Unauthorized" });
+//     }
+
+//     const school = await School.findById(decodedToken.id);
+
+//     if (!school) {
+//       return res.status(404).json({ error: "School not found" });
+//     }
+
+//     // Check if parentVerification array exists in the school object
+//     if (!school.parentVerification || school.parentVerification.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ error: "No parent verifications found for this school" });
+//     }
+
+//     // Check if there's a matching parent verification for the given parent ID and school ID
+//     const matchingVerification = school.parentVerification.find(
+//       (verification) =>
+//         verification.parentId === parentId &&
+//         verification.studentId === studentId
+//     );
+
+//     if (matchingVerification) {
+//       // Matching verification found, handle accordingly
+//     } else {
+//       // No matching verification found, handle accordingly
+//     }
+//   } catch (err) {
+//     return res.status(500).json(err);
+//   }
+// };

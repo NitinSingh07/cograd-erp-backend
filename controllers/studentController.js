@@ -6,7 +6,8 @@ const getDataUri = require("../utils/dataUri.js");
 const cloudinary = require("cloudinary").v2;
 
 const studentRegister = async (req, res) => {
-  const { name, email, password, className } = req.body;
+  const { name, email, password, className, fathersName, fatherEmail } =
+    req.body;
   const token = req.cookies?.token; // Retrieve the JWT token from the cookies
   const decodedToken = getSchool(token); // Decode the token to extract school information
   try {
@@ -32,6 +33,8 @@ const studentRegister = async (req, res) => {
       profile: myCloud.secure_url,
       className,
       schoolName: decodedToken.id, // corrected from 'school'
+      fathersName,
+      fatherEmail,
     });
 
     const existingStudentByEmail = await StudentModel.findOne({ email });
@@ -106,10 +109,7 @@ const studentList = async (req, res) => {
   try {
     const studentList = await StudentModel.find({
       className: req.params.id,
-    })
-      .select("-password")
-      .populate("className", "className") // Assuming className is a reference to Class model with name field
-      .populate("schoolName", "schoolName");
+    }).select("-password");
 
     if (studentList.length > 0) {
       res.send(studentList);
@@ -123,14 +123,11 @@ const studentList = async (req, res) => {
 
 const schoolStudentList = async (req, res) => {
   try {
-
-
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
-    console.log(decodedToken);
-    // if (!decodedToken || !decodedToken.id) {
-    //   return res.status(401).json({ message: "Unauthorized" });
-    // }
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const schoolId = decodedToken.id; // Extract the school ID from the decoded token
 
@@ -141,13 +138,8 @@ const schoolStudentList = async (req, res) => {
       .populate("className")
       .select("-password");
 
-    const totalStudents = studentList.length; // Get the total count of students
-
-    if (totalStudents > 0) {
-      res.status(200).json({
-        totalStudents, // Include the total student count in the response
-        studentList, // Send the student list
-      });
+    if (studentList.length > 0) {
+      res.status(200).json(studentList);
     } else {
       res.status(404).json({ message: "No students found" });
     }
@@ -155,9 +147,6 @@ const schoolStudentList = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: err });
   }
 };
-
-
-
 
 module.exports = {
   studentList,

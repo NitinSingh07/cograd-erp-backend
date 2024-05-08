@@ -13,7 +13,7 @@ router.post("/register", singleUpload, studentRegister);
 router.post("/login", studentLogIn);
 router.get("/:id", getStudentDetail);
 
-// router.get("/studentList/:id", studentList);
+router.get("/studentList/:id", studentList);
 router.get("/get/list", schoolStudentList);
 
 router.post("/logout", (req, res) => {

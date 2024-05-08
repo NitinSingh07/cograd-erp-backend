@@ -35,10 +35,13 @@ const parentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    student: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "student",
-    },
+    students: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "student",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );

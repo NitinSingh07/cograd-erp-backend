@@ -30,10 +30,7 @@ const {
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
-const allowedOrigins = [
-  origin= 'http://localhost:5173',
-
-];
+const allowedOrigins = [(origin = "http://localhost:5173")];
 
 app.use(
   cors({
@@ -81,7 +78,7 @@ app.use("/classTeacher", classTeacher);
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
-app.use("/class", restrictTo(["PRINCIPAL"]), classRouter);
+app.use("/class", classRouter);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
 app.use(
   "/teacherReg",

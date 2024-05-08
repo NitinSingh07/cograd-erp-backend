@@ -24,6 +24,7 @@ const studentSchema = new mongoose.Schema({
   },
   profile: {
     type: String,
+    required: true,
   },
   className: {
     type: mongoose.Schema.Types.ObjectId,
@@ -35,10 +36,15 @@ const studentSchema = new mongoose.Schema({
     ref: "school",
     required: true,
   },
-  // fathersName: {
-  //     type: String,
-  //     required: true
-  // },
+  fathersName: {
+    type: String,
+    required: true,
+  },
+  fatherEmail: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   // mothersName: {
   //     type: String,
   //     required: true

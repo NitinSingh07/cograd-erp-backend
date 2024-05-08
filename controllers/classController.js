@@ -22,11 +22,13 @@ exports.ClassCreate = async (req, res) => {
     });
 
     if (existingClassByName) {
-      return res.status(400).json({ message: "Sorry, this class name already exists" });
+      return res
+        .status(400)
+        .json({ message: "Sorry, this class name already exists" });
     }
 
     const result = await sclass.save();
-    const response = await result.populate("school", "schoolName")
+    const response = await result.populate("school", "schoolName");
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -35,11 +37,21 @@ exports.ClassCreate = async (req, res) => {
 
 exports.classList = async (req, res) => {
   try {
+    const { school } = req.body;
     const token = req.cookies?.token;
     const decodedToken = getSchool(token);
 
-    if (!decodedToken || !decodedToken.id) {
+    if ((!decodedToken || !decodedToken.id) && !school) {
       return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (school) {
+      const sclasses = await Class.find({ school }, { _id: 1, className: 1 });
+      if (sclasses.length > 0) {
+        return res.status(200).json(sclasses); // 200 OK if classes exist
+      } else {
+        return res.status(404).json({ message: "No classes found" }); // 404 if no classes
+      }
     }
 
     const schoolId = decodedToken.id;
@@ -54,7 +66,6 @@ exports.classList = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" }); // 500 for server errors
   }
 };
-
 
 exports.getClassDetail = async (req, res) => {
   try {
