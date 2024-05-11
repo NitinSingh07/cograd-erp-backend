@@ -37,12 +37,36 @@ const parentSchema = new mongoose.Schema(
     },
     students: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "student",
-        required: true,
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "student",
+          required: true,
+        },
+        fees: {
+          type: Number,
+          default: 0,
+          required: true,
+        },
+      },
+    ],
+    payments: [
+      {
+        paidAmount: {
+          type: Number,
+          required: true,
+        },
+        date: {
+          type: Number,
+          default: Date.now(),
+        },
+        remainingAmount: {
+          type: Number,
+          required: true,
+        },
       },
     ],
   },
+
   { timestamps: true }
 );
 
