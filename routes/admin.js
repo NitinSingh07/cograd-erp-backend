@@ -9,7 +9,7 @@ router.post("/register", adminRegister);
 router.post("/login", adminLogin);
 router.post("/logout", (req, res) => {
   // Clear the token cookie
-  res.clearCookie("token");
+  res.clearCookie("adminToken");
   res.send({ message: "Logged out successfully" });
 });
 

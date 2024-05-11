@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/register", schoolRegister);
 router.post("/login", schoolLogIn);
-router.get("/schoolList", schoolList);
+router.get("/list", schoolList);
 router.post("/logout", (req, res) => {
   // Clear the token cookie
   res.clearCookie("token");
