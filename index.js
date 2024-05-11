@@ -6,6 +6,7 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const teacherRouter = require("./routes/teacherRoute.js");
 const schoolRouter = require("./routes/school.js");
+const adminRouter = require("./routes/admin.js");
 const subjectRouter = require("./routes/subjectRoute.js");
 const classRouter = require("./routes/classRoute.js");
 const parentRouter = require("./routes/parentRoute.js");
@@ -20,6 +21,7 @@ const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
 const driverRoutes = require("./routes/driverRoute");
+const adminRoutes = require("./routes/admin");
 const {
   checkForAuthentication,
   restrictTo,
@@ -27,6 +29,7 @@ const {
   checkForClassTeacherAuthentication,
   restrictTeacherTo,
   checkForParentAuthentication,
+  checkForAdminAuthentication
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
@@ -48,17 +51,10 @@ cloudinary.config({
   api_secret: "7LiAj8DOJ2OJ1kZ8fLR4WV-05P8",
 });
 
-// app.use(bodyParser.json({ limit: '10mb', extended: true }))
-// app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
 app.use(express.json());
 // app.use(cors());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
-//so ye to hamesha chalega hi chalega
-// app.use(checkForAuthentication())-------wrong
-//, you're directly calling the function checkForAuthentication() instead of passing it as a middleware function reference.
-
-//this one
 
 app.use("/parent", parentRouter);
 
@@ -71,6 +67,7 @@ app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
 app.use(checkForClassTeacherAuthentication);
 app.use(checkForParentAuthentication);
+app.use(checkForAdminAuthentication);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
@@ -81,6 +78,7 @@ app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
 app.use("/driver", restrictTo(["PRINCIPAL"]), driverRoutes);
 app.use("/class", classRouter);
+app.use("/admin",adminRouter)
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
 app.use(
   "/teacherReg",
@@ -99,15 +97,6 @@ mongoose
   .then(console.log("Connected to MongoDB"))
   .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
-// mongoose
-// .connect("mongodb://127.0.0.1:27017/cograd-erp")
-// .then(console.log("Connected to MongoDB"))
-// .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
-
-// mongoose
-// .connect("mongodb://localhost:27017/erp-backend")
-// .then(console.log("Connected to MongoDB"))
-// .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);

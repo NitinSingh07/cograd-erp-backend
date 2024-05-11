@@ -29,6 +29,7 @@ function restrictTo(roles = []) {
     return next(); // User is authorized
   };
 }
+
 const { getTeacher } = require("../service/teacherAuth");
 
 function checkForTeacherAuthentication(req, res, next) {
@@ -118,6 +119,36 @@ function checkForParentAuthentication(req, res, next) {
 // };
 
 
+
+
+const { getAdmin } = require("../service/adminAuth");
+
+function checkForAdminAuthentication(req, res, next) {
+  const token = req.cookies?.adminToken;
+  req.teacher = null;
+
+  if (!token) {
+    return next(); // If no token, move on
+  }
+
+  const admin = getAdmin(token);
+  req.admin = admin;
+
+  return next(); // Token valid, continue
+}
+function restrictAdminTo(roles = []) {
+  return function (req, res, next) {
+    if (!req.admin) {
+      return res.status(401).send("Unauthorized");
+    }
+
+    if (!roles.includes(req.admin.role)) {
+      return res.status(403).send("Forbidden");
+    }
+
+    return next(); // User authorized, continue
+  };}
+
 module.exports = {
   checkForAuthentication,
   restrictTo,
@@ -125,5 +156,7 @@ module.exports = {
   restrictTeacherTo,
   checkForClassTeacherAuthentication,
   restrictClassTeacherTo,
-  checkForParentAuthentication
-};
+  checkForParentAuthentication,
+  restrictAdminTo,
+  checkForAdminAuthentication
+}
