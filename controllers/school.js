@@ -69,7 +69,7 @@ exports.schoolLogIn = async (req, res) => {
 
 exports.schoolList = async (req, res) => {
   try {
-    const schools = await School.find({}, { _id: 1, schoolName: 1 });
+    const schools = await School.find({}, {  });
     if (schools && schools.length > 0) {
       return res.status(200).json(schools);
     } else {
