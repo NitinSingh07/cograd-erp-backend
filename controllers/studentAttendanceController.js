@@ -147,17 +147,78 @@ const getAllStudentsAttendanceByDate = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// const checkConsecutiveAbsences = async (req, res) => {
+//   try {
+//     // Fetch all unique students from the attendance records
+//     const students = await Attendance.distinct("student");
+
+//     const results = [];
+//     const absenceThreshold = 3;
+
+//     for (const studentId of students) {
+//       // Find the last three attendance records for this student, ordered by date (most recent first)
+//       const attendances = await Attendance.find({ student: studentId })
+//         .sort({ date: -1 })
+//         .limit(absenceThreshold);
+
+//       // Check if there are exactly three records and they are all marked "a" for absent
+//       if (
+//         attendances.length === absenceThreshold &&
+//         attendances.every((attendance) => attendance.status === "a")
+//       ) {
+//         // Get student details to include in the notification
+//         const student = await Student.findById(studentId);
+
+//         // Add the student to the notification list
+//         if (student) {
+//           results.push({ studentName: student.name, studentId: student._id });
+//         }
+//       }
+//     }
+
+//     if (results.length > 0) {
+//       res.status(200).json({
+//         message: "Students with three consecutive absences detected.",
+//         students: results,
+//       });
+//     } else {
+//       res.status(200).json({
+//         message: "No students with three consecutive absences.",
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error checking consecutive absences:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+
 const checkConsecutiveAbsences = async (req, res) => {
   try {
-    // Fetch all unique students from the attendance records
-    const students = await Attendance.distinct("student");
+    const classTeacherToken = req.cookies?.classTeacherToken;
+    const decodedToken = getClassTeacher(classTeacherToken);
+    console.log(decodedToken);
+
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classTeacher = await ClassTeacher.findById(decodedToken.id);
+    if (!classTeacher) {
+      return res.status(404).json({ message: "Class teacher not found" });
+    }
+
+    // Fetch all students from the class
+    const students = await Student.find({ className: classTeacher.className });
 
     const results = [];
     const absenceThreshold = 3;
 
-    for (const studentId of students) {
-      // Find the last three attendance records for this student, ordered by date (most recent first)
-      const attendances = await Attendance.find({ student: studentId })
+    for (const student of students) {
+      // Find the last three attendance records for this student in this class,
+      // ordered by date (most recent first)
+      const attendances = await Attendance.find({ student: student._id })
         .sort({ date: -1 })
         .limit(absenceThreshold);
 
@@ -166,13 +227,8 @@ const checkConsecutiveAbsences = async (req, res) => {
         attendances.length === absenceThreshold &&
         attendances.every((attendance) => attendance.status === "a")
       ) {
-        // Get student details to include in the notification
-        const student = await Student.findById(studentId);
-
         // Add the student to the notification list
-        if (student) {
-          results.push({ studentName: student.name, studentId: student._id });
-        }
+        results.push({ studentName: student.name, studentId: student._id });
       }
     }
 
@@ -191,6 +247,7 @@ const checkConsecutiveAbsences = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 module.exports = {
   updateAttendance,
   takeAttendance,
