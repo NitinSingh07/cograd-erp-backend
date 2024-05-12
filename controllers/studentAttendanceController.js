@@ -8,9 +8,7 @@ const { getClassTeacher } = require("../service/classTeacherAuth");
 const takeAttendance = async (req, res) => {
   try {
     const token = req.cookies?.classTeacherToken; // Get token from cookies
-    console.log(token);
     const decodedToken = getClassTeacher(token); // Decode to get class teacher ID
-    console.log(decodedToken);
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -131,16 +129,22 @@ const getStudentAttendanceByDate = async (req, res) => {
 };
 
 // Get all students' attendance for a specific date
-const getAllStudentsAttendanceByDate = async (req, res) => {
+const getstudentAttendanceOfClassAll = async (req, res) => {
   try {
-    const { date } = req.params;
 
-    const attendance = await Attendance.find({ date }).populate("student", "name");
-
-    if (!attendance || attendance.length === 0) {
-      return res.status(404).json({ message: `No attendance found for ${date}` });
+    const token = req.cookies?.classTeacherToken; // Get token from cookies
+    const decodedToken = getClassTeacher(token); // Decode to get class teacher ID
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const classTeacherId = decodedToken.id;
+    const attendance = await Attendance.find({ classTeacher:classTeacherId }).populate("student", "name");
+
+    if (!attendance || attendance.length === 0) {
+      return res.status(404).json({ message: `No attendance found for ${classTeacherId}` });
+    }
+    console.log(attendance);
     res.status(200).json({ attendance });
   } catch (err) {
     console.error(err);
@@ -248,10 +252,62 @@ const checkConsecutiveAbsences = async (req, res) => {
   }
 };
 
+// Get last 10 days' attendance for all students in a class
+const getstudentAttendanceOfClass = async (req, res) => {
+  try {
+
+    const classTeacherToken = req.cookies?.classTeacherToken;
+    const decodedToken = getClassTeacher(classTeacherToken);
+
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const classTeacher = await ClassTeacher.findById(decodedToken.id);
+
+    if (!classTeacher) {
+      return res.status(404).json({ message: "Class teacher not found" });
+    }
+
+    const students = await Student.find({ className: classTeacher.className });
+    const results = [];
+
+    for (const student of students) {
+      // Find the attendance records for this student in the last 10 days,
+      // ordered by date (most recent first)
+      const tenDaysAgo = new Date();
+      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+
+      const attendances = await Attendance.find({ 
+        student: student._id,
+        date: { $gte: tenDaysAgo.toISOString().split('T')[0] } // Convert date to string and remove time part
+      }).sort({ date: 1 });
+
+      // Construct the attendance string for the last 10 days
+      let attendanceString = "";
+      for (const attendance of attendances) {
+        attendanceString += attendance.status + " ";
+      }
+
+      // Add the attendance string to the results
+      results.push({ studentName: student.name, attendance: attendanceString.trim() });
+    }
+
+    res.status(200).json({
+      message: "Student attendance for the last 10 days.",
+      students: results,
+    });
+  } catch (error) {
+    console.error("Error checking student attendance:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
 module.exports = {
   updateAttendance,
   takeAttendance,
   getStudentList,
   getStudentAttendanceByDate,
-  getAllStudentsAttendanceByDate, checkConsecutiveAbsences
+  getstudentAttendanceOfClass, checkConsecutiveAbsences,
 };
