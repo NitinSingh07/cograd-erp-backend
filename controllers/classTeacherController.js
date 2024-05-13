@@ -4,6 +4,7 @@ const classModel = require("../models/classModel");
 const { getSchool } = require("../service/schoolAuth");
 const { setClassTeacher, getClassTeacher } = require("../service/classTeacherAuth");
 const express = require("express");
+const { TokenInstance } = require("twilio/lib/rest/oauth/v1/token");
 const router = express.Router();
 
 const classTeacherRegister = async (req, res) => {
@@ -103,9 +104,9 @@ const checkClassTeacher = async (req, res) => {
   try {
     try {
       const { teacherId } = req.params;
-  
+
       const classTeacher = await classTeacherModel.findOne({ teacherId });
-  
+
       if (classTeacher) {
         return res.status(200).json({ isClassTeacher: true, classTeacher });
       } else {
@@ -124,7 +125,7 @@ const checkClassTeacher = async (req, res) => {
 
 
 
-const getClassTeacherDetail = async (req, res) => {
+const getAllClassTeacherDetail = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
@@ -149,9 +150,36 @@ const getClassTeacherDetail = async (req, res) => {
   }
 };
 
+
+const getClassTeacherDetail = async (req, res) => {
+  try {
+    const token = req.cookies?.classTeacherToken; // Retrieve the JWT token from the cookies
+    console.log(TokenInstance)
+    const decodedToken = getClassTeacher(token); // Decode the token to extract school information
+    console.log(decodedToken);
+    if (!decodedToken || !decodedToken.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const classTeacher = await classTeacherModel.findById(decodedToken.id)
+    if (classTeacher.length) {
+      classTeacher.forEach((ct) => {
+        ct.password = undefined; // Hide the password
+      });
+      res.send(classTeacher);
+    } else {
+      res.status(404).send({ message: "No classTeacher found for this school" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   classTeacherRegister,
   classTeacherLogIn,
   getClassTeacherDetail,
-  checkClassTeacher
+  checkClassTeacher,
+  getClassTeacherDetail,
+  getAllClassTeacherDetail
 };
