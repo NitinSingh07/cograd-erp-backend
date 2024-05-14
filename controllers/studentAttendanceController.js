@@ -1,5 +1,5 @@
 const { decode } = require("jsonwebtoken");
-const Attendance = require("../models/StudentAttendanceModel");
+const Attendance = require("../models/studentAttendanceModel");
 const ClassTeacher = require("../models/classTeacherModel");
 const Student = require("../models/studentSchema");
 const { getClassTeacher } = require("../service/classTeacherAuth");
