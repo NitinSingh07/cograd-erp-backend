@@ -164,8 +164,7 @@ const getClassTeacherDetail = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const classTeacher = await classTeacherModel.findById(decodedToken.id)
-    console.log(classTeacher);
+    const classTeacher = await classTeacherModel.findById(decodedToken.id).populate("className", "className");
     if (classTeacher) {
       res.send(classTeacher);
     }

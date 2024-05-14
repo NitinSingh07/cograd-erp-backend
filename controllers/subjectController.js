@@ -2,6 +2,7 @@ const { getSchool } = require("../service/schoolAuth");
 
 const Subject = require("../models/subjectModel");
 const Teacher = require("../models/teacherModel");
+const mongoose = require("mongoose");
 
 exports.subjectCreate = async (req, res) => {
   try {
@@ -19,25 +20,44 @@ exports.subjectCreate = async (req, res) => {
       school: decodedToken.id, // Use the school ID from the decoded token
     }));
 
+    const insertResults = [];
+
     for (const subject of subjects) {
-      const existingSubject = await Subject.findOne({
+      const existingSubjectCode = await Subject.findOne({
         subCode: subject.subCode,
         school: decodedToken.id,
       });
 
-      if (existingSubject) {
-        return res.send({
-          message: `Subject with subCode ${subject.subCode} already exists for this school`,
+      const existingSubjectName = await Subject.findOne({
+        subName: subject.subName,
+        school: decodedToken.id,
+      });
+
+      if (existingSubjectCode) {
+        insertResults.push({
+          success: false,
+          message: `Subject with subject code ${subject.subCode} already exists for this school`,
+        });
+      } else if (existingSubjectName) {
+        insertResults.push({
+          success: false,
+          message: `Subject with subject name "${subject.subName}" already exists for this school`,
+        });
+      } else {
+        const result = await Subject.create(subject);
+        insertResults.push({
+          success: true,
+          subject: result,
         });
       }
     }
 
-    const result = await Subject.insertMany(subjects);
-    res.send(result);
+    res.json(insertResults);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 exports.allSubjects = async (req, res) => {
   try {
