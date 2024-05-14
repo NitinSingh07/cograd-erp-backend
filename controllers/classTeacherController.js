@@ -5,19 +5,18 @@ const { getSchool } = require("../service/schoolAuth");
 const { setClassTeacher, getClassTeacher } = require("../service/classTeacherAuth");
 const express = require("express");
 const { TokenInstance } = require("twilio/lib/rest/oauth/v1/token");
-const router = express.Router();
 
 const classTeacherRegister = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    const token = req.cookies?.token;
+    const decodedToken = getSchool(token);
 
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const { email, password, className, teacherId } = req.body;
-    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+    const schoolId = decodedToken.id;
 
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
@@ -36,31 +35,39 @@ const classTeacherRegister = async (req, res) => {
     const existingClassTeacherByEmail = await classTeacherModel.findOne({
       email,
     });
+
     const existingClass = await classTeacherModel.findOne({ className });
 
     const emailDomain = email.split("@")[1];
     const validDomain = emailDomain === "cograd.in";
 
     if (existingClassTeacherByEmail) {
-      res.send({ message: "Email already exists" });
-    } else if (existingClass) {
-      res.send({ message: "Class already exists" });
-    } else if (!classExist) {
-      res.send({ message: "Class doesn't exist" });
-    } else if (!validDomain) {
-      res.send({
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    if (existingClass) {
+      return res.status(400).json({ message: "Class Teacher for this class  already exists" });
+    }
+
+    if (!classExist) {
+      return res.status(400).json({ message: "Class doesn't exist" });
+    }
+
+    if (!validDomain) {
+      return res.status(400).json({
         message: "Email domain is not valid. It should be @cograd.in",
       });
-    } else {
-      const result = await classTeacher.save();
-      result.password = undefined;
-      const response = await result.populate("className", "className");
-      res.send(response);
     }
+
+    const result = await classTeacher.save();
+    result.password = undefined;
+    const response = await result.populate("className", "className");
+    res.send(response);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const classTeacherLogIn = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -88,8 +95,6 @@ const classTeacherLogIn = async (req, res) => {
     // Set the token in a cookie
     // Set the token in a cookie
     res.cookie("classTeacherToken", classTeacherToken);
-
-    console.log("classTeacherToken", classTeacherToken);
     // Send a successful response
 
     res.status(200).json(classTeacher);
@@ -154,21 +159,18 @@ const getAllClassTeacherDetail = async (req, res) => {
 const getClassTeacherDetail = async (req, res) => {
   try {
     const token = req.cookies?.classTeacherToken; // Retrieve the JWT token from the cookies
-    console.log(TokenInstance)
     const decodedToken = getClassTeacher(token); // Decode the token to extract school information
-    console.log(decodedToken);
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const classTeacher = await classTeacherModel.findById(decodedToken.id)
-    if (classTeacher.length) {
-      classTeacher.forEach((ct) => {
-        ct.password = undefined; // Hide the password
-      });
+    console.log(classTeacher);
+    if (classTeacher) {
       res.send(classTeacher);
-    } else {
-      res.status(404).send({ message: "No classTeacher found for this school" });
+    }
+    else {
+      res.status(404).send({ message: "No classTeacher is registered to this id" });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });

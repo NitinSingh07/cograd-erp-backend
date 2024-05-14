@@ -62,23 +62,23 @@ app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 
 // app.use("/sms", smsRouter);
-
+app.use(checkForClassTeacherAuthentication)
 app.use(checkForAuthentication);
 app.use(checkForTeacherAuthentication);
-app.use(checkForClassTeacherAuthentication);
 app.use(checkForParentAuthentication);
 app.use(checkForAdminAuthentication);
 app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
 //for login of class teacher only
-app.use("/classTeacher", classTeacher);
+
 app.use("/subject", restrictTo(["PRINCIPAL"]), subjectRouter);
 app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
 app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
-app.use("/driver", restrictTo(["PRINCIPAL"]), driverRoutes);
+app.use("/driver",  driverRoutes);
 app.use("/class", classRouter);
-app.use("/admin",adminRouter)
+app.use("/admin",adminRouter);
+app.use("/classTeacher", classTeacher);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
 app.use(
   "/teacherReg",
