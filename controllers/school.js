@@ -41,9 +41,7 @@ exports.schoolRegister = async (req, res) => {
 exports.schoolLogIn = async (req, res) => {
   try {
     if (!req.body.email || !req.body.password) {
-      return res
-        .status(400)
-        .send({ message: "Email and password are required" });
+      return res.status(400).send({ message: "Email and password are required" });
     }
 
     let school = await School.findOne({ email: req.body.email });
@@ -51,22 +49,19 @@ exports.schoolLogIn = async (req, res) => {
       return res.status(404).send({ message: "School not found" });
     }
 
-    // Check if the password matches
     const isMatch = await bcrypt.compare(req.body.password, school.password);
     if (!isMatch) {
       return res.status(401).send({ message: "Invalid password" });
     }
 
     school.password = undefined; // Remove password from the response
-    const token = setSchool(school);
+    const token = jwt.sign({ id: school.id, email: school.email, role: school.role }, secret, { expiresIn: maxAge });
     res.cookie("token", token, {
-      httpOnly: false, // Existing option
-      sameSite: "none",  // Add this option for enhanced security
-      secure: true,      // Add this option for enhanced security
-      path:"/",
-      maxAge:maxAge*1000
-  
-   
+      httpOnly: true, // Set to true for security
+      sameSite: "none",
+      secure: true,
+      path: "/",
+      maxAge: maxAge * 1000
     });
     return res.status(200).send(school);
   } catch (error) {
