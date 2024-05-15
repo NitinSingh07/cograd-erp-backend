@@ -62,6 +62,8 @@ exports.schoolLogIn = async (req, res) => {
       httpOnly: false, // Existing option
       sameSite: "none",  // Add this option for enhanced security
       secure: true,      // Add this option for enhanced security
+      path:"/",
+      maxAge:maxAge*1000
   
    
     });
