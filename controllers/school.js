@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const School = require("../models/school");
 const { setSchool, getSchool } = require("../service/schoolAuth");
+const maxAge = 60 * 60;
 
 exports.schoolRegister = async (req, res) => {
   try {
