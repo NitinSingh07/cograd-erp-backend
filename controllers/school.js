@@ -58,8 +58,12 @@ exports.schoolLogIn = async (req, res) => {
 
     school.password = undefined; // Remove password from the response
     const token = setSchool(school);
-    res.cookie("token", token);
-
+    res.cookie("token", token, {
+      httpOnly: true, // Existing option
+      sameSite: "None",  // Add this option for enhanced security
+      secure: true,      // Add this option for enhanced security
+   
+    });
     return res.status(200).send(school);
   } catch (error) {
     console.error("Error logging in:", error);
