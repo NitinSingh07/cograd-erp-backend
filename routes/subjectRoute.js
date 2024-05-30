@@ -7,9 +7,9 @@ const {
 } = require("../controllers/subjectController");
 const router = express.Router();
 
-router.post("/add/:schoolId", subjectCreate);
+router.post("/add", subjectCreate);
 router.get("/get/:schoolId", allSubjects);
-router.get("/classSubjects/:schoolId/:id", classSubjects);
+router.get("/classSubjects/:schoolId/:className", classSubjects);
 router.get("/freeSubjects/:schoolId/:id", freeSubjectList);
 
 module.exports = router;

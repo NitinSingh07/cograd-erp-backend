@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 
 exports.subjectCreate = async (req, res) => {
   try {
-    if (!req.body.school) {
+    const {schoolId} = req.body; // Use the school ID from the request parameters
+
+    if (!schoolId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
@@ -12,7 +14,7 @@ exports.subjectCreate = async (req, res) => {
       subName: subject.subName,
       subCode: subject.subCode,
       className: req.body.className,
-      school: req.body.school, // Use the school ID from the decoded token
+      school: schoolId, // Use the school ID from the request parameters
     }));
 
     const insertResults = [];
@@ -20,7 +22,7 @@ exports.subjectCreate = async (req, res) => {
     for (const subject of subjects) {
       const existingSubjectCode = await Subject.findOne({
         subCode: subject.subCode,
-        school: req.body.school,
+        school: schoolId,
       });
 
       if (existingSubjectCode) {
@@ -42,7 +44,6 @@ exports.subjectCreate = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 
 exports.allSubjects = async (req, res) => {
   try {
@@ -70,13 +71,13 @@ exports.allSubjects = async (req, res) => {
 exports.classSubjects = async (req, res) => {
   try {
     const schoolId = req.params.schoolId; // Use the school ID from the request parameters
-
+    const className = req.params.className
     if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const subjects = await Subject.find({
-      className: req.params.id,
+      className: className,
       school: schoolId, // Ensure it's for the current school
     })
       .populate("teacher", "name")
