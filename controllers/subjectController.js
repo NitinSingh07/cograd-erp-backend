@@ -1,5 +1,3 @@
-const { getSchool } = require("../service/schoolAuth");
-
 const Subject = require("../models/subjectModel");
 const Teacher = require("../models/teacherModel");
 const mongoose = require("mongoose");
@@ -45,16 +43,14 @@ exports.subjectCreate = async (req, res) => {
   }
 };
 
+
 exports.allSubjects = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    const schoolId = req.params.schoolId; // Use the school ID from the request parameters
 
-    if (!decodedToken || !decodedToken.id) {
+    if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
-    const schoolId = decodedToken.id;
 
     const subjects = await Subject.find({ school: schoolId }).populate(
       "school",
@@ -73,18 +69,15 @@ exports.allSubjects = async (req, res) => {
 
 exports.classSubjects = async (req, res) => {
   try {
-    // const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    // const decodedToken = getSchool(token); // Decode the token to extract school information
+    const schoolId = req.params.schoolId; // Use the school ID from the request parameters
 
-    // if (!decodedToken || !decodedToken.id) {
-    //   return res.status(401).json({ message: "Unauthorized" });
-    // }
-
-    // const schoolId = decodedToken.id; // Use the school ID from the decoded token
+    if (!schoolId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const subjects = await Subject.find({
       className: req.params.id,
-      // school: schoolId, // Ensure it's for the current school
+      school: schoolId, // Ensure it's for the current school
     })
       .populate("teacher", "name")
       .populate("className", "className");
@@ -101,14 +94,11 @@ exports.classSubjects = async (req, res) => {
 
 exports.freeSubjectList = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    const schoolId = req.params.schoolId; // Use the school ID from the request parameters
 
-    if (!decodedToken || !decodedToken.id) {
+    if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
-    const schoolId = decodedToken.id; // Use the school ID from the decoded token
 
     const subjects = await Subject.find({
       className: req.params.id,
