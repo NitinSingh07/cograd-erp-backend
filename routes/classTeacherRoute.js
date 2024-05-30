@@ -1,14 +1,17 @@
 const router = require("express").Router();
-
+const express = require("express");
 const {
   classTeacherRegister,
   classTeacherLogIn,
-  getClassTeacherDetail,checkClassTeacher
+  getAllClassTeacherDetail, checkClassTeacher, getClassTeacherDetail
 } = require("../controllers/classTeacherController");
-
+const { restrictClassTeacherTo, checkForClassTeacherAuthentication } = require("../middleware/auth");
+const app = express();
 
 router.post("/login", classTeacherLogIn);
-router.get("/:school", getClassTeacherDetail);
+router.get("/:school", getAllClassTeacherDetail);
+
+router.get("/get/details", getClassTeacherDetail);
 router.get("/check/:teacherId", checkClassTeacher);
 router.post("/logout", (req, res) => {
   // Clear the token cookie

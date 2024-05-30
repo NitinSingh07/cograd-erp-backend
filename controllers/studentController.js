@@ -6,10 +6,16 @@ const getDataUri = require("../utils/dataUri.js");
 const cloudinary = require("cloudinary").v2;
 
 const studentRegister = async (req, res) => {
-  const { name, email, password, className, fathersName, fatherEmail } =
-    req.body;
-  const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-  const decodedToken = getSchool(token); // Decode the token to extract school information
+  const {
+    name,
+    email,
+    password,
+    className,
+    fathersName,
+    fatherEmail,
+    schoolId,
+  } = req.body;
+
   try {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
@@ -32,7 +38,7 @@ const studentRegister = async (req, res) => {
       password: hashedPass,
       profile: myCloud.secure_url,
       className,
-      schoolName: decodedToken.id, // corrected from 'school'
+      schoolName: schoolId, // corrected from 'school'
       fathersName,
       fatherEmail,
     });
@@ -81,7 +87,7 @@ const studentLogIn = async (req, res) => {
         res.status(401).send({ message: "Invalid password" });
       }
     } else {
-      res.status(401).send({ message: "User not found" });
+      res.status(401).send({ message: "Student   not found" });
     }
   } catch (err) {
     res.status(500).json(err);
@@ -123,15 +129,11 @@ const studentList = async (req, res) => {
 
 const schoolStudentList = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-    if (!decodedToken || !decodedToken.id) {
+    const schoolId = req.params.id;
+    if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const schoolId = decodedToken.id; // Extract the school ID from the decoded token
-
-    // }
     const studentList = await StudentModel.find({
       schoolName: schoolId,
     })

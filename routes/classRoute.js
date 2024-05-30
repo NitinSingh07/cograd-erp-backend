@@ -8,11 +8,11 @@ const {
 } = require("../controllers/classController");
 
 router.post("/create", ClassCreate);
-router.get("/get", classList);
+router.get("/get/:id", classList);
 
 //get details of a specific class
 router.get("/classDetail/:id", getClassDetail);
-// to delete a class//subjects should be there 
+// to delete a class//subjects should be there
 router.delete("/deleteClass/:id", deleteClass);
 
 module.exports = router;

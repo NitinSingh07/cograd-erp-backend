@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const School = require("../models/school");
 const { setSchool, getSchool } = require("../service/schoolAuth");
+// const maxAge = 60 * 60;
 
 exports.schoolRegister = async (req, res) => {
   try {
@@ -58,8 +59,8 @@ exports.schoolLogIn = async (req, res) => {
 
     school.password = undefined; // Remove password from the response
     const token = setSchool(school);
+    // const expiryDate = new Date(Date.now() + 3600000); // 1 hour
     res.cookie("token", token);
-
     return res.status(200).send(school);
   } catch (error) {
     console.error("Error logging in:", error);
@@ -69,7 +70,7 @@ exports.schoolLogIn = async (req, res) => {
 
 exports.schoolList = async (req, res) => {
   try {
-    const schools = await School.find({}, { _id: 1, schoolName: 1 });
+    const schools = await School.find({}, {});
     if (schools && schools.length > 0) {
       return res.status(200).json(schools);
     } else {

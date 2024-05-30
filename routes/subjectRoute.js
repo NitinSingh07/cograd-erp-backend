@@ -12,7 +12,7 @@ router.get("/get", allSubjects);
 router.get("/classSubjects/:id", classSubjects);
 router.get("/freeSubjects/:id", freeSubjectList);
 //add like this
-//you can add multiple subjects at once 
+//you can add multiple subjects at once
 // {
 //   //   "schoolId": "660d8dc47c38601f49dcfcaf",
 //     "className": "660d8fa0e7df2406e11c4888",
@@ -27,5 +27,5 @@ router.get("/freeSubjects/:id", freeSubjectList);
 //       }
 //     ]
 //   }
-  
-module.exports = router; 
+
+module.exports = router;

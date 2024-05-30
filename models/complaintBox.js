@@ -4,18 +4,29 @@ const complaintBoxSchema = new mongoose.Schema(
   {
     message: {
       type: String,
-      unique: true,
-      required: true,
+    },
+    audio: {
+      type: String,
     },
     role: {
       type: String,
-      enum: ["student", "parent", "teacher", "classTeacher"],
+      enum: ["STUDENT", "PARENT"],
       required: true,
     },
     date: {
       type: Number,
       required: true,
       default: Date.now(),
+    },
+    status: {
+      type: String,
+      enum: ["UNRESOLVED", "RESOLVED"],
+      default: "UNRESOLVED",
+    },
+    referredTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "teacher",
+      default: null,
     },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -25,17 +36,20 @@ const complaintBoxSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "parent",
     },
-
-    teacherId: {
+    schoolId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "teacher",
-    },
-    classTeacherId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "classTeacher",
+      ref: "school",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    validate: {
+      validator: function () {
+        return this.message || this.audio;
+      },
+      message: "Either message or audio must be provided.",
+    },
+  }
 );
 
 module.exports = mongoose.model("complaintBox", complaintBoxSchema);

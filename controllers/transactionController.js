@@ -6,12 +6,12 @@ const addTransaction = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
     const decodedToken = getSchool(token); // Decode the token to extract school information
-    
+
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { amount, description, type , receipt } = req.body;
+    const { amount, description, type, receipt } = req.body;
 
     if (!amount || !type || !["income", "expense"].includes(type)) {
       return res.status(400).json({ message: "Invalid transaction data" });
@@ -22,12 +22,14 @@ const addTransaction = async (req, res) => {
       amount,
       description,
       type,
-      receipt
+      receipt,
     });
 
     await transaction.save();
 
-    res.status(201).json({ message: "Transaction added successfully", transaction });
+    res
+      .status(200)
+      .json({ message: "Transaction added successfully", transaction });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
@@ -45,7 +47,7 @@ const getTransactionsBySchool = async (req, res) => {
 
     const transactions = await Transaction.find({ school: decodedToken.id });
 
-    res.status(200).json({ transactions });
+    res.status(200).json(transactions);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
@@ -63,7 +65,10 @@ const getIncomeOrExpense = async (req, res) => {
 
     const { type } = req.params;
 
-    const transactions = await Transaction.find({ school: decodedToken.id, type });
+    const transactions = await Transaction.find({
+      school: decodedToken.id,
+      type,
+    });
 
     res.status(200).json({ transactions });
   } catch (err) {
@@ -84,19 +89,21 @@ const getTransactionsBySchoolAndDate = async (req, res) => {
     const { date } = req.params;
 
     if (!date) {
-      return res.status(400).json({ message: "Missing required path parameters" });
+      return res
+        .status(400)
+        .json({ message: "Missing required path parameters" });
     }
 
     const transactions = await Transaction.find({
       school: decodedToken.id,
-      date: new Date(date)
+      date: new Date(date),
     });
 
     let totalIncome = 0;
     let totalExpense = 0;
 
-    transactions.forEach(transaction => {
-      if (transaction.type === 'income') {
+    transactions.forEach((transaction) => {
+      if (transaction.type === "income") {
         totalIncome += transaction.amount;
       } else {
         totalExpense += transaction.amount;

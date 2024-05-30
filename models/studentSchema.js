@@ -43,7 +43,6 @@ const studentSchema = new mongoose.Schema({
   fatherEmail: {
     type: String,
     required: true,
-    unique: true,
   },
   // mothersName: {
   //     type: String,

@@ -31,6 +31,11 @@ const parentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    school: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "school",
+      required: true,
+    },
     contact: {
       type: String,
       required: true,
@@ -53,6 +58,10 @@ const parentSchema = new mongoose.Schema(
       {
         paidAmount: {
           type: Number,
+          required: true,
+        },
+        receipt: {
+          type: String,
           required: true,
         },
         date: {

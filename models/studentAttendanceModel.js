@@ -6,7 +6,7 @@ const studentAttendanceSchema = new mongoose.Schema({
     ref: "student",
     required: true,
   },
-  classTeacher:{
+  classTeacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "classTeacher",
     required: true,
@@ -17,7 +17,7 @@ const studentAttendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["p", "a","l"],
+    enum: ["p", "a", "l"],
     default: "a",
   },
 });

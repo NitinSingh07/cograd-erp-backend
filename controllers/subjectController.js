@@ -2,40 +2,46 @@ const { getSchool } = require("../service/schoolAuth");
 
 const Subject = require("../models/subjectModel");
 const Teacher = require("../models/teacherModel");
+const mongoose = require("mongoose");
 
 exports.subjectCreate = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!req.body.school) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const subjects = req.body.subjects.map((subject) => ({
       subName: subject.subName,
       subCode: subject.subCode,
       className: req.body.className,
-      school: decodedToken.id, // Use the school ID from the decoded token
+      school: req.body.school, // Use the school ID from the decoded token
     }));
 
+    const insertResults = [];
+
     for (const subject of subjects) {
-      const existingSubject = await Subject.findOne({
+      const existingSubjectCode = await Subject.findOne({
         subCode: subject.subCode,
-        school: decodedToken.id,
+        school: req.body.school,
       });
 
-      if (existingSubject) {
-        return res.send({
-          message: `Subject with subCode ${subject.subCode} already exists for this school`,
+      if (existingSubjectCode) {
+        insertResults.push({
+          success: false,
+          message: `Subject with subject code ${subject.subCode} already exists for this school`,
+        });
+      } else {
+        const result = await Subject.create(subject);
+        insertResults.push({
+          success: true,
+          subject: result,
         });
       }
     }
 
-    const result = await Subject.insertMany(subjects);
-    res.send(result);
+    res.json(insertResults);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -52,13 +58,13 @@ exports.allSubjects = async (req, res) => {
 
     const subjects = await Subject.find({ school: schoolId }).populate(
       "school",
-      "schoolName"
+      "schoolName className"
     );
 
     if (subjects.length > 0) {
       res.status(200).send(subjects); // 200 OK
     } else {
-      res.status(404).json({ message: "No subjects found" }); // 404 Not Found
+      res.status(200).json({ message: "No subjects found" }); // 200 OK with no subjects message
     }
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" });
@@ -67,18 +73,18 @@ exports.allSubjects = async (req, res) => {
 
 exports.classSubjects = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    // const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    // const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // if (!decodedToken || !decodedToken.id) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
 
-    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+    // const schoolId = decodedToken.id; // Use the school ID from the decoded token
 
     const subjects = await Subject.find({
       className: req.params.id,
-      school: schoolId, // Ensure it's for the current school
+      // school: schoolId, // Ensure it's for the current school
     })
       .populate("teacher", "name")
       .populate("className", "className");

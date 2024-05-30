@@ -8,7 +8,7 @@ const examResultSchema = new mongoose.Schema({
   },
   exams: [
     {
-      exam: {
+      examName: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "ExamList",
         required: true,
@@ -19,7 +19,11 @@ const examResultSchema = new mongoose.Schema({
             type: String,
             required: true,
           },
-          marks: {
+          marksObtain: {
+            type: Number,
+            required: true,
+          },
+          totalMarks: {
             type: Number,
             required: true,
           },
@@ -27,6 +31,11 @@ const examResultSchema = new mongoose.Schema({
       ],
     },
   ],
+  school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "school",
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("ExamResult", examResultSchema);

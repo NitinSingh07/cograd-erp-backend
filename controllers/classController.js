@@ -37,11 +37,9 @@ exports.ClassCreate = async (req, res) => {
 
 exports.classList = async (req, res) => {
   try {
-    const { school } = req.body;
-    const token = req.cookies?.token;
-    const decodedToken = getSchool(token);
+    const school = req.params.id;
 
-    if ((!decodedToken || !decodedToken.id) && !school) {
+    if (!school) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -52,15 +50,6 @@ exports.classList = async (req, res) => {
       } else {
         return res.status(404).json({ message: "No classes found" }); // 404 if no classes
       }
-    }
-
-    const schoolId = decodedToken.id;
-
-    const sclasses = await Class.find({ school: schoolId });
-    if (sclasses.length > 0) {
-      res.status(200).json(sclasses); // 200 OK if classes exist
-    } else {
-      res.status(404).json({ message: "No classes found" }); // 404 if no classes
     }
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" }); // 500 for server errors
@@ -86,11 +75,18 @@ exports.deleteClass = async (req, res) => {
     if (!deletedClass) {
       return res.status(404).json({ message: "Class not found" });
     }
-    await Subject.deleteMany({ className: req.params.id });
+
+    // Find all subject IDs that were deleted
+    const subjectIds = await Subject.find({ className: req.params.id }, "_id");
+    const subjectIdArray = subjectIds.map((subject) => subject._id);
+
+    // Update all teachers to remove the deleted subjects from their teachSubjects array
     await Teacher.updateMany(
-      { "teachSubjects.class": req.params.id },
-      { $pull: { teachSubjects: { class: req.params.id } } }
+      { teachSubjects: { $in: subjectIdArray } },
+      { $pull: { teachSubjects: { $in: subjectIdArray } } }
     );
+    await Subject.deleteMany({ className: req.params.id });
+
     res.status(200).json(deletedClass);
   } catch (error) {
     res.status(500).json({ message: error.message });

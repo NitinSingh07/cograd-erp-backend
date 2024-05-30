@@ -12,7 +12,7 @@ function checkForAuthentication(req, res, next) {
   // Retrieve user information based on the token
 
   const user = getSchool(token);
-  // console.log("auth.js token", user);
+ 
   req.user = user;
   return next();
 }
@@ -29,6 +29,7 @@ function restrictTo(roles = []) {
     return next(); // User is authorized
   };
 }
+
 const { getTeacher } = require("../service/teacherAuth");
 
 function checkForTeacherAuthentication(req, res, next) {
@@ -67,6 +68,7 @@ function checkForClassTeacherAuthentication(req, res, next) {
 
   const classTeacher = getClassTeacher(token); // Validate token
   req.classTeacher = classTeacher; // Set class teacher information
+
   return next(); // Token is valid, continue
 }
 
@@ -79,7 +81,7 @@ function restrictClassTeacherTo(roles = []) {
     if (!roles.includes(req.classTeacher.role)) {
       return res.status(403).send("Forbidden");
     }
-
+  
     return next(); // User is authorized
   };
 }
@@ -118,6 +120,36 @@ function checkForParentAuthentication(req, res, next) {
 // };
 
 
+
+
+const { getAdmin } = require("../service/adminAuth");
+
+function checkForAdminAuthentication(req, res, next) {
+  const token = req.cookies?.adminToken;
+  req.teacher = null;
+
+  if (!token) {
+    return next(); // If no token, move on
+  }
+
+  const admin = getAdmin(token);
+  req.admin = admin;
+
+  return next(); // Token valid, continue
+}
+function restrictAdminTo(roles = []) {
+  return function (req, res, next) {
+    if (!req.admin) {
+      return res.status(401).send("Unauthorized");
+    }
+
+    if (!roles.includes(req.admin.role)) {
+      return res.status(403).send("Forbidden");
+    }
+
+    return next(); // User authorized, continue
+  };}
+
 module.exports = {
   checkForAuthentication,
   restrictTo,
@@ -125,5 +157,7 @@ module.exports = {
   restrictTeacherTo,
   checkForClassTeacherAuthentication,
   restrictClassTeacherTo,
-  checkForParentAuthentication
-};
+  checkForParentAuthentication,
+  restrictAdminTo,
+  checkForAdminAuthentication
+}
