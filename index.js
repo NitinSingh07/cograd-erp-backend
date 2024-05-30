@@ -19,6 +19,7 @@ const teacherAttendanceRouter = require("./routes/teacherAttendanceRouter.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
 const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
+const complaintRoute = require("./routes/complaintBoxRoute.js");
 const {
   checkForAuthentication,
   restrictTo,
@@ -89,6 +90,7 @@ app.use("/teacherAttendance", teacherAttendanceRouter);
 
 //teacher route contains only login , and logout route, teachelist
 app.use("/teacher", teacherRouter);
+app.use("/complains", complaintRoute);
 //mongodb collection
 mongoose
   .connect(
