@@ -2,7 +2,10 @@ const bcrypt = require("bcrypt");
 const classTeacherModel = require("../models/classTeacherModel");
 const classModel = require("../models/classModel");
 const { getSchool } = require("../service/schoolAuth");
-const { setClassTeacher, getClassTeacher } = require("../service/classTeacherAuth");
+const {
+  setClassTeacher,
+  getClassTeacher,
+} = require("../service/classTeacherAuth");
 const express = require("express");
 const { TokenInstance } = require("twilio/lib/rest/oauth/v1/token");
 
@@ -36,6 +39,8 @@ const classTeacherRegister = async (req, res) => {
       email,
     });
 
+    const classTeacherExist = await classTeacherModel.findOne({ teacherId });
+
     const existingClass = await classTeacherModel.findOne({ className });
 
     const emailDomain = email.split("@")[1];
@@ -46,11 +51,19 @@ const classTeacherRegister = async (req, res) => {
     }
 
     if (existingClass) {
-      return res.status(400).json({ message: "Class Teacher for this class  already exists" });
+      return res
+        .status(400)
+        .json({ message: "Class Teacher for this class already exists" });
     }
 
     if (!classExist) {
       return res.status(400).json({ message: "Class doesn't exist" });
+    }
+
+    if (classTeacherExist) {
+      return res
+        .status(400)
+        .json({ message: "Teacher already a class teacher" });
     }
 
     if (!validDomain) {
@@ -104,7 +117,6 @@ const classTeacherLogIn = async (req, res) => {
   }
 };
 
-
 const checkClassTeacher = async (req, res) => {
   try {
     try {
@@ -127,9 +139,6 @@ const checkClassTeacher = async (req, res) => {
   }
 };
 
-
-
-
 const getAllClassTeacherDetail = async (req, res) => {
   try {
     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
@@ -148,13 +157,14 @@ const getAllClassTeacherDetail = async (req, res) => {
       });
       res.send(classTeacher);
     } else {
-      res.status(404).send({ message: "No classTeacher found for this school" });
+      res
+        .status(404)
+        .send({ message: "No classTeacher found for this school" });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 const getClassTeacherDetail = async (req, res) => {
   try {
@@ -164,11 +174,15 @@ const getClassTeacherDetail = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const classTeacher = await classTeacherModel.findById(decodedToken.id).populate("className", "className");
+    const classTeacher = await classTeacherModel
+      .findById(decodedToken.id)
+      .populate("className", "className") // Populate the className field with className only
+      .populate("school", "schoolName") // Populate the school field with schoolName only
+      .populate("teacherId", "name email"); // Populate the teacherId field with name and email only
+
     if (classTeacher) {
       res.send(classTeacher);
-    }
-    else {
+    } else {
       res.status(404).send({ message: "No classTeacher is registered to this id" });
     }
   } catch (err) {
@@ -182,5 +196,5 @@ module.exports = {
   getClassTeacherDetail,
   checkClassTeacher,
   getClassTeacherDetail,
-  getAllClassTeacherDetail
+  getAllClassTeacherDetail,
 };

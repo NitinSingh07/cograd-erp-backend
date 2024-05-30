@@ -86,11 +86,18 @@ exports.deleteClass = async (req, res) => {
     if (!deletedClass) {
       return res.status(404).json({ message: "Class not found" });
     }
-    await Subject.deleteMany({ className: req.params.id });
+
+    // Find all subject IDs that were deleted
+    const subjectIds = await Subject.find({ className: req.params.id }, "_id");
+    const subjectIdArray = subjectIds.map((subject) => subject._id);
+
+    // Update all teachers to remove the deleted subjects from their teachSubjects array
     await Teacher.updateMany(
-      { "teachSubjects.class": req.params.id },
-      { $pull: { teachSubjects: { class: req.params.id } } }
+      { teachSubjects: { $in: subjectIdArray } },
+      { $pull: { teachSubjects: { $in: subjectIdArray } } }
     );
+    await Subject.deleteMany({ className: req.params.id });
+
     res.status(200).json(deletedClass);
   } catch (error) {
     res.status(500).json({ message: error.message });

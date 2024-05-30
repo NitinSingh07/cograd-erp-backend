@@ -3,6 +3,7 @@ const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
 const { setTeacher, getTeacher } = require("../service/teacherAuth");
 const { getSchool } = require("../service/schoolAuth");
+const { getAdmin } = require("../service/adminAuth");
 
 // Teacher Registration
 const teacherRegister = async (req, res) => {
@@ -16,8 +17,23 @@ const teacherRegister = async (req, res) => {
 
     const { name, email, password, teachSubjects } = req.body;
 
-    if (!name || !email || !password || !teachSubjects) {
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !teachSubjects ||
+      !teachSubjects.length
+    ) {
       return res.status(400).json({ message: "All fields are required." });
+    }
+
+    const subjects = await Subject.find({ _id: { $in: teachSubjects } });
+    for (const subject of subjects) {
+      if (subject.teacher) {
+        return res.status(400).json({
+          message: `Subject ${subject.name} is already assigned to a teacher.`,
+        });
+      }
     }
 
     const existingTeacher = await Teacher.findOne({ email });
@@ -36,26 +52,20 @@ const teacherRegister = async (req, res) => {
 
     let savedTeacher = await teacher.save();
 
-    // Iterate over teachSubjects array
-    for (const subjectInfo of teachSubjects) {
-      const { subject } = subjectInfo;
-
-      // Find the subject by its ID
-      const subjectFind = await Subject.findById(subject);
-
-      if (!subjectFind) {
-        return res.status(404).json({ message: "Subject not found" });
-      }
-
-      // Assign teacher's ID to the subject
-      subjectFind.teacher = teacher._id;
-      // Save the updated subject
-      await subjectFind.save();
-    }
+    // Assign teacher's ID to the subjects and save them concurrently
+    await Promise.all(
+      teachSubjects.map(async (subjectId) => {
+        const subject = await Subject.findById(subjectId);
+        if (subject) {
+          subject.teacher = savedTeacher._id;
+          await subject.save();
+        }
+      })
+    );
 
     // Removing sensitive data from the response
     savedTeacher.password = undefined;
-    return res.status(201).json(savedTeacher);
+    return res.status(200).json(savedTeacher);
   } catch (error) {
     console.error("Error during registration:", error);
     return res.status(500).json({ message: "Internal server error." });
@@ -76,7 +86,6 @@ const teacherLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid password." });
     }
-    console.log("right ");
     const token = setTeacher(teacher);
     res.cookie("teacherToken", token);
     console.log(token);
@@ -88,36 +97,56 @@ const teacherLogin = async (req, res) => {
   }
 };
 
-// const getteacherList = async (req, res) => {
-//   try {
-//     const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-//     const decodedToken = getSchool(token); // Decode the token to extract school information
-//     console.log(decodedToken);
-//     if (!decodedToken || !decodedToken.id) {
-//       return res.status(401).json({ message: "Unauthorized" });
-//     }
+const getAllTeacherList = async (req, res) => {
+  try {
+    const token = req.cookies?.adminToken; // Retrieve the JWT token from the cookies
 
-//     const schoolId = decodedToken.id; // Extract the school ID from the decoded token
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-//     const teacherList = await Teacher.find({
-//       school: schoolId,
-//     }).select("-password");
+    const teacherList = await Teacher.find().select("-password");
 
-//     const totalTeachers = teacherList.length; // Get the total count of students
+    const totalTeachers = teacherList.length; // Get the total count of students
 
-//     if (totalTeachers > 0) {
-//       res.status(200).json({
-//         totalTeachers, // Include the total student count in the response
-//         teacherList, // Send the student list
-//       });
-//     } else {
-//       res.status(404).json({ message: "No Teachers  found" });
-//     }
-//   } catch (err) {
-//     res.status(500).json({ message: "Internal server error", error: err });
-//   }
-// };
+    if (totalTeachers > 0) {
+      res.status(200).json({
+        totalTeachers, // Include the total student count in the response
+        teacherList, // Send the student list
+      });
+    } else {
+      res.status(404).json({ message: "No Teachers  found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error", error: err });
+  }
+};
 
+const getTeacherById = async (req, res) => {
+  try {
+    const token = req.cookies?.teacherToken; // Retrieve the JWT token from the cookies
+    const decodedToken = getTeacher(token); // Decode the token to extract school information
+    if (!decodedToken) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const teacherId = decodedToken.id
+
+
+    const teacher = await Teacher.findById(teacherId).select("-password").populate("school").populate("teachSubjects");
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    res.status(200).json(teacher);
+  } catch (err) {
+    if (err.message === "Invalid token") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    console.error("Error retrieving teacher:", err);
+    res.status(500).json({ message: "Internal server error", error: err });
+  }
+};
 const addTimeline = async (req, res) => {
   const { startTime, endTime, subjectId, classId } = req.body;
   try {
@@ -183,4 +212,6 @@ module.exports = {
   teacherLogin,
   addTimeline,
   fetchTeacherTimeline,
+  getAllTeacherList,
+  getTeacherById
 };

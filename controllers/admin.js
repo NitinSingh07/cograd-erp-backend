@@ -4,24 +4,27 @@ const { setAdmin, getAdmin } = require("../service/adminAuth");
 
 exports.adminRegister = async (req, res) => {
   try {
+    const { email, password, name } = req.body;
+
+    if (!email || !name || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
     // Check if email already exists
-    const existingAdmin = await Admin.findOne({ email: req.body.email });
+    const existingAdmin = await Admin.findOne({ email });
 
     if (existingAdmin) {
       return res.status(400).send({ message: "Email already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newAdmin = new Admin({
-      email: req.body.email,
+      name,
+      email,
       password: hashedPassword,
     });
-    const adminToken = setAdmin(newAdmin);
-    res.cookie("adminToken", adminToken);
 
-    let result = await newAdmin.save();
-    result.password = undefined; // Do not send password back
-    res.send(result);
+    await newAdmin.save();
+    res.send("Admin registered successfully");
   } catch (err) {
     console.error("Error registering admin:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -31,7 +34,9 @@ exports.adminRegister = async (req, res) => {
 exports.adminLogin = async (req, res) => {
   try {
     if (!req.body.email || !req.body.password) {
-      return res.status(400).send({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .send({ message: "Email and password are required" });
     }
 
     let admin = await Admin.findOne({ email: req.body.email });

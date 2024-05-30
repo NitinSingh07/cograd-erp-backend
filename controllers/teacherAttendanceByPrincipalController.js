@@ -3,6 +3,7 @@ const TeacherAttendance = require("../models/teacherAttendanceModel");
 const School = require("../models/school");
 const Teacher = require("../models/teacherModel");
 const { DateTime } = require("luxon");
+const { getAdmin } = require("../service/adminAuth");
 
 const takeTeacherAttendance = async (req, res) => {
   try {
@@ -133,7 +134,14 @@ const getTeachersBySchool = async (req, res) => {
     const teachers = await Teacher.find({
       school: schoolId,
     })
-      .populate("teachSubjects.subject", "subName")
+      .populate({
+        path: "teachSubjects",
+        populate: {
+          path: "className",
+          select: "className", // specify the fields you want from the Class model
+        },
+        select: "subName",
+      })
       .select("-password");
 
     if (!teachers || teachers.length === 0) {
@@ -172,21 +180,21 @@ const editTeacherAttendance = async (req, res) => {
   }
 };
 
-const getAllTeachersAttendanceByDate = async (req, res) => {
+const getSchoolTeachersAttendanceByDate = async (req, res) => {
   try {
     const token = req.cookies?.token;
-    const decodedToken = getSchool(token);
 
-    if (!decodedToken || !decodedToken.id) {
+    if (!token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+    const decodedToken = getSchool(token)
 
-    const { date } = req.body; // Expecting a date in the request body
-    const schoolId = decodedToken.id;
+    const { date } = req.body; // Retrieve date from URL parameters
 
     const attendance = await TeacherAttendance.find({
       date,
-      // school: schoolId,
+      school:decodedToken.id
+
     }).populate("teacher", "name email"); // Populate teacher name and email
 
     if (!attendance || attendance.length === 0) {
@@ -195,7 +203,51 @@ const getAllTeachersAttendanceByDate = async (req, res) => {
         .json({ message: `No attendance found for ${date}` });
     }
 
-    return res.status(200).json(attendance);
+    // Calculate the number of teachers present
+    const presentTeachersCount = attendance.filter(
+      (record) => record.status === "p"
+    ).length;
+
+    return res.status(200).json({
+      attendance,
+      presentTeachersCount,
+    });
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+const getAllTeachersAttendanceByDate = async (req, res) => {
+  try {
+    const token = req.cookies?.adminToken;
+
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { date } = req.body; // Retrieve date from URL parameters
+
+    const attendance = await TeacherAttendance.find({
+      date,
+    }).populate("teacher", "name email"); // Populate teacher name and email
+
+    if (!attendance || attendance.length === 0) {
+      return res
+        .status(404)
+        .json({ message: `No attendance found for ${date}` });
+    }
+
+    // Calculate the number of teachers present
+    const presentTeachersCount = attendance.filter(
+      (record) => record.status === "p"
+    ).length;
+
+    return res.status(200).json({
+      attendance,
+      presentTeachersCount,
+    });
   } catch (error) {
     console.error("Error fetching attendance:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -210,4 +262,6 @@ module.exports = {
   getAllTeachersAttendanceByDate,
   editTeacherAttendance,
   getAllTeachersAttendanceByDate,
+  //for a particular school 
+  getSchoolTeachersAttendanceByDate
 };

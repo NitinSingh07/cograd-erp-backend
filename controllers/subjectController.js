@@ -10,7 +10,7 @@ exports.subjectCreate = async (req, res) => {
     const decodedToken = getSchool(token); // Decode the token to extract school information
 
     if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const subjects = req.body.subjects.map((subject) => ({
@@ -28,20 +28,10 @@ exports.subjectCreate = async (req, res) => {
         school: decodedToken.id,
       });
 
-      const existingSubjectName = await Subject.findOne({
-        subName: subject.subName,
-        school: decodedToken.id,
-      });
-
       if (existingSubjectCode) {
         insertResults.push({
           success: false,
           message: `Subject with subject code ${subject.subCode} already exists for this school`,
-        });
-      } else if (existingSubjectName) {
-        insertResults.push({
-          success: false,
-          message: `Subject with subject name "${subject.subName}" already exists for this school`,
         });
       } else {
         const result = await Subject.create(subject);
@@ -54,10 +44,9 @@ exports.subjectCreate = async (req, res) => {
 
     res.json(insertResults);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
-
 
 exports.allSubjects = async (req, res) => {
   try {
@@ -70,35 +59,33 @@ exports.allSubjects = async (req, res) => {
 
     const schoolId = decodedToken.id;
 
-    const subjects = await Subject.find({ school: schoolId }).populate(
-      "school",
-      "schoolName"
-    );
+    const subjects = await Subject.find({ school: schoolId }).populate("school", "schoolName className");
 
     if (subjects.length > 0) {
       res.status(200).send(subjects); // 200 OK
     } else {
-      res.status(404).json({ message: "No subjects found" }); // 404 Not Found
+      res.status(200).json({ message: "No subjects found" }); // 200 OK with no subjects message
     }
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+
 exports.classSubjects = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
+    // const token = req.cookies?.token; // Retrieve the JWT token from the cookies
+    // const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // if (!decodedToken || !decodedToken.id) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
 
-    const schoolId = decodedToken.id; // Use the school ID from the decoded token
+    // const schoolId = decodedToken.id; // Use the school ID from the decoded token
 
     const subjects = await Subject.find({
       className: req.params.id,
-      school: schoolId, // Ensure it's for the current school
+      // school: schoolId, // Ensure it's for the current school
     })
       .populate("teacher", "name")
       .populate("className", "className");

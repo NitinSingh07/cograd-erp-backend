@@ -1,18 +1,20 @@
 const router = require("express").Router();
 
+const { getStudentAttendanceById } = require("../controllers/studentAttendanceController.js");
 const {
   studentRegister,
   studentLogIn,
   getStudentDetail,
   studentList,
   schoolStudentList,
+  
 } = require("../controllers/studentController.js");
 const singleUpload = require("../middleware/multer.js");
 
 router.post("/register", singleUpload, studentRegister);
 router.post("/login", studentLogIn);
 router.get("/:id", getStudentDetail);
-
+router.get("/studentAttendance/:studentId", getStudentAttendanceById);
 router.get("/studentList/:id", studentList);
 router.get("/get/list", schoolStudentList);
 

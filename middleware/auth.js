@@ -12,7 +12,7 @@ function checkForAuthentication(req, res, next) {
   // Retrieve user information based on the token
 
   const user = getSchool(token);
-  // console.log("auth.js token", user);
+ 
   req.user = user;
   return next();
 }
@@ -68,6 +68,7 @@ function checkForClassTeacherAuthentication(req, res, next) {
 
   const classTeacher = getClassTeacher(token); // Validate token
   req.classTeacher = classTeacher; // Set class teacher information
+
   return next(); // Token is valid, continue
 }
 
@@ -80,7 +81,7 @@ function restrictClassTeacherTo(roles = []) {
     if (!roles.includes(req.classTeacher.role)) {
       return res.status(403).send("Forbidden");
     }
-
+  
     return next(); // User is authorized
   };
 }

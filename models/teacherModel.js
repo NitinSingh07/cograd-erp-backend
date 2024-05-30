@@ -26,16 +26,9 @@ const teacherSchema = new mongoose.Schema(
     },
     teachSubjects: [
       {
-        subject: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "subject",
-          required: true,
-        },
-        class: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "class",
-          required: true,
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "subject",
+        required: true,
       },
     ],
     timeline: [
@@ -49,10 +42,6 @@ const teacherSchema = new mongoose.Schema(
         subject: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "subject",
-        },
-        class: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "class",
         },
       },
     ],

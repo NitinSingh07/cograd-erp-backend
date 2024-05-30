@@ -45,7 +45,7 @@ exports.addExamResult = async (req, res) => {
     examResult.exams.push({ examName, subjects });
     await examResult.save();
 
-    res.status(201).json({ message: "Exam result added successfully" });
+    res.status(200).json({ message: "Exam result added successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
@@ -57,7 +57,7 @@ exports.findResultofStudent = async (req, res) => {
     const studentResult = await ExamResult.findOne({
       student: req.params.id,
     })
-      .populate("student", "name")
+      .populate("student", "name email")
       .populate("exams.examName", "examName"); // Populate each 'examName' field within the 'exams' array
     if (!studentResult) {
       return res.status(400).json({ message: "Student result not found" });
@@ -83,49 +83,59 @@ exports.getClassExamResults = async (req, res) => {
         const examResult = await ExamResult.findOne({
           student: student._id,
           "exams.examName": examName, // Filter by examName within the exams array
-        }).populate({
-          path: "exams.examName",
-          match: { _id: examName }, // Ensure the populated examName matches the provided examName
-          select: "examName subjects",
-        });
+        })
+          .populate({
+            path: "exams.examName",
+            match: { _id: examName }, // Ensure the populated examName matches the provided examName
+            select: "examName subjects",
+          })
+          .populate("student", "name email");
 
-        student.password = undefined;
-
-        return { student: student, examResult: examResult };
+        return examResult;
       });
 
       // Step 3: Await all promises and send the list of students with their exam results
       const results = await Promise.all(resultsPromises);
 
       // Step 4: Filter out students without exam results for the specified examName
-      const filteredResults = results.filter(
-        ({ examResult }) => examResult !== null
-      );
+      const filteredResults = results
+        .filter((examResult) => examResult !== null)
+        .map((examResult) => {
+          // Filter out exams with null examName
+          examResult.exams = examResult.exams.filter(
+            (exam) => exam.examName !== null
+          );
+          return examResult;
+        })
+        .filter((examResult) => examResult.exams.length > 0); // Ensure there are exams left after filtering
 
       res.status(200).json(filteredResults);
     } else {
       const resultsPromises = students.map(async (student) => {
         const examResult = await ExamResult.findOne({
           student: student._id,
-        }).populate({
-          path: "exams.examName",
-          select: "examName subjects",
-        });
+        })
+          .populate({
+            path: "exams.examName",
+            select: "examName subjects",
+          })
+          .populate("student", "name email");
 
-        student.password = undefined;
-
-        return { student: student, examResult: examResult };
+        return examResult;
       });
 
       // Step 3: Await all promises and send the list of students with their exam results
       const results = await Promise.all(resultsPromises);
 
       // Step 4: Filter out students without exam results for the specified examName
-      const filteredResults = results.filter(
-        ({ examResult }) => examResult !== null
-      );
+      // const filteredResults = results.filter((examResult) => {
+      //   const exams = examResult.exams.forEach((exam) => {
+      //     if (exam.examName === null) {
+      //     }
+      //   });
+      // });
 
-      res.status(200).json(filteredResults);
+      res.status(200).json(results);
     }
   } catch (error) {
     console.error(error);

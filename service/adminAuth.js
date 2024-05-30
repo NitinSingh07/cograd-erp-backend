@@ -6,6 +6,7 @@ function setAdmin(admin) {
     id: admin.id,
     email: admin.email,
     role: admin.role,
+    name: admin.name,
   };
   return jwt.sign(payload, secret, { expiresIn: "1h" });
 }

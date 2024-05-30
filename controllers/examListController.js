@@ -15,7 +15,23 @@ exports.addNewExam = async (req, res) => {
     const exam = new ExamList({ examName });
     const result = await exam.save();
 
-    res.status(201).json(result);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+exports.findExamById = async (req, res) => {
+  try {
+    const examId = req.params.id;
+
+    const selectedExam = await ExamList.findById(examId);
+
+    if (!selectedExam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    res.status(200).json(selectedExam);
   } catch (err) {
     res.status(500).json(err);
   }
@@ -23,9 +39,45 @@ exports.addNewExam = async (req, res) => {
 
 exports.examListFind = async (req, res) => {
   try {
-    const examLists = await ExamList.find({});
+    const examList = await ExamList.find({});
 
-    res.send(examLists);
+    res.send(examList);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+exports.editExam = async (req, res) => {
+  try {
+    const examId = req.params.id;
+
+    const { examName } = req.body;
+
+    const exam = await ExamList.findById(examId);
+
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    exam.examName = examName;
+    await exam.save();
+
+    res.status(200).json({ message: "Exam updated successfully" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+exports.deleteExam = async (req, res) => {
+  try {
+    const examId = req.params.id;
+    const examList = await ExamList.findByIdAndDelete(examId);
+
+    if (!examList) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    res.status(200).json({ message: "Exam deleted successfully" });
   } catch (err) {
     res.status(500).json(err);
   }

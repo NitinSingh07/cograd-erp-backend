@@ -29,20 +29,25 @@ const takeAttendance = async (req, res) => {
     const existingAttendance = await Attendance.findOne({ date });
 
     if (existingAttendance) {
-      return res.status(400).json({ message: `Attendance already recorded for ${date}` });
+      return res
+        .status(409)
+        .json({ message: `Attendance already recorded for ${date}` });
     }
 
     // Create attendance records
     const attendanceRecords = students.map((student, index) => ({
       student: student._id,
-      classTeacher: classTeacher,
+      classTeacher: classTeacher._id,
       date,
       status: statuses[index],
     }));
+
     await Attendance.insertMany(attendanceRecords);
-    const populatedAttendance = await Attendance.find({ date }).populate("student", "name"); // Populate student name
-    console.log(populatedAttendance);
-    res.status(201).json({
+    const populatedAttendance = await Attendance.find({ date }).populate(
+      "student",
+      "name"
+    ); // Populate student name
+    res.status(200).json({
       message: "Attendance recorded successfully",
       attendance: populatedAttendance,
     });
@@ -57,7 +62,6 @@ const updateAttendance = async (req, res) => {
   try {
     const token = req.cookies?.token; // Get token from cookies
     const decodedToken = getClassTeacher(token);
-    console.log(decodedToken);
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -81,32 +85,6 @@ const updateAttendance = async (req, res) => {
   }
 };
 
-// Get student list for a class teacher
-const getStudentList = async (req, res) => {
-  try {
-    const classTeacherToken = req.cookies?.classTeacherToken;
-    const decodedToken = getClassTeacher(classTeacherToken);
-    console.log(decodedToken);
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const classTeacher = await ClassTeacher.findById(decodedToken.id);
-    if (!classTeacher) {
-      return res.status(404).json({ message: "Class teacher not found" });
-    }
-
-    const classId = classTeacher.className;
-    const students = await Student.find({ className: classId });
-
-    res.status(200).json({ students });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 // Get attendance for a specific student and date
 const getStudentAttendanceByDate = async (req, res) => {
   try {
@@ -118,7 +96,9 @@ const getStudentAttendanceByDate = async (req, res) => {
     }).populate("student", "name");
 
     if (!attendance) {
-      return res.status(404).json({ message: `Attendance not found for ${date}` });
+      return res
+        .status(404)
+        .json({ message: `Attendance not found for ${date}` });
     }
 
     res.status(200).json({ attendance });
@@ -131,78 +111,38 @@ const getStudentAttendanceByDate = async (req, res) => {
 // Get all students' attendance for a specific date
 const getstudentAttendanceOfClassAll = async (req, res) => {
   try {
-
     const token = req.cookies?.classTeacherToken; // Get token from cookies
     const decodedToken = getClassTeacher(token); // Decode to get class teacher ID
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const date = req.params.date;
+
     const classTeacherId = decodedToken.id;
-    const attendance = await Attendance.find({ classTeacher:classTeacherId }).populate("student", "name");
+    const attendance = await Attendance.find({
+      classTeacher: classTeacherId,
+      date,
+    }).populate("student", "name");
 
     if (!attendance || attendance.length === 0) {
-      return res.status(404).json({ message: `No attendance found for ${classTeacherId}` });
+      return res
+        .status(404)
+        .json({ message: `.......... ${classTeacherId}` });
     }
-    console.log(attendance);
-    res.status(200).json({ attendance });
+    res.status(200).json(attendance);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// const checkConsecutiveAbsences = async (req, res) => {
-//   try {
-//     // Fetch all unique students from the attendance records
-//     const students = await Attendance.distinct("student");
-
-//     const results = [];
-//     const absenceThreshold = 3;
-
-//     for (const studentId of students) {
-//       // Find the last three attendance records for this student, ordered by date (most recent first)
-//       const attendances = await Attendance.find({ student: studentId })
-//         .sort({ date: -1 })
-//         .limit(absenceThreshold);
-
-//       // Check if there are exactly three records and they are all marked "a" for absent
-//       if (
-//         attendances.length === absenceThreshold &&
-//         attendances.every((attendance) => attendance.status === "a")
-//       ) {
-//         // Get student details to include in the notification
-//         const student = await Student.findById(studentId);
-
-//         // Add the student to the notification list
-//         if (student) {
-//           results.push({ studentName: student.name, studentId: student._id });
-//         }
-//       }
-//     }
-
-//     if (results.length > 0) {
-//       res.status(200).json({
-//         message: "Students with three consecutive absences detected.",
-//         students: results,
-//       });
-//     } else {
-//       res.status(200).json({
-//         message: "No students with three consecutive absences.",
-//       });
-//     }
-//   } catch (error) {
-//     console.error("Error checking consecutive absences:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
-
-
 const checkConsecutiveAbsences = async (req, res) => {
   try {
+   
     const classTeacherToken = req.cookies?.classTeacherToken;
     const decodedToken = getClassTeacher(classTeacherToken);
-    console.log(decodedToken);
+  
 
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -252,10 +192,10 @@ const checkConsecutiveAbsences = async (req, res) => {
   }
 };
 
+
 // Get last 10 days' attendance for all students in a class
 const getstudentAttendanceOfClass = async (req, res) => {
   try {
-
     const classTeacherToken = req.cookies?.classTeacherToken;
     const decodedToken = getClassTeacher(classTeacherToken);
 
@@ -277,9 +217,9 @@ const getstudentAttendanceOfClass = async (req, res) => {
       const tenDaysAgo = new Date();
       tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
-      const attendances = await Attendance.find({ 
+      const attendances = await Attendance.find({
         student: student._id,
-        date: { $gte: tenDaysAgo.toISOString().split('T')[0] } // Convert date to string and remove time part
+        date: { $gte: tenDaysAgo.toISOString().split("T")[0] }, // Convert date to string and remove time part
       }).sort({ date: 1 });
 
       // Construct the attendance string for the last 10 days
@@ -289,7 +229,11 @@ const getstudentAttendanceOfClass = async (req, res) => {
       }
 
       // Add the attendance string to the results
-      results.push({ studentName: student.name, attendance: attendanceString.trim() });
+      results.push({
+        studentId: student._id,
+        studentName: student.name,
+        attendance: attendanceString.trim(),
+      });
     }
 
     res.status(200).json({
@@ -301,13 +245,31 @@ const getstudentAttendanceOfClass = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getStudentAttendanceById = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const attendance = await Attendance.find({
+      student: studentId,
+    }).populate("student", "name");
 
+    if (!attendance || attendance.length === 0) {
+      return res
+        .status(404)
+        .json({ message: `Attendance not found for student with ID ${studentId}` });
+    }
 
-
+    res.status(200).json({ attendance });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 module.exports = {
   updateAttendance,
   takeAttendance,
-  getStudentList,
   getStudentAttendanceByDate,
-  getstudentAttendanceOfClass, checkConsecutiveAbsences,
+  getstudentAttendanceOfClass,
+  checkConsecutiveAbsences,
+  getstudentAttendanceOfClassAll,
+  getStudentAttendanceById
 };

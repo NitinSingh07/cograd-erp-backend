@@ -5,7 +5,8 @@ const {
   getTeacherAttendanceByDate,
   getAllTeachersAttendanceByDate,
   getTeachersBySchool,
-  editTeacherAttendance
+  editTeacherAttendance,
+  getSchoolTeachersAttendanceByDate
 } = require("../controllers/teacherAttendanceByPrincipalController");
 
 const { teacherRegister } = require("../controllers/teacherController");
@@ -17,9 +18,10 @@ const {
 router.post("/mark", takeTeacherAttendance);
 router.post("/classTeacherReg", classTeacherRegister);
 router.get("/get", getTeachersBySchool);
-router.post("/editAttendance",editTeacherAttendance); // Principal-only endpoint
+router.post("/editAttendance", editTeacherAttendance); // Principal-only endpoint
 router.get("/:teacherId/:date", getTeacherAttendanceByDate);
 router.post("/getByDate", getAllTeachersAttendanceByDate);
+router.post("/getByDate2", getSchoolTeachersAttendanceByDate);
 router.post("/register", teacherRegister);
 // http://localhost:4000/teacherReg/editAttendance
 
@@ -29,11 +31,5 @@ router.post("/register", teacherRegister);
 // "status":"a"
 
 // }
-
-router.post("/editAttendance",editTeacherAttendance);
-
-// http://localhost:4000/teacherReg/getAllByDate
-router.post("/getAllByDate",  getAllTeachersAttendanceByDate);
-
 
 module.exports = router;

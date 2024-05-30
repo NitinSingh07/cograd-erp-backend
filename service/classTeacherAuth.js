@@ -1,23 +1,25 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const secret = "itisVarunUapdhyaySecretKey";
 
 function setClassTeacher(classTeacher) {
-    const payload = {
-        id: classTeacher._id,
-        email: classTeacher.email,
-        role: classTeacher.role, // should be "CLASS-TEACHER"
-    };
-    return jwt.sign(payload, secret, { expiresIn: '1h' });
+  const payload = {
+    id: classTeacher._id,
+    email: classTeacher.email,
+    teacherId: classTeacher.teacherId,
+    classId: classTeacher.className,
+    role: classTeacher.role, // should be "CLASS-TEACHER"
+  };
+  return jwt.sign(payload, secret, { expiresIn: "1h" });
 }
 
 function getClassTeacher(token) {
-    if (!token) return null;
-    try {
-        return jwt.verify(token, secret);
-    } catch (error) {
-        console.error("JWT Verification error:", error);
-        return null;
-    }
+  if (!token) return null;
+  try {
+    return jwt.verify(token, secret);
+  } catch (error) {
+    console.error("JWT Verification error:", error);
+    return null;
+  }
 }
 
 module.exports = { setClassTeacher, getClassTeacher };

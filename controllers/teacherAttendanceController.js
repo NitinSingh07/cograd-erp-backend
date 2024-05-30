@@ -1,6 +1,8 @@
 const TeacherAttendance = require("../models/teacherAttendanceModel");
 const { getTeacher } = require("../service/teacherAuth");
 const DateTime = require("luxon").DateTime;
+
+
 const getTeacherAttendance = async (req, res) => {
   try {
      // Retrieve the teacher's token from cookies and decode it

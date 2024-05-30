@@ -3,12 +3,15 @@ const {
   teacherLogin,
   addTimeline,
   fetchTeacherTimeline,
+  getAllTeacherList,getTeacherById
 } = require("../controllers/teacherController");
 const router = express.Router();
 
 // router.post("/register", teacherRegister);
 router.post("/login", teacherLogin);
 router.post("/addTimeline/:id", addTimeline);
+router.get("/getAllTeachers", getAllTeacherList);
+router.get("/getTeacherById", getTeacherById);
 
 router.get("/fetchTimeline/:id", fetchTeacherTimeline);
 router.post("/logout", (req, res) => {
