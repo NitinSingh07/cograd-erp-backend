@@ -87,15 +87,9 @@ exports.registeredComplains = async (req, res) => {
 
 exports.allComplains = async (req, res) => {
   try {
-    const token = req.cookies?.token;
+    const schoolId = req.params.id;
 
-    const decodedToken = getSchool(token);
-
-    if (!decodedToken && !decodedToken.id) {
-      return res.status(402).json({ error: "Unauthorized" });
-    }
-
-    const complains = await ComplaintBox.find({ schoolId: decodedToken.id })
+    const complains = await ComplaintBox.find({ schoolId:schoolId})
       .populate("parentId")
       .populate("studentId");
 
@@ -146,16 +140,14 @@ exports.complaintsByDate = async (req, res) => {
 
 exports.studentComplains = async (req, res) => {
   try {
-    const token = req.cookies?.studentToken;
+    const studentId = req.params.id;
 
-    const decodedToken = getstudent(token);
-    console.log(decodedToken);
-    if (!decodedToken && !decodedToken.id) {
+    if ( !studentId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
 
     const complains = await ComplaintBox.find({
-      studentId: decodedToken.id,
+      studentId: studentId
     });
 
     if (!complains) {
@@ -170,16 +162,14 @@ exports.studentComplains = async (req, res) => {
 
 exports.teacherComplains = async (req, res) => {
   try {
-    const token = req.cookies?.teacherToken;
+    const teacherId = req.params.id;
 
-    const decodedToken = getTeacher(token);
-
-    if (!decodedToken && !decodedToken.id) {
+    if ( !teacherId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
 
     const complains = await ComplaintBox.find({
-      teacherId: decodedToken.id,
+      teacherId: teacherId,
     });
 
     if (!complains) {
@@ -194,16 +184,12 @@ exports.teacherComplains = async (req, res) => {
 
 exports.parentComplains = async (req, res) => {
   try {
-    const token = req.cookies?.parentToken;
-
-    const decodedToken = getParent(token);
-
-    if (!decodedToken && !decodedToken.id) {
+    const parentId = req.params.id;
+    if ( !parentId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
-
     const complains = await ComplaintBox.find({
-      parentId: decodedToken.id,
+      parentId: parentId,
     });
 
     if (!complains) {
@@ -306,14 +292,10 @@ exports.resolveComplaint = async (req, res) => {
 };
 exports.complaintsReferredToTeacher = async (req, res) => {
   try {
-    const token = req.cookies?.teacherToken;
-
-    const decodedToken = getTeacher(token);
-
-    if (!decodedToken && !decodedToken.id) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const teacherId = req.params.id;
+    if ( !teacherId) {
+      return res.status(402).json({ error: "Unauthorized" });
     }
-    const teacherId = decodedToken.id;
 
     if (!teacherId) {
       return res.status(400).json({ message: "Teacher ID is required" });

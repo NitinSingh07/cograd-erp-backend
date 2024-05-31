@@ -16,15 +16,15 @@ const cloudinaryUploader = require("../utils/cloudinaryUplaoder");
 const upload = require("../utils/multer");
 const router = express.Router();
 
-router.get("/", allComplains);
+router.get("/:id", allComplains);
 router.get("/complainsByDate", complaintsByDate);
 router.post("/register", upload, registeredComplains);
-router.get("/studentComplain", studentComplains);
+router.get("/studentComplain/:id", studentComplains);
 //pass the teacher id in request along with the complaintId
 router.post("/referTo", referComplaint);
-router.get("/parentComplain", parentComplains);
+router.get("/parentComplain/:id", parentComplains);
 router.post("/resolve", resolveComplaint);
-router.get("/teacherComplain", teacherComplains);
+router.get("/teacherComplain/:id", teacherComplains);
 router.get("/classTeacherComplain", classTeacherComplains);
 router.get("/referredComplaints", complaintsReferredToTeacher);
 
