@@ -8,14 +8,7 @@ const { getAdmin } = require("../service/adminAuth");
 // Teacher Registration
 const teacherRegister = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const { name, email, password, teachSubjects } = req.body;
+    const { name, email, password, teachSubjects,schoolId } = req.body;
 
     if (
       !name ||
@@ -45,7 +38,7 @@ const teacherRegister = async (req, res) => {
     const teacher = new Teacher({
       name,
       email,
-      school: decodedToken.id, // Use the school ID from the decoded token
+      school: schoolId, // Use the school ID from the decoded token
       teachSubjects,
       password: hashedPassword,
     });

@@ -11,19 +11,56 @@ const { TokenInstance } = require("twilio/lib/rest/oauth/v1/token");
 
 const classTeacherRegister = async (req, res) => {
   try {
-    const token = req.cookies?.token;
-    const decodedToken = getSchool(token);
+ const { email, password, className, teacherId, schoolId } = req.body;
 
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+
+    // Check if all required fields are present
+    if (!email || !password || !className || !teacherId || !schoolId) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const { email, password, className, teacherId } = req.body;
-    const schoolId = decodedToken.id;
+    // Check if email domain is valid
+    const emailDomain = email.split("@")[1];
+    const validDomain = emailDomain === "cograd.in";
+    if (!validDomain) {
+      return res.status(400).json({
+        message: "Email domain is not valid. It should be @cograd.in",
+      });
+    }
 
+    // Check if the class exists
+    const classExist = await classModel.findOne({ _id: className });
+    if (!classExist) {
+      return res.status(400).json({ message: "Class doesn't exist" });
+    }
+
+    // Check if the email already exists
+    const existingClassTeacherByEmail = await classTeacherModel.findOne({ email });
+    if (existingClassTeacherByEmail) {
+      return res.status(400).json({ message: "Class Email already exists" });
+    }
+
+    // Check if there is already a class teacher for this class
+    const existingClassTeacher = await classTeacherModel.findOne({ className });
+    if (existingClassTeacher) {
+      return res
+        .status(400)
+        .json({ message: "Class Teacher for this class already exists" });
+    }
+
+    // Check if the teacher is already a class teacher
+    const classTeacherExist = await classTeacherModel.findOne({ teacherId });
+    if (classTeacherExist) {
+      return res
+        .status(400)
+        .json({ message: "Teacher already a class teacher" });
+    }
+
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
 
+    // Create a new class teacher instance
     const classTeacher = new classTeacherModel({
       email,
       password: hashedPass,
@@ -33,53 +70,23 @@ const classTeacherRegister = async (req, res) => {
       teacherId,
     });
 
-    const classExist = await classModel.findOne({ _id: className });
-
-    const existingClassTeacherByEmail = await classTeacherModel.findOne({
-      email,
-    });
-
-    const classTeacherExist = await classTeacherModel.findOne({ teacherId });
-
-    const existingClass = await classTeacherModel.findOne({ className });
-
-    const emailDomain = email.split("@")[1];
-    const validDomain = emailDomain === "cograd.in";
-
-    if (existingClassTeacherByEmail) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
-
-    if (existingClass) {
-      return res
-        .status(400)
-        .json({ message: "Class Teacher for this class already exists" });
-    }
-
-    if (!classExist) {
-      return res.status(400).json({ message: "Class doesn't exist" });
-    }
-
-    if (classTeacherExist) {
-      return res
-        .status(400)
-        .json({ message: "Teacher already a class teacher" });
-    }
-
-    if (!validDomain) {
-      return res.status(400).json({
-        message: "Email domain is not valid. It should be @cograd.in",
-      });
-    }
-
+    // Save the class teacher to the database
     const result = await classTeacher.save();
+
+    // Omit password from the response
     result.password = undefined;
-    const response = await result.populate("className", "className");
+
+    // Populate the className field in the response
+    const response = await result.populate("className", "className")
+
+    // Send the response
     res.send(response);
   } catch (err) {
+    console.error("Error in class teacher registration:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 const classTeacherLogIn = async (req, res) => {
   try {

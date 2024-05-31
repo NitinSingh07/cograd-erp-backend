@@ -7,15 +7,7 @@ const { getAdmin } = require("../service/adminAuth");
 
 const takeTeacherAttendance = async (req, res) => {
   try {
-    const token = req.cookies?.token;
-    const decodedToken = getSchool(token);
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const schoolId = decodedToken.id;
-    const { statuses, date } = req.body; // get the date from request body
+    const { statuses, date ,schoolId } = req.body; // get the date from request body
 
     const teachers = await Teacher.find({ school: schoolId });
     if (!teachers || teachers.length === 0) {
@@ -122,14 +114,7 @@ const getTeacherAttendanceByDate = async (req, res) => {
 
 const getTeachersBySchool = async (req, res) => {
   try {
-    const token = req.cookies?.token;
-    const decodedToken = getSchool(token);
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const schoolId = decodedToken.id;
+  const schoolId = req.params.id
 
     const teachers = await Teacher.find({
       school: schoolId,

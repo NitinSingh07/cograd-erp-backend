@@ -17,7 +17,7 @@ const {
 //  "statuses": ["p", "a", "p", "p"]
 router.post("/mark", takeTeacherAttendance);
 router.post("/classTeacherReg", classTeacherRegister);
-router.get("/get", getTeachersBySchool);
+router.get("/get/:id", getTeachersBySchool);
 router.post("/editAttendance", editTeacherAttendance); // Principal-only endpoint
 router.get("/:teacherId/:date", getTeacherAttendanceByDate);
 router.post("/getByDate", getAllTeachersAttendanceByDate);
