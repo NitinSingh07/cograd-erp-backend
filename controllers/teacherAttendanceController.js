@@ -5,20 +5,24 @@ const DateTime = require("luxon").DateTime;
 
 const getTeacherAttendance = async (req, res) => {
   try {
-     // Retrieve the teacher's token from cookies and decode it
-     const token = req.cookies?.teacherToken;
+    //  // Retrieve the teacher's token from cookies and decode it
+    //  const token = req.cookies?.teacherToken;
    
  
-     const decodedToken = getTeacher(token);
+    //  const decodedToken = getTeacher(token);
  
-     // If token decoding fails, return an unauthorized response
-     if (!decodedToken) {
-       return res.status(401).json({ message: "Unauthorized" });
-     }
+    //  // If token decoding fails, return an unauthorized response
+    //  if (!decodedToken) {
+    //    return res.status(401).json({ message: "Unauthorized" });
+    //  }
  
-     const teacherId = decodedToken.id; // Get teacher ID from the token
+    //  const teacherId = decodedToken.id; // Get teacher ID from the token
 
     // Fetch attendance records for the teacher
+    const teacherId = req.params.teacherId
+    if (!teacherId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const attendanceRecords = await TeacherAttendance.find({
       teacher: teacherId
     });
@@ -39,15 +43,13 @@ const getTeacherAttendance = async (req, res) => {
 
 const markSelfAttendance = async (req, res) => {
   try {
-    const token = req.cookies?.teacherToken; // Get the teacher token
-    const teacherInfo = getTeacher(token); // Validate the teacher
+    // const token = req.cookies?.teacherToken; // Get the teacher token
+    const{ teacherId, date, status} = req.body
+    // const teacherInfo = getTeacher(token); // Validate the teacher
 
-    if (!teacherInfo) {
+    if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" }); // Unauthorized response
     }
-
-    const { date, status } = req.body; // Get the date and status from the request body
-    const teacherId = teacherInfo.id;
 
     // Check if attendance already exists for this teacher on the given date
     const existingAttendance = await TeacherAttendance.findOne({
@@ -86,14 +88,12 @@ const markSelfAttendance = async (req, res) => {
 
 const calculateAttendance = async (req, res) => {
   try {
-    const token = req.cookies?.teacherToken;
 
-    const decodedToken = getTeacher(token);
-
-    if (!decodedToken) {
+    const teacherId = req.body.teacherId
+    if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const teacherId = decodedToken.id; // Teacher ID
+
 
     const { month: targetMonth } = req.body; // Month from request
     const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero
@@ -103,7 +103,7 @@ const calculateAttendance = async (req, res) => {
 
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
       const recordMonth = record.date.split("-")[1]; // Get the month part from the date
-      console.log("Record date:", record.date, "| Extracted month:", recordMonth);
+      // console.log("Record date:", record.date, "| Extracted month:", recordMonth);
 
       return recordMonth === normalizedTargetMonth; // Ensure they match exactly
     });
@@ -131,7 +131,7 @@ const calculateAttendance = async (req, res) => {
       }
     });
 
-    console.log("Present count:", presentCount, "| Absent count:", absentCount, "| Leave count:", leaveCount);
+    // console.log("Present count:", presentCount, "| Absent count:", absentCount, "| Leave count:", leaveCount);
 
     res.status(200).json({
       message: "Attendance calculated successfully",

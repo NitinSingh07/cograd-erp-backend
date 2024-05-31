@@ -168,14 +168,13 @@ const getAllClassTeacherDetail = async (req, res) => {
 
 const getClassTeacherDetail = async (req, res) => {
   try {
-    const token = req.cookies?.classTeacherToken; // Retrieve the JWT token from the cookies
-    const decodedToken = getClassTeacher(token); // Decode the token to extract school information
-    if (!decodedToken || !decodedToken.id) {
+ const classTeacherId = req.params.id;
+    if (!classTeacherId ) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const classTeacher = await classTeacherModel
-      .findById(decodedToken.id)
+      .findById(classTeacherId)
       .populate("className", "className") // Populate the className field with className only
       .populate("school", "schoolName") // Populate the school field with schoolName only
       .populate("teacherId", "name email"); // Populate the teacherId field with name and email only

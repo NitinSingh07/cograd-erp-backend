@@ -11,7 +11,7 @@ const app = express();
 router.post("/login", classTeacherLogIn);
 router.get("/:school", getAllClassTeacherDetail);
 
-router.get("/get/details", getClassTeacherDetail);
+router.get("/get/details/:id", getClassTeacherDetail);
 router.get("/check/:teacherId", checkClassTeacher);
 router.post("/logout", (req, res) => {
   // Clear the token cookie

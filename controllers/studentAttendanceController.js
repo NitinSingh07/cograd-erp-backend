@@ -196,13 +196,11 @@ const checkConsecutiveAbsences = async (req, res) => {
 // Get last 10 days' attendance for all students in a class
 const getstudentAttendanceOfClass = async (req, res) => {
   try {
-    const classTeacherToken = req.cookies?.classTeacherToken;
-    const decodedToken = getClassTeacher(classTeacherToken);
-
-    if (!decodedToken || !decodedToken.id) {
+    const classTeacherId = req.params.id;
+    if (!classTeacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const classTeacher = await ClassTeacher.findById(decodedToken.id);
+    const classTeacher = await ClassTeacher.findById(classTeacherId);
 
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });

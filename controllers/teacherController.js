@@ -88,7 +88,6 @@ const teacherLogin = async (req, res) => {
     }
     const token = setTeacher(teacher);
     res.cookie("teacherToken", token);
-    console.log(token);
     teacher.password = undefined;
     return res.status(200).json(teacher);
   } catch (error) {
@@ -99,9 +98,10 @@ const teacherLogin = async (req, res) => {
 
 const getAllTeacherList = async (req, res) => {
   try {
-    const token = req.cookies?.adminToken; // Retrieve the JWT token from the cookies
+    // const token = req.cookies?.adminToken; // Retrieve the JWT token from the cookies
+    const admin = req.params.adminId;
 
-    if (!token) {
+    if (!admin) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -124,12 +124,13 @@ const getAllTeacherList = async (req, res) => {
 
 const getTeacherById = async (req, res) => {
   try {
-    const token = req.cookies?.teacherToken; // Retrieve the JWT token from the cookies
-    const decodedToken = getTeacher(token); // Decode the token to extract school information
-    if (!decodedToken) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    const teacherId = decodedToken.id
+    // const token = req.cookies?.teacherToken; // Retrieve the JWT token from the cookies
+    // const decodedToken = getTeacher(token); // Decode the token to extract school information
+    // if (!decodedToken) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
+    // const teacherId = decodedToken.id
+    const teacherId = req.params.id
 
 
     const teacher = await Teacher.findById(teacherId).select("-password").populate("school").populate("teachSubjects");
@@ -158,6 +159,9 @@ const addTimeline = async (req, res) => {
     // }
 
     const teacherId = req.params.id;
+    if (!teacherId ) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     // const teacherId = decodedToken.id;
 

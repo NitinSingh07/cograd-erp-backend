@@ -11,9 +11,10 @@ const {
   getstudentAttendanceOfClassAll
 } = require("../controllers/studentAttendanceController");
 //login to classTeacher first before taking attendance
+router.get("/byCT/:id", getstudentAttendanceOfClass);
 router.post("/mark", takeAttendance);
 router.get("/:studentId/:date", getStudentAttendanceByDate);
-router.get("/getAttendanceByCT", getstudentAttendanceOfClass);
+
 // router.get('/getAttendance-byClassTeacher10', getstudentAttendanceOfClass10);
 // New route to check consecutive absences
 
