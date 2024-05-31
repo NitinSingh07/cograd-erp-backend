@@ -8,6 +8,6 @@ const { addDriver, getDrivers } = require('../controllers/driverController');
 router.post('/add', addDriver);
 
 // Route to get all drivers for a school
-router.get('/get', getDrivers);
+router.get('/get/:id', getDrivers);
 
 module.exports = router;

@@ -12,7 +12,7 @@ const { restrictTo } = require("../middleware/auth");
 // Route to add a new transaction
 router.post("/", addTransaction);
 // Route to get transactions by school
-router.get("/", getTransactionsBySchool);
+router.get("/get/:id", getTransactionsBySchool);
 // Route to get income or expense transactions by school
 router.get("/:type", getIncomeOrExpense);
 // Route to get transactions by school and date

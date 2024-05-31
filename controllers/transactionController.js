@@ -4,21 +4,15 @@ const { getSchool } = require("../service/schoolAuth");
 
 const addTransaction = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const { amount, description, type, receipt } = req.body;
+   
+    const { amount, description, type, receipt ,id } = req.body;
 
     if (!amount || !type || !["income", "expense"].includes(type)) {
       return res.status(400).json({ message: "Invalid transaction data" });
     }
 
     const transaction = new Transaction({
-      school: decodedToken.id, // Use the school ID from the decoded token
+      school: id, // Use the school ID from the decoded token
       amount,
       description,
       type,
@@ -35,17 +29,12 @@ const addTransaction = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+//default i am showing expenses
 const getTransactionsBySchool = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const transactions = await Transaction.find({ school: decodedToken.id });
+    const schoolId = req.params.id; // Extract the school ID from the decoded token
+    const type = "expenses"
+    const transactions = await Transaction.find({ school: schoolId});
 
     res.status(200).json(transactions);
   } catch (err) {
@@ -56,17 +45,11 @@ const getTransactionsBySchool = async (req, res) => {
 
 const getIncomeOrExpense = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+    const schoolId = req.params.id; // Extract the school ID from the decoded token
     const { type } = req.params;
 
     const transactions = await Transaction.find({
-      school: decodedToken.id,
+      school: schoolId,
       type,
     });
 
@@ -79,9 +62,6 @@ const getIncomeOrExpense = async (req, res) => {
 
 const getTransactionsBySchoolAndDate = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from the cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
     if (!decodedToken || !decodedToken.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }

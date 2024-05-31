@@ -4,17 +4,11 @@ const { getSchool } = require('../service/schoolAuth');
 
 const addDriver = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
 
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const { name, busNumber, pickUpPoints, contactNumber } = req.body;
+    const { name, busNumber, pickUpPoints, contactNumber ,id } = req.body;
 
     const newDriver = new Driver({
-      school: decodedToken.id, // Use the school ID from the decoded token
+      school: id, // Use the school ID from the decoded token
       name,
       busNumber,
       pickUpPoints,
@@ -33,14 +27,7 @@ const addDriver = async (req, res) => {
 
 const getDrivers = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Retrieve the JWT token from cookies
-    const decodedToken = getSchool(token); // Decode the token to extract school information
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const schoolId = decodedToken.id; // Extract the school ID from the decoded token
+    const schoolId = req.params.id; // Extract the school ID from the decoded token
     const drivers = await Driver.find({ school: schoolId });
 
     res.json(drivers);
