@@ -8,7 +8,7 @@ const { getAdmin } = require("../service/adminAuth");
 // Teacher Registration
 const teacherRegister = async (req, res) => {
   try {
-    const { name, email, password, teachSubjects,schoolId } = req.body;
+    const { name, email, password, teachSubjects, schoolId } = req.body;
 
     if (
       !name ||
@@ -123,10 +123,12 @@ const getTeacherById = async (req, res) => {
     //   return res.status(401).json({ message: "Unauthorized" });
     // }
     // const teacherId = decodedToken.id
-    const teacherId = req.params.id
+    const teacherId = req.params.id;
 
-
-    const teacher = await Teacher.findById(teacherId).select("-password").populate("school").populate("teachSubjects");
+    const teacher = await Teacher.findById(teacherId)
+      .select("-password")
+      .populate("school")
+      .populate("teachSubjects");
 
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
@@ -152,7 +154,7 @@ const addTimeline = async (req, res) => {
     // }
 
     const teacherId = req.params.id;
-    if (!teacherId ) {
+    if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -210,5 +212,5 @@ module.exports = {
   addTimeline,
   fetchTeacherTimeline,
   getAllTeacherList,
-  getTeacherById
+  getTeacherById,
 };

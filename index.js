@@ -41,7 +41,7 @@ const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 4000;
 const allowedOrigins = [
-  "http://localhost:5173/",
+  "http://localhost:5173",
   "http://localhost:5174",
   "https://erp-frontend-eta.vercel.app",
 ];
@@ -120,10 +120,7 @@ app.use("/classTeacher", classTeacher);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
 app.use("/teacherReg", teacherAttendanceByPrincipalRouter);
 app.use("/teacherAttendance", teacherAttendanceRouter);
-app.use(
-  "/studentAttendance",
-  studentAttendanceRouter
-);
+app.use("/studentAttendance", studentAttendanceRouter);
 //teacher route contains only login , and logout route, teachelist
 app.use("/teacher", teacherRouter);
 app.use("/complains", complaintRoute);
