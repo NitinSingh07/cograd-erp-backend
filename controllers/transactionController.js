@@ -1,14 +1,20 @@
 // controllers/transactionController.js
+const School = require("../models/school");
 const Transaction = require("../models/transaction");
 const { getSchool } = require("../service/schoolAuth");
 
 const addTransaction = async (req, res) => {
   try {
-   
-    const { amount, description, type, receipt ,id } = req.body;
+    const { amount, description, type, receipt, id } = req.body;
 
     if (!amount || !type || !["income", "expense"].includes(type)) {
       return res.status(400).json({ message: "Invalid transaction data" });
+    }
+
+    const school = await School.findById(id);
+
+    if (!school || !id) {
+      return res.status(401).json({ message: "unauthorized" });
     }
 
     const transaction = new Transaction({
@@ -33,8 +39,8 @@ const addTransaction = async (req, res) => {
 const getTransactionsBySchool = async (req, res) => {
   try {
     const schoolId = req.params.id; // Extract the school ID from the decoded token
-    const type = "expenses"
-    const transactions = await Transaction.find({ school: schoolId});
+    const type = "expenses";
+    const transactions = await Transaction.find({ school: schoolId });
 
     res.status(200).json(transactions);
   } catch (err) {

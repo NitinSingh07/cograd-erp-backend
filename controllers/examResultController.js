@@ -1,3 +1,4 @@
+const classTeacherModel = require("../models/classTeacherModel");
 const ExamList = require("../models/examListModel");
 const ExamResult = require("../models/examResultModel");
 const School = require("../models/school");
@@ -35,7 +36,7 @@ exports.addExamResult = async (req, res) => {
 
       await examResult.save();
       return res
-        .status(201)
+        .status(200)
         .json({ message: "Exam result added successfully" });
     }
 
@@ -57,6 +58,109 @@ exports.addExamResult = async (req, res) => {
     res.status(200).json({ message: "Exam result added successfully" });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.editExamResult = async (req, res) => {
+  const { student, examName, subjects, school } = req.body;
+
+  const editMarksId = req.params.id;
+
+  try {
+    if (!school) {
+      return res.status(401).json({ message: "unauthorized" });
+    }
+
+    const schoolExists = await School.findById(school);
+    const studentExist = await Student.findById(student);
+    const examListExistence = await ExamList.findById(examName);
+
+    if (!studentExist) {
+      return res.status(400).json({ message: "Student doesn't exist" });
+    } else if (!examListExistence) {
+      return res.status(400).json({ message: "Exam doesn't exist" });
+    } else if (!schoolExists) {
+      return res.status(400).json({ message: "School doesn't exist" });
+    }
+
+    let examResult = await ExamResult.findOne({ student: student });
+    if (!examResult) {
+      return res.status(404).json({ message: "Exam result does not exist" });
+    }
+
+    // Find the specific exam result to edit
+    const existingExamIndex = examResult.exams.findIndex(
+      (exam) => exam._id.toString() === editMarksId
+    );
+
+    //check if the examName already present for another result
+    const existingExam = examResult.exams.find(
+      (exam) =>
+        exam._id.toString() !== editMarksId &&
+        exam.examName.toString() === examName
+    );
+
+    if (existingExamIndex === -1) {
+      return res.status(404).json({
+        message: "Exam result does not exist for this exam",
+      });
+    }
+
+    if (existingExam) {
+      return res.status(401).json({
+        message: "Exam result already exist for this exam",
+      });
+    }
+
+    // Update the existing exam result
+    examResult.exams[existingExamIndex] = {
+      ...examResult.exams[existingExamIndex],
+      examName,
+      subjects,
+    };
+
+    await examResult.save();
+    res.status(200).json({ message: "Exam result updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.deleteExamResult = async (req, res) => {
+  try {
+    const { studentId, examResultId, classTeacherId } = req.params;
+
+    const classTeacher = await classTeacherModel.findById(classTeacherId);
+
+    if (!classTeacherId || !classTeacher) {
+      return res.status(401).json({ message: "unauthorized" });
+    }
+
+    const examResult = await ExamResult.findOne({ student: studentId });
+
+    if (!examResult) {
+      return res.status(404).json({ message: "Result doesn't exist" });
+    }
+
+    const examResultIndex = examResult.exams.findIndex(
+      (exam) => exam._id.toString() === examResultId
+    );
+
+    if (examResultIndex === -1) {
+      return res.status(404).json({
+        message: "Exam result doesn't exist for this exam and student",
+      });
+    }
+
+    // Remove the exam result from the exams array
+    examResult.exams.splice(examResultIndex, 1);
+
+    // Save the updated exam result document
+    await examResult.save();
+
+    res.status(200).json({ message: "Exam result deleted successfully" });
+  } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 };
