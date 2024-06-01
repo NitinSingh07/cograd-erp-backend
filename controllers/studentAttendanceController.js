@@ -6,22 +6,16 @@ const { getClassTeacher } = require("../service/classTeacherAuth");
 
 // Take student attendance
 const takeAttendance = async (req, res) => {
+ 
   try {
-    const token = req.cookies?.classTeacherToken; // Get token from cookies
-    const decodedToken = getClassTeacher(token); // Decode to get class teacher ID
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
 
-    const classTeacherId = decodedToken.id;
-    const { statuses, date } = req.body; // Get statuses and date from the body
+    const { statuses, date,id } = req.body; // Get statuses and date from the body
 
-    const classTeacher = await ClassTeacher.findById(classTeacherId);
+    const classTeacher = await ClassTeacher.findById(id);
 
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
     }
-
     const classId = classTeacher.className;
     const students = await Student.find({ className: classId });
 
@@ -111,15 +105,12 @@ const getStudentAttendanceByDate = async (req, res) => {
 // Get all students' attendance for a specific date
 const getstudentAttendanceOfClassAll = async (req, res) => {
   try {
-    const token = req.cookies?.classTeacherToken; // Get token from cookies
-    const decodedToken = getClassTeacher(token); // Decode to get class teacher ID
-    if (!decodedToken || !decodedToken.id) {
+    const classTeacherId = req.body;
+
+    if (!classTeacherId ) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
     const date = req.params.date;
-
-    const classTeacherId = decodedToken.id;
     const attendance = await Attendance.find({
       classTeacher: classTeacherId,
       date,
@@ -139,16 +130,14 @@ const getstudentAttendanceOfClassAll = async (req, res) => {
 
 const checkConsecutiveAbsences = async (req, res) => {
   try {
-   
-    const classTeacherToken = req.cookies?.classTeacherToken;
-    const decodedToken = getClassTeacher(classTeacherToken);
-  
+    const classTeacherId = req.params.id;
 
-    if (!decodedToken || !decodedToken.id) {
+    if (!classTeacherId ) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const classTeacher = await ClassTeacher.findById(decodedToken.id);
+    const classTeacher = await ClassTeacher.findById(classTeacherId);
+
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
     }
