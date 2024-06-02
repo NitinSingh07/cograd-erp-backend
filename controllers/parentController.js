@@ -225,18 +225,12 @@ exports.updateFeesPaid = async (req, res) => {
 
 exports.parentDetails = async (req, res) => {
   try {
-    const token = req?.cookies?.parentToken;
-    if (!token) {
-      return res.status(400).json({ error: "Token not provided" });
+    const id = req.params.id;
+    if (!id ) {
+      return res.status(400).json({ error: "Unauthorized" });
     }
 
-    const decodedToken = getParent(token);
-
-    if (!decodedToken || !decodedToken.id) {
-      return res.status(400).json({ error: "Invalid token" });
-    }
-
-    const parentId = decodedToken.id;
+    const parentId = id;
     const parent = await ParentModel.findById(parentId).populate({
       path: "students.studentId",
       select: "name profile email className", // Select fields for the student

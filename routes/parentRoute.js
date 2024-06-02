@@ -24,5 +24,5 @@ router.post("/logout", (req, res) => {
   res.clearCookie("parentToken");
   res.send({ message: "Parent Logged out successfully" });
 });
-router.get("/getDetails", parentDetails);
+router.get("/getDetails/:id", parentDetails);
 module.exports = router;

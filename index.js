@@ -111,8 +111,8 @@ app.use("/school", schoolRouter);
 //for login of class teacher only
 
 app.use("/subject", subjectRouter);
-app.use("/transaction", restrictTo(["PRINCIPAL"]), schoolTransactionRouter);
-app.use("/staff", restrictTo(["PRINCIPAL"]), staffRoutes);
+app.use("/transaction", schoolTransactionRouter);
+app.use("/staff", staffRoutes);
 app.use("/driver", driverRoutes);
 app.use("/class", classRouter);
 app.use("/admin", adminRouter);
