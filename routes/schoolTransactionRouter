@@ -6,6 +6,8 @@ const {
   getTransactionsBySchool,
   getIncomeOrExpense,
   getTransactionsBySchoolAndDate,
+  totalTransactionDataofSchool,
+  totalTransactionData,
 } = require("../controllers/transactionController");
 const { restrictTo } = require("../middleware/auth");
 
@@ -15,6 +17,9 @@ router.post("/", addTransaction);
 router.get("/get/:id", getTransactionsBySchool);
 // Route to get income or expense transactions by school
 router.get("/:type", getIncomeOrExpense);
+
+router.get("/totalTransactionDataofSchool/:id", totalTransactionDataofSchool);
+router.get("/totalTransactionData/:id", totalTransactionData);
 // Route to get transactions by school and date
 // router.get("/:date",  getTransactionsBySchoolAndDate);
 

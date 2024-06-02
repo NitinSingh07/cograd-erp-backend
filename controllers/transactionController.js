@@ -1,4 +1,5 @@
 // controllers/transactionController.js
+const Admin = require("../models/admin");
 const School = require("../models/school");
 const Transaction = require("../models/transaction");
 const { getSchool } = require("../service/schoolAuth");
@@ -98,7 +99,67 @@ const getTransactionsBySchoolAndDate = async (req, res) => {
 
     res.status(200).json({ transactions, totalIncome, totalExpense });
   } catch (err) {
-    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const totalTransactionDataofSchool = async (req, res) => {
+  try {
+    const schoolId = req.params.id;
+
+    const transaction = await Transaction.find({ school: schoolId });
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    if (transaction.length > 0) {
+      transaction.forEach((data) => {
+        if (data.type === "expense") {
+          totalExpense += data.amount;
+        } else {
+          totalIncome += data.amount;
+        }
+      });
+    }
+
+    res.status(200).json({ totalIncome, totalExpense });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const totalTransactionData = async (req, res) => {
+  try {
+    const adminId = req.params.id;
+
+    if (!adminId) {
+      return res.status(401).json({ message: "unauthorized" });
+    }
+
+    const admin = await Admin.findById(adminId);
+
+    if (!admin) {
+      return res.status(401).json({ message: "unauthorized" });
+    }
+
+    const transaction = await Transaction.find({});
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    if (transaction.length > 0) {
+      transaction.forEach((data) => {
+        if (data.type === "expense") {
+          totalExpense += data.amount;
+        } else {
+          totalIncome += data.amount;
+        }
+      });
+    }
+
+    res.status(200).json({ totalIncome, totalExpense });
+  } catch (err) {
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -108,4 +169,6 @@ module.exports = {
   getTransactionsBySchool,
   getIncomeOrExpense,
   getTransactionsBySchoolAndDate,
+  totalTransactionData,
+  totalTransactionDataofSchool,
 };
