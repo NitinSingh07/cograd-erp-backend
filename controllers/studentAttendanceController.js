@@ -6,38 +6,33 @@ const { getClassTeacher } = require("../service/classTeacherAuth");
 
 // Take student attendance
 const takeAttendance = async (req, res) => {
- 
   try {
-
-    const { statuses, date,id } = req.body; // Get statuses and date from the body
+    const { statuses, date, id, studentIds } = req.body; // Get statuses, date, class teacher ID, and student IDs from the body
 
     const classTeacher = await ClassTeacher.findById(id);
 
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
     }
-    const classId = classTeacher.className;
-    const students = await Student.find({ className: classId });
 
-    // Check if attendance already exists for this date
-    const existingAttendance = await Attendance.findOne({ date });
+    // Check if attendance already exists for this date for any student in the array
+    const existingAttendance = await Attendance.find({ date, student: { $in: studentIds } });
 
-    if (existingAttendance) {
-      return res
-        .status(409)
-        .json({ message: `Attendance already recorded for ${date}` });
+    if (existingAttendance.length > 0) {
+      return res.status(409).json({ message: `Attendance already recorded for ${date}` });
     }
 
     // Create attendance records
-    const attendanceRecords = students.map((student, index) => ({
-      student: student._id,
+    const attendanceRecords = studentIds.map((studentId, index) => ({
+      student: studentId,
       classTeacher: classTeacher._id,
       date,
       status: statuses[index],
     }));
 
     await Attendance.insertMany(attendanceRecords);
-    const populatedAttendance = await Attendance.find({ date }).populate(
+
+    const populatedAttendance = await Attendance.find({ date, student: { $in: studentIds } }).populate(
       "student",
       "name"
     ); // Populate student name
@@ -54,13 +49,11 @@ const takeAttendance = async (req, res) => {
 // Update student attendance for the current date
 const updateAttendance = async (req, res) => {
   try {
-    const token = req.cookies?.token; // Get token from cookies
-    const decodedToken = getClassTeacher(token);
-    if (!decodedToken || !decodedToken.id) {
+
+    const { studentId, status, id } = req.body; // Get student ID and status
+    if (!id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
-    const { studentId, status } = req.body; // Get student ID and status
     const { date } = req.params; // Date from the URL parameter
 
     // Update attendance record
@@ -107,7 +100,7 @@ const getstudentAttendanceOfClassAll = async (req, res) => {
   try {
     const classTeacherId = req.body;
 
-    if (!classTeacherId ) {
+    if (!classTeacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     const date = req.params.date;
@@ -132,7 +125,7 @@ const checkConsecutiveAbsences = async (req, res) => {
   try {
     const classTeacherId = req.params.id;
 
-    if (!classTeacherId ) {
+    if (!classTeacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 

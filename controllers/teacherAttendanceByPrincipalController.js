@@ -152,7 +152,7 @@ const editTeacherAttendance = async (req, res) => {
     });
 
     if (!attendance) {
-      return res.status(404).json({ message: "Attendance not found." });
+      return res.status(404).json({ message: "Teacher hasn't marked his attendance " });
     }
 
     attendance.status = status; // Update attendance status

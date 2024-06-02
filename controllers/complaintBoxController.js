@@ -296,10 +296,7 @@ exports.complaintsReferredToTeacher = async (req, res) => {
     if ( !teacherId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
-
-    if (!teacherId) {
-      return res.status(400).json({ message: "Teacher ID is required" });
-    }
+    
 
     const complaints = await ComplaintBox.find({
       referredTo: teacherId,

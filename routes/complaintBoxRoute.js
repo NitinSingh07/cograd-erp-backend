@@ -26,6 +26,6 @@ router.get("/parentComplain/:id", parentComplains);
 router.post("/resolve", resolveComplaint);
 router.get("/teacherComplain/:id", teacherComplains);
 router.get("/classTeacherComplain", classTeacherComplains);
-router.get("/referredComplaints", complaintsReferredToTeacher);
+router.get("/referredComplaints/:id", complaintsReferredToTeacher);
 
 module.exports = router;
