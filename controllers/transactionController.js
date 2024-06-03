@@ -40,8 +40,10 @@ const addTransaction = async (req, res) => {
 const getTransactionsBySchool = async (req, res) => {
   try {
     const schoolId = req.params.id; // Extract the school ID from the decoded token
-    const type = "expenses";
+    // const type = "expenses";
     const transactions = await Transaction.find({ school: schoolId });
+
+    transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.status(200).json(transactions);
   } catch (err) {
@@ -103,6 +105,17 @@ const getTransactionsBySchoolAndDate = async (req, res) => {
   }
 };
 
+const isToday = (date) => {
+  const today = new Date();
+  const transactionDate = new Date(date);
+
+  return (
+    today.getFullYear() === transactionDate.getFullYear() &&
+    today.getMonth() === transactionDate.getMonth() &&
+    today.getDate() === transactionDate.getDate()
+  );
+};
+
 const totalTransactionDataofSchool = async (req, res) => {
   try {
     const schoolId = req.params.id;
@@ -111,18 +124,28 @@ const totalTransactionDataofSchool = async (req, res) => {
 
     let totalIncome = 0;
     let totalExpense = 0;
+    let todayExpense = 0;
+    let todayIncome = 0;
 
     if (transaction.length > 0) {
       transaction.forEach((data) => {
         if (data.type === "expense") {
           totalExpense += data.amount;
+          if (isToday(data.date)) {
+            todayExpense += data.amount;
+          }
         } else {
           totalIncome += data.amount;
+          if (isToday(data.date)) {
+            todayIncome += data.amount;
+          }
         }
       });
     }
 
-    res.status(200).json({ totalIncome, totalExpense });
+    res
+      .status(200)
+      .json({ totalIncome, totalExpense, todayExpense, todayIncome });
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -147,18 +170,28 @@ const totalTransactionData = async (req, res) => {
 
     let totalIncome = 0;
     let totalExpense = 0;
+    let todayExpense = 0;
+    let todayIncome = 0;
 
     if (transaction.length > 0) {
       transaction.forEach((data) => {
         if (data.type === "expense") {
           totalExpense += data.amount;
+          if (isToday(data.date)) {
+            todayExpense += data.amount;
+          }
         } else {
           totalIncome += data.amount;
+          if (isToday(data.date)) {
+            todayIncome += data.amount;
+          }
         }
       });
     }
 
-    res.status(200).json({ totalIncome, totalExpense });
+    res
+      .status(200)
+      .json({ totalIncome, totalExpense, todayExpense, todayIncome });
   } catch (err) {
     res.status(500).json({ message: "Internal server error" });
   }

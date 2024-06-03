@@ -5,6 +5,7 @@ const getDataUri = require("../utils/dataUri");
 const { findById } = require("../models/teacherModel");
 const cloudinary = require("cloudinary").v2;
 const StudentModel = require("../models/studentSchema");
+const { Message } = require("twilio/lib/twiml/MessagingResponse");
 
 exports.parentRegister = async (req, res) => {
   const {
@@ -30,17 +31,21 @@ exports.parentRegister = async (req, res) => {
 
     const existingEmail = await ParentModel.findOne({ email });
     if (existingEmail) {
-      return res.status(401).json({ err: "Email already exists" });
+      return res.status(401).json({ message: "Email already exists" });
     }
 
     const photoUri = getDataUri(file);
 
     const myCloud = await cloudinary.uploader.upload(photoUri.content);
 
-    const formattedStudents = students.map((student) => ({
-      studentId: student.studentId,
-      fees: student.fees, // If fees are not provided, default to 0
-    }));
+    for (const student of students) {
+      const fetchedStudent = await StudentModel.findById(student.studentId);
+      if (fetchedStudent.fatherEmail !== email) {
+        return res.status(400).json({
+          message: "Email doesn't match with the student's father's email",
+        });
+      }
+    }
 
     const parent = new ParentModel({
       name,
@@ -62,7 +67,6 @@ exports.parentRegister = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("Error registering parent:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -226,7 +230,7 @@ exports.updateFeesPaid = async (req, res) => {
 exports.parentDetails = async (req, res) => {
   try {
     const id = req.params.id;
-    if (!id ) {
+    if (!id) {
       return res.status(400).json({ error: "Unauthorized" });
     }
 
