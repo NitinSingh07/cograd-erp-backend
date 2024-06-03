@@ -20,8 +20,8 @@ router.post("/classTeacherReg", classTeacherRegister);
 router.get("/get/:id", getTeachersBySchool);
 router.post("/editAttendance", editTeacherAttendance); // Principal-only endpoint
 router.get("/:teacherId/:date", getTeacherAttendanceByDate);
-router.post("/getByDate", getAllTeachersAttendanceByDate);
-router.post("/getByDate2", getSchoolTeachersAttendanceByDate);
+router.post("/getByDate", getAllTeachersAttendanceByDate);//for admin
+router.post("/getByDate2", getSchoolTeachersAttendanceByDate);//for particular school
 router.post("/register", teacherRegister);
 // http://localhost:4000/teacherReg/editAttendance
 

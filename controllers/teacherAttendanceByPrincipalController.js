@@ -7,7 +7,7 @@ const { getAdmin } = require("../service/adminAuth");
 
 const takeTeacherAttendance = async (req, res) => {
   try {
-    const { statuses, date ,schoolId } = req.body; // get the date from request body
+    const { statuses, date, schoolId } = req.body; // get the date from request body
 
     const teachers = await Teacher.find({ school: schoolId });
     if (!teachers || teachers.length === 0) {
@@ -55,6 +55,7 @@ const takeTeacherAttendance = async (req, res) => {
 
 const getTeacherAttendanceByDate = async (req, res) => {
   try {
+    //have to remove token later!
     const token = req.cookies?.token;
     const decodedToken = getSchool(token);
 
@@ -114,7 +115,7 @@ const getTeacherAttendanceByDate = async (req, res) => {
 
 const getTeachersBySchool = async (req, res) => {
   try {
-  const schoolId = req.params.id
+    const schoolId = req.params.id
 
     const teachers = await Teacher.find({
       school: schoolId,
@@ -167,18 +168,13 @@ const editTeacherAttendance = async (req, res) => {
 
 const getSchoolTeachersAttendanceByDate = async (req, res) => {
   try {
-    const token = req.cookies?.token;
-
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
+    const { date, id } = req.body; // Retrieve date from URL parameters
+    if (!id) {
+      return res.status(401).json({ message: "Unauthorized1" });
     }
-    const decodedToken = getSchool(token)
-
-    const { date } = req.body; // Retrieve date from URL parameters
-
     const attendance = await TeacherAttendance.find({
       date,
-      school:decodedToken.id
+      school: id
 
     }).populate("teacher", "name email"); // Populate teacher name and email
 
@@ -206,16 +202,13 @@ const getSchoolTeachersAttendanceByDate = async (req, res) => {
 
 const getAllTeachersAttendanceByDate = async (req, res) => {
   try {
-    const token = req.cookies?.adminToken;
-
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
+    console.log(req.body.todayDate)
+    const { todayDate, adminId } = req.body; // Retrieve date from URL parameters
+    if (!adminId) {
+      return res.status(401).json({ message: "Only accesible to Admin" });
     }
-
-    const { date } = req.body; // Retrieve date from URL parameters
-
     const attendance = await TeacherAttendance.find({
-      date,
+      date:todayDate,
     }).populate("teacher", "name email"); // Populate teacher name and email
 
     if (!attendance || attendance.length === 0) {
