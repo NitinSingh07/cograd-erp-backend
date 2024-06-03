@@ -95,7 +95,7 @@ const getStudentAttendanceByDate = async (req, res) => {
   }
 };
 
-// Get all students' attendance for a specific date
+// Get all students' attendance for a specific date and class
 const getstudentAttendanceOfClassAll = async (req, res) => {
   try {
     const classTeacherId = req.body;
@@ -244,6 +244,79 @@ const getStudentAttendanceById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+//particular school
+const getStudentAttOfSchool = async (req, res) => {
+  try {
+    const { date, id } = req.params;
+
+    if (!id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const attendance = await Attendance.find({ date })
+      .populate({
+        path: "student",
+        match: { schoolName: id },
+        select: "name",
+      });
+
+    const filteredAttendance = attendance.filter(a => a.student !== null);
+
+    if (filteredAttendance.length === 0) {
+      return res.status(404).json({ message: `No attendance found for school ${schoolId} on date ${date}` });
+    }
+
+    // Calculate the number of present students
+    const presentStudentsCount = filteredAttendance.filter(record => record.status === "p").length;
+
+    res.status(200).json({
+      attendance: filteredAttendance,
+      presentStudentsCount,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const getStudentAttOfAllSchool = async (req, res) => {
+  try {
+    const { date, id } = req.params;
+
+    if (!id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const attendance = await Attendance.find({ date })
+      .populate({
+        path: "student",
+        select: "name schoolName",
+      });
+
+    const filteredAttendance = attendance.filter(a => a.student !== null);
+
+    if (filteredAttendance.length === 0) {
+      return res.status(404).json({ message: `No attendance found for schools on date ${date}` });
+    }
+
+    // Calculate the number of present students in all schools
+    const presentStudentsCountinAllSchools = filteredAttendance.filter(record => record.status === "present").length;
+
+    // Total number of students
+    const totalStudentsCount = await Student.countDocuments({});
+
+    res.status(200).json({
+      attendance: filteredAttendance,
+      presentStudentsCountinAllSchools,
+      totalStudentsCount,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
 module.exports = {
   updateAttendance,
   takeAttendance,
@@ -251,5 +324,6 @@ module.exports = {
   getstudentAttendanceOfClass,
   checkConsecutiveAbsences,
   getstudentAttendanceOfClassAll,
-  getStudentAttendanceById
+  getStudentAttendanceById,
+  getStudentAttOfSchool,getStudentAttOfAllSchool
 };

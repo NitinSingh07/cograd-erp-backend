@@ -165,12 +165,12 @@ const editTeacherAttendance = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+//for particular school
 const getSchoolTeachersAttendanceByDate = async (req, res) => {
   try {
     const { date, id } = req.body; // Retrieve date from URL parameters
     if (!id) {
-      return res.status(401).json({ message: "Unauthorized1" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
     const attendance = await TeacherAttendance.find({
       date,
@@ -202,7 +202,7 @@ const getSchoolTeachersAttendanceByDate = async (req, res) => {
 
 const getAllTeachersAttendanceByDate = async (req, res) => {
   try {
-    console.log(req.body.todayDate)
+    // console.log(req.body.todayDate)
     const { todayDate, adminId } = req.body; // Retrieve date from URL parameters
     if (!adminId) {
       return res.status(401).json({ message: "Only accesible to Admin" });
