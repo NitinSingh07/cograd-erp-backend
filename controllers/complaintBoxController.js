@@ -90,8 +90,8 @@ exports.allComplains = async (req, res) => {
     const schoolId = req.params.id;
 
     const complains = await ComplaintBox.find({ schoolId:schoolId})
-      .populate("parentId")
-      .populate("studentId");
+    .populate("parentId")
+    .populate("studentId").populate("referredTo")
 
     if (!complains) {
       return res.status(404).json({ message: "No complains found" });
