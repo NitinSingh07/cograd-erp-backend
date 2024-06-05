@@ -85,33 +85,27 @@ const markSelfAttendance = async (req, res) => {
   }
 };
 
-
 const calculateAttendance = async (req, res) => {
   try {
-
-    const teacherId = req.body.teacherId
+    const teacherId = req.body.teacherId;
     if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const { month: targetMonth, year: targetYear } = req.body; // Month and year from request
 
-    const { month: targetMonth } = req.body; // Month from request
-    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero
-    const attendanceRecords = await TeacherAttendance.find({
-      teacher: teacherId,
-    });
+
+    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero if single digit
+
+
+    const attendanceRecords = await TeacherAttendance.find({ teacher: teacherId });
 
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
-      const recordMonth = record.date.split("-")[1]; // Get the month part from the date
-      // console.log("Record date:", record.date, "| Extracted month:", recordMonth);
-
-      return recordMonth === normalizedTargetMonth; // Ensure they match exactly
+      const [recordYear, recordMonth] = record.date.split("-"); // Extract the year and month from the date (e.g., '2024-06-05')
+   
+      return recordMonth === normalizedTargetMonth && recordYear === targetYear.toString(); // Ensure both year and month match exactly
     });
 
-
-    if (matchingAttendanceRecords.length === 0) {
-      console.log("No records found for the specified month.");
-    }
 
     let presentCount = 0;
     let absentCount = 0;
@@ -128,18 +122,22 @@ const calculateAttendance = async (req, res) => {
         case "l":
           leaveCount++;
           break;
+        default:
+          console.log("Unknown status:", record.status);
       }
     });
 
-    // console.log("Present count:", presentCount, "| Absent count:", absentCount, "| Leave count:", leaveCount);
+
 
     res.status(200).json({
       message: "Attendance calculated successfully",
       data: {
         month: normalizedTargetMonth,
+        year: targetYear,
         presentCount,
         absentCount,
         leaveCount,
+        attendanceRecords: matchingAttendanceRecords, // Include attendance data
       },
     });
   } catch (error) {
