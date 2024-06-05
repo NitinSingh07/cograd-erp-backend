@@ -4,9 +4,11 @@ const {
   schoolLogIn,
   schoolList,
 } = require("../controllers/school");
+const singleUpload = require("../middleware/multer");
 const router = express.Router();
 
-router.post("/register", schoolRegister);
+
+router.post("/register",singleUpload , schoolRegister);
 router.post("/login", schoolLogIn);
 router.get("/list", schoolList);
 router.post("/logout", (req, res) => {

@@ -1,11 +1,11 @@
 const bcrypt = require("bcryptjs");
 const School = require("../models/school");
 const { setSchool, getSchool } = require("../service/schoolAuth");
-// const maxAge = 60 * 60;
-
+const getDataUri = require("../utils/dataUri");
+const cloudinary = require("cloudinary").v2;
 exports.schoolRegister = async (req, res) => {
   try {
-    // Check if email or school name already exists
+
     const existingSchoolByEmail = await School.findOne({
       email: req.body.email,
     });
@@ -21,15 +21,23 @@ exports.schoolRegister = async (req, res) => {
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(req.body.password, 10); // 10 is the salt rounds
+    //Done using multer
+    const file = req.file;
+
+   
+    if (!file) {
+      return res.status(400).json({ message: "Profile Photo is required" });
+    }
+
+    const photoUri = getDataUri(file);
+  
+    const myCloud = await cloudinary.uploader.upload(photoUri.content);
     const school = new School({
       ...req.body,
       password: hashedPassword, // Store the hashed password
+      profile: myCloud.secure_url,
     });
 
-    // Generate token for the newly signed-up school
-    const token = setSchool(school);
-    res.cookie("token", token);
-    console.log("school-token", token);
     let result = await school.save();
     result.password = undefined; // Do not send password back
     res.send(result);
