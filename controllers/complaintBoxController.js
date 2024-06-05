@@ -89,9 +89,9 @@ exports.allComplains = async (req, res) => {
   try {
     const schoolId = req.params.id;
 
-    const complains = await ComplaintBox.find({ schoolId:schoolId})
-    .populate("parentId")
-    .populate("studentId").populate("referredTo")
+    const complains = await ComplaintBox.find({ schoolId: schoolId })
+      .populate("parentId")
+      .populate("studentId").populate("referredTo")
 
     if (!complains) {
       return res.status(404).json({ message: "No complains found" });
@@ -142,7 +142,7 @@ exports.studentComplains = async (req, res) => {
   try {
     const studentId = req.params.id;
 
-    if ( !studentId) {
+    if (!studentId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
 
@@ -164,7 +164,7 @@ exports.teacherComplains = async (req, res) => {
   try {
     const teacherId = req.params.id;
 
-    if ( !teacherId) {
+    if (!teacherId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
 
@@ -185,7 +185,7 @@ exports.teacherComplains = async (req, res) => {
 exports.parentComplains = async (req, res) => {
   try {
     const parentId = req.params.id;
-    if ( !parentId) {
+    if (!parentId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
     const complains = await ComplaintBox.find({
@@ -266,10 +266,9 @@ exports.referComplaint = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 exports.resolveComplaint = async (req, res) => {
   try {
-    const { complaintId } = req.body;
+    const { complaintId, note } = req.body;
 
     const complaint = await ComplaintBox.findById(complaintId);
     if (!complaint) {
@@ -281,6 +280,7 @@ exports.resolveComplaint = async (req, res) => {
     }
 
     complaint.status = "RESOLVED";
+    complaint.note = note; // Assign the note to the complaint
     await complaint.save();
 
     res.status(200).json({ message: "Complaint resolved", complaint });
@@ -290,13 +290,14 @@ exports.resolveComplaint = async (req, res) => {
       .json({ message: "Error resolving complaint", error: err.message });
   }
 };
+
 exports.complaintsReferredToTeacher = async (req, res) => {
   try {
     const teacherId = req.params.id;
-    if ( !teacherId) {
+    if (!teacherId) {
       return res.status(402).json({ error: "Unauthorized" });
     }
-    
+
 
     const complaints = await ComplaintBox.find({
       referredTo: teacherId,

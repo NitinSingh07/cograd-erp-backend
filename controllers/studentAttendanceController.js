@@ -263,7 +263,7 @@ const getStudentAttOfSchool = async (req, res) => {
     const filteredAttendance = attendance.filter(a => a.student !== null);
 
     if (filteredAttendance.length === 0) {
-      return res.status(404).json({ message: `No attendance found for school ${schoolId} on date ${date}` });
+      return res.status(404).json({ message: `No attendance found for school ${id} on date ${date}` });
     }
 
     // Calculate the number of present students
@@ -299,7 +299,7 @@ const getStudentAttOfAllSchool = async (req, res) => {
     }
 
     // Calculate the number of present students in all schools
-    const presentStudentsCountinAllSchools = filteredAttendance.filter(record => record.status === "present").length;
+    const presentStudentsCountinAllSchools = filteredAttendance.filter(record => record.status === "p").length;
 
     // Total number of students
     const totalStudentsCount = await Student.countDocuments({});

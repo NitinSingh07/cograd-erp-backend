@@ -40,6 +40,9 @@ const complaintBoxSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "school",
     },
+    note: { // New field for adding note
+      type: String,
+    },
   },
   {
     timestamps: true,
