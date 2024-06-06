@@ -39,7 +39,7 @@ const {
 } = require("./middleware/auth.js");
 const cloudinary = require("cloudinary").v2;
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
