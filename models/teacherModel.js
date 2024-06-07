@@ -24,6 +24,10 @@ const teacherSchema = new mongoose.Schema(
       ref: "school",
       required: true,
     },
+    profile: {
+      type: String,
+      required: true,
+    },
     teachSubjects: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -8,6 +8,7 @@ function setSchool(school) {
     email: school.email,
     role: school.role,
     schoolName: school.schoolName,
+    profile:school.profile
   };
   return jwt.sign(payload, secret);
 }

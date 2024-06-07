@@ -176,7 +176,7 @@ const getSchoolTeachersAttendanceByDate = async (req, res) => {
       date,
       school: id
 
-    }).populate("teacher", "name email"); // Populate teacher name and email
+    }).populate("teacher", "name email profile"); // Populate teacher name and email
 
     if (!attendance || attendance.length === 0) {
       return res

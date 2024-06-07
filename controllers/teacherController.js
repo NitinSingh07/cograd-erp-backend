@@ -2,32 +2,28 @@ const bcrypt = require("bcryptjs");
 const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
 const { setTeacher, getTeacher } = require("../service/teacherAuth");
-const { getSchool } = require("../service/schoolAuth");
-const { getAdmin } = require("../service/adminAuth");
-
+const getDataUri = require("../utils/dataUri");
+const cloudinary = require("cloudinary").v2;
 // Teacher Registration
 const teacherRegister = async (req, res) => {
   try {
     const { name, email, password, teachSubjects, schoolId } = req.body;
 
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !teachSubjects ||
-      !teachSubjects.length
-    ) {
+    if (!name || !email || !password || !teachSubjects || !teachSubjects.length) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    const subjects = await Subject.find({ _id: { $in: teachSubjects } });
-    for (const subject of subjects) {
-      if (subject.teacher) {
-        return res.status(400).json({
-          message: `Subject ${subject.name} is already assigned to a teacher.`,
-        });
-      }
-    }
+    // Parse teachSubjects if it's not already an array
+    const parsedTeachSubjects = typeof teachSubjects === 'string' ? JSON.parse(teachSubjects) : teachSubjects;
+
+    // const subjects = await Subject.find({ _id: { $in: parsedTeachSubjects } });
+    // for (const subject of subjects) {
+    //   if (subject.teacher) {
+    //     return res.status(400).json({
+    //       message: `Subject ${subject.name} is already assigned to a teacher.`,
+    //     });
+    //   }
+    // }
 
     const existingTeacher = await Teacher.findOne({ email });
     if (existingTeacher) {
@@ -35,19 +31,30 @@ const teacherRegister = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    // Done using multer
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: "Profile Photo is required" });
+    }
+
+    const photoUri = getDataUri(file);
+
+    const myCloud = await cloudinary.uploader.upload(photoUri.content);
     const teacher = new Teacher({
       name,
       email,
-      school: schoolId, // Use the school ID from the decoded token
-      teachSubjects,
+      school: schoolId,
+      teachSubjects: parsedTeachSubjects,
       password: hashedPassword,
+      profile: myCloud.secure_url,
     });
 
     let savedTeacher = await teacher.save();
 
     // Assign teacher's ID to the subjects and save them concurrently
     await Promise.all(
-      teachSubjects.map(async (subjectId) => {
+      parsedTeachSubjects.map(async (subjectId) => {
         const subject = await Subject.findById(subjectId);
         if (subject) {
           subject.teacher = savedTeacher._id;
