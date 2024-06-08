@@ -27,7 +27,7 @@ const parentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    photo: {
+    profile: {
       type: String,
       required: true,
     },

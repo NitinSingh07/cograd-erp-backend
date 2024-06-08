@@ -55,7 +55,7 @@ exports.parentRegister = async (req, res) => {
       designation,
       school: schoolId,
       contact,
-      photo: myCloud.secure_url,
+      profile: myCloud.secure_url,
       students, // Assign the formatted students array
     });
     // Save the parent to the database
