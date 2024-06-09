@@ -225,6 +225,7 @@ const getstudentAttendanceOfClass = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const getStudentAttendanceById = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -238,12 +239,35 @@ const getStudentAttendanceById = async (req, res) => {
         .json({ message: `Attendance not found for student with ID ${studentId}` });
     }
 
+    const getStudentAttendanceById = async (req, res) => {
+      try {
+        const { studentId } = req.params;
+        const attendance = await Attendance.find({
+          student: studentId,
+        }).populate("student", "name");
+    
+        if (!attendance || attendance.length === 0) {
+          return res
+            .status(404)
+            .json({ message: `Attendance not found for student with ID ${studentId}` });
+        }
+    
+        res.status(200).json({ attendance });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    };
+    
     res.status(200).json({ attendance });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
 //particular school
 const getStudentAttOfSchool = async (req, res) => {
   try {
@@ -316,6 +340,74 @@ const getStudentAttOfAllSchool = async (req, res) => {
 };
 
 
+const getStudentAttendanceByIdMonthly = async (req, res) => {
+  try {
+    const { studentId } = req.body;
+
+    if (!studentId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { month: targetMonth, year: targetYear } = req.body; // Month and year from request
+
+
+    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero if single digit
+
+
+
+
+    const attendanceRecords = await Attendance.find({
+      student: studentId,
+    }).populate("student", "name");
+
+    if (!attendanceRecords || attendanceRecords.length === 0) {
+      return res
+        .status(404)
+        .json({ message: `Attendance not found for student with ID ${studentId}` });
+    }
+    const matchingAttendanceRecords = attendanceRecords.filter((record) => {
+      const [recordYear, recordMonth] = record.date.split("-"); // Extract the year and month from the date (e.g., '2024-06-05')
+   
+      return recordMonth === normalizedTargetMonth && recordYear === targetYear.toString(); // Ensure both year and month match exactly
+    });
+    let presentCount = 0;
+    let absentCount = 0;
+    let leaveCount = 0;
+
+    matchingAttendanceRecords.forEach((record) => {
+      switch (record.status) {
+        case "p":
+          presentCount++;
+          break;
+        case "a":
+          absentCount++;
+          break;
+        case "l":
+          leaveCount++;
+          break;
+        default:
+          console.log("Unknown status:", record.status);
+      }
+    });
+
+
+
+    res.status(200).json({
+      message: "Attendance calculated successfully",
+      data: {
+        month: normalizedTargetMonth,
+        year: targetYear,
+        presentCount,
+        absentCount,
+        leaveCount,
+        attendanceRecords: matchingAttendanceRecords, // Include attendance data
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 module.exports = {
   updateAttendance,
@@ -325,5 +417,5 @@ module.exports = {
   checkConsecutiveAbsences,
   getstudentAttendanceOfClassAll,
   getStudentAttendanceById,
-  getStudentAttOfSchool,getStudentAttOfAllSchool
+  getStudentAttOfSchool,getStudentAttOfAllSchool,getStudentAttendanceByIdMonthly
 };

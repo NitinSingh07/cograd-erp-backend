@@ -85,7 +85,7 @@ const markSelfAttendance = async (req, res) => {
   }
 };
 
-const calculateAttendance = async (req, res) => {
+const calculateAttendanceMonthly = async (req, res) => {
   try {
     const teacherId = req.body.teacherId;
     if (!teacherId) {
@@ -149,6 +149,6 @@ const calculateAttendance = async (req, res) => {
 
 
 module.exports = {
-  markSelfAttendance, calculateAttendance, getTeacherAttendance
+  markSelfAttendance, calculateAttendanceMonthly, getTeacherAttendance
   // Other existing exports
 };

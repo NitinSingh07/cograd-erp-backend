@@ -69,7 +69,7 @@ exports.schoolLogIn = async (req, res) => {
     const token = setSchool(school);
     // const expiryDate = new Date(Date.now() + 3600000); // 1 hour
     res.cookie("token", token);
-    return res.status(200).send(school);
+    return res.status(200).json(school);
   } catch (error) {
     console.error("Error logging in:", error);
     return res.status(500).send({ message: "Internal server error" });

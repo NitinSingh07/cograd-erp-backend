@@ -12,7 +12,7 @@ const {
 const router = express.Router();
 
 router.route("/register").post(singleUpload, parentRegister);
-router.route("/login").post(singleUpload, parentLogin);
+router.route("/login").post(parentLogin);
 router.get("/feesDetails/:id", calculateRemainingAmount);
 router.get("/parentsList/:id", parentsList);
 
