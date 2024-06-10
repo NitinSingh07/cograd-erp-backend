@@ -1,6 +1,8 @@
 const { getSchool } = require("../service/schoolAuth");
 const Class = require("../models/classModel");
 const Subject = require("../models/subjectModel");
+const Student = require("../models/studentSchema")
+const ClassTeacher = require("../models/classTeacherModel")
 exports.ClassCreate = async (req, res) => {
   try {
     const school = req.params.id;
@@ -73,18 +75,25 @@ exports.deleteClass = async (req, res) => {
       return res.status(404).send({ message: "Class not found" });
     }
 
-    // Delete the class
-    await Class.findByIdAndDelete(req.params.id);
-
     // Delete all subjects associated with the class
     await Subject.deleteMany({ className: req.params.id });
 
+    // Delete all students associated with the class
+    await Student.deleteMany({ className: req.params.id });
+
+    // Delete the class teacher associated with the class
+    await ClassTeacher.deleteOne({ className: req.params.id });
+
+    // Delete the class
+    await Class.findByIdAndDelete(req.params.id);
+
     // Send success response
-    res.status(200).json({ message: "Class and associated subjects deleted successfully" });
+    res.status(200).json({ message: "Class and all associated entities deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.updateClassName = async (req, res) => {
   try {
