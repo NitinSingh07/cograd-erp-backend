@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 exports.subjectCreate = async (req, res) => {
   try {
-    const {schoolId} = req.body; // Use the school ID from the request parameters
+    const { schoolId } = req.body; // Use the school ID from the request parameters
 
     if (!schoolId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -71,7 +71,7 @@ exports.allSubjects = async (req, res) => {
 exports.classSubjects = async (req, res) => {
   try {
     const schoolId = req.params.schoolId; // Use the school ID from the request parameters
-    const className = req.params.className
+    const className = req.params.className;
     if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -112,6 +112,41 @@ exports.freeSubjectList = async (req, res) => {
     } else {
       res.send({ message: "No subjects found" });
     }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteSubject = async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+
+    if (!subjectId) {
+      return res.status(401).json({ message: "Subject Id is missing" });
+    }
+
+    const subject = await Subject.findById(subjectId);
+
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    const teacherId = subject.teacher;
+
+    if (teacherId) {
+      // Use the pull operation to remove the subject ID from the teacher's teachSubjects array
+      await Teacher.updateOne(
+        { _id: teacherId },
+        { $pull: { teachSubjects: subjectId } }
+      );
+    }
+
+    // Delete the subject
+    await Subject.findByIdAndDelete(subjectId);
+
+    res.status(200).json({
+      message: "Subject and associated references deleted successfully",
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

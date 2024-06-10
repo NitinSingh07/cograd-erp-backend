@@ -1,8 +1,9 @@
 const { getSchool } = require("../service/schoolAuth");
 const Class = require("../models/classModel");
 const Subject = require("../models/subjectModel");
-const Student = require("../models/studentSchema")
-const ClassTeacher = require("../models/classTeacherModel")
+const Student = require("../models/studentSchema");
+const ClassTeacher = require("../models/classTeacherModel");
+const examResultModel = require("../models/examResultModel");
 exports.ClassCreate = async (req, res) => {
   try {
     const school = req.params.id;
@@ -79,6 +80,14 @@ exports.deleteClass = async (req, res) => {
     await Subject.deleteMany({ className: req.params.id });
 
     // Delete all students associated with the class
+    const students = await Student.find({ className: req.params.id });
+
+    if (students) {
+      for (const student of students) {
+        await examResultModel.deleteOne({ student: student._id });
+      }
+    }
+
     await Student.deleteMany({ className: req.params.id });
 
     // Delete the class teacher associated with the class
@@ -88,12 +97,13 @@ exports.deleteClass = async (req, res) => {
     await Class.findByIdAndDelete(req.params.id);
 
     // Send success response
-    res.status(200).json({ message: "Class and all associated entities deleted successfully" });
+    res.status(200).json({
+      message: "Class and all associated entities deleted successfully",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 exports.updateClassName = async (req, res) => {
   try {
