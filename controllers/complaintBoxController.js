@@ -26,15 +26,18 @@ exports.registeredComplains = async (req, res) => {
     }
 
     if (req.fileValidationError) {
-      return res
-        .status(400)
-        .json({ message: `File validation error: ${req.fileValidationError}` });
+      return res.status(400).json({
+        message: `File validation error: ${req.fileValidationError}`
+      });
     }
 
     let audioResponse = null;
     if (req.file) {
-      // Invoke the uploader function to handle the upload to cloudinary
+      // Ensure that the cloudinaryUploader function correctly handles file upload
       audioResponse = await cloudinaryUploader(req, res);
+      if (!audioResponse || !audioResponse.secure_url) {
+        return res.status(500).json({ message: "Error uploading audio file" });
+      }
     }
 
     const date = Date.now();
@@ -84,6 +87,7 @@ exports.registeredComplains = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 exports.allComplains = async (req, res) => {
   try {
