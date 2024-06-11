@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const Admin = require("../models/admin");
 const { setAdmin, getAdmin } = require("../service/adminAuth");
+const School = require("../models/school");
 
 exports.adminRegister = async (req, res) => {
   try {
@@ -26,7 +27,6 @@ exports.adminRegister = async (req, res) => {
     await newAdmin.save();
     res.send("Admin registered successfully");
   } catch (err) {
-    console.error("Error registering admin:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -56,7 +56,37 @@ exports.adminLogin = async (req, res) => {
 
     return res.status(200).send(admin);
   } catch (error) {
-    console.error("Error logging in:", error);
+    return res.status(500).send({ message: "Internal server error" });
+  }
+};
+
+exports.adminSchoolLogin = async (req, res) => {
+  try {
+    if (!req.body.adminId) {
+      return res.status(401).send({ message: "Unauthorized" });
+    }
+
+    const admin = await Admin.findById(req.body.adminId);
+
+    if (!admin) {
+      return res.status(400).send({ message: "Admin not found" });
+    }
+    if (!req.body.email || !req.body.password) {
+      return res
+        .status(400)
+        .send({ message: "Email and password are required" });
+    }
+
+    let school = await School.findOne({
+      email: req.body.email,
+      password: req.body.password,
+    });
+    if (!school) {
+      return res.status(404).send({ message: "School not found" });
+    }
+
+    res.status(200).json(school);
+  } catch (error) {
     return res.status(500).send({ message: "Internal server error" });
   }
 };
