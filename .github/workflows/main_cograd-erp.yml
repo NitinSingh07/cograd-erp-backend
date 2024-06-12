@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
@@ -31,7 +31,7 @@ jobs:
         run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: node-app
           path: release.zip
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: node-app
 
@@ -57,9 +57,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_57F5AB9BDBAB4FBE88BD722522D16648 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_004F3FCBB2F14539BC21C08D0210BCEC }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_46242BD8A00244E499898EE559427746 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0079DB7E245A44C2B1415B9E475874FE }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_40E8E1891CB84D80AB2E5948A862C64F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5CEE8CD7A4ED4B9BAD063B0963A977F0 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
