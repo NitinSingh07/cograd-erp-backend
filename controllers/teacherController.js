@@ -3,18 +3,30 @@ const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
 const { setTeacher, getTeacher } = require("../service/teacherAuth");
 const getDataUri = require("../utils/dataUri");
+const {
+  InteractionPage,
+} = require("twilio/lib/rest/proxy/v1/service/session/interaction");
 const cloudinary = require("cloudinary").v2;
 // Teacher Registration
 const teacherRegister = async (req, res) => {
   try {
     const { name, email, password, teachSubjects, schoolId } = req.body;
 
-    if (!name || !email || !password || !teachSubjects || !teachSubjects.length) {
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !teachSubjects ||
+      !teachSubjects.length
+    ) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
     // Parse teachSubjects if it's not already an array
-    const parsedTeachSubjects = typeof teachSubjects === 'string' ? JSON.parse(teachSubjects) : teachSubjects;
+    const parsedTeachSubjects =
+      typeof teachSubjects === "string"
+        ? JSON.parse(teachSubjects)
+        : teachSubjects;
 
     // const subjects = await Subject.find({ _id: { $in: parsedTeachSubjects } });
     // for (const subject of subjects) {
@@ -151,7 +163,7 @@ const getTeacherById = async (req, res) => {
   }
 };
 const addTimeline = async (req, res) => {
-  const { startTime, endTime, subjectId, classId } = req.body;
+  const { startTime, endTime, subject } = req.body;
   try {
     // const token = req.cookies?.token;
     // const decodedToken = getTeacher(token);
@@ -168,27 +180,23 @@ const addTimeline = async (req, res) => {
     // const teacherId = decodedToken.id;
 
     const teacher = await Teacher.findById(teacherId);
-    const subject = await Subject.findById(subjectId);
 
     if (!teacher) {
-      return res.status(404).json({ error: "Teacher not found" });
-    }
-    if (!subject) {
-      return res.status(404).json({ error: "Subject not found" });
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
     teacher.timeline.push({
       startTime,
       endTime,
-      subject: subjectId,
-      class: classId,
+      subject,
     });
 
     await teacher.save();
 
     res.status(200).json({ message: "Timeline updated successfully" });
   } catch (err) {
-    res.status(500).json(err);
+    console.log(err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -196,10 +204,7 @@ const fetchTeacherTimeline = async (req, res) => {
   const teacherId = req.params.id;
 
   try {
-    const teacher = await Teacher.findById(teacherId).populate({
-      path: "timeline",
-      populate: { path: "class subject" }, // Populate the 'class' and 'subject' fields in the timeline entries
-    });
+    const teacher = await Teacher.findById(teacherId);
 
     if (!teacher) {
       return res.status(404).json({ error: "Teacher not found" });
@@ -207,7 +212,7 @@ const fetchTeacherTimeline = async (req, res) => {
 
     const timeline = teacher.timeline;
 
-    res.status(200).json({ timeline });
+    res.status(200).json(timeline);
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" });
   }

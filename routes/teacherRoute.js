@@ -3,7 +3,8 @@ const {
   teacherLogin,
   addTimeline,
   fetchTeacherTimeline,
-  getAllTeacherList,getTeacherById
+  getAllTeacherList,
+  getTeacherById,
 } = require("../controllers/teacherController");
 const router = express.Router();
 

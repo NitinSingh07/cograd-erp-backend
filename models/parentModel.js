@@ -27,7 +27,7 @@ const parentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    photo: {
+    profile: {
       type: String,
       required: true,
     },
@@ -48,9 +48,31 @@ const parentSchema = new mongoose.Schema(
           required: true,
         },
         fees: {
-          type: Number,
-          default: 0,
-          required: true,
+          admission: {
+            type: Number,
+            default: 0,
+            required: true,
+          },
+          tuition: {
+            type: Number,
+            default: 0,
+            required: true,
+          },
+          exams: {
+            type: Number,
+            default: 0,
+            required: true,
+          },
+          maintenance: {
+            type: Number,
+            default: 0,
+            required: true,
+          },
+          others: {
+            type: Number,
+            default: 0,
+            required: true,
+          },
         },
       },
     ],

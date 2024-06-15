@@ -148,7 +148,10 @@ exports.calculateRemainingAmount = async (req, res) => {
 
     // Calculate total fees of all students
     const totalFees = parent.students.reduce((total, student) => {
-      return total + student.fees;
+      const { admission, tuition, exams, maintenance, others } = student.fees;
+      const studentTotalFees =
+        admission + tuition + exams + maintenance + others;
+      return total + studentTotalFees;
     }, 0);
 
     // Calculate total amount paid by the parent
@@ -195,10 +198,13 @@ exports.updateFeesPaid = async (req, res) => {
     const date = Date.now();
 
     // Calculate total fees of all students
-    const totalFees = parent.students.reduce(
-      (total, student) => total + student.fees,
-      0
-    );
+    const totalFees = parent.students.reduce((total, student) => {
+      const { admission, tuition, exams, maintenance, others } = student.fees;
+      const studentTotalFees =
+        admission + tuition + exams + maintenance + others;
+      return total + studentTotalFees;
+    }, 0);
+
     const lastPayment = parent.payments[parent.payments.length - 1];
     const remainingAmount = lastPayment
       ? lastPayment.remainingAmount - amountPaid
@@ -279,10 +285,12 @@ exports.updateStudentFees = async (req, res) => {
     }
 
     // Store the original total fees before updating the student's fee
-    const originalTotalFees = parent.students.reduce(
-      (total, student) => total + student.fees,
-      0
-    );
+    const originalTotalFees = parent.students.reduce((total, student) => {
+      const { admission, tuition, exams, maintenance, others } = student.fees;
+      const studentTotalFees =
+        admission + tuition + exams + maintenance + others;
+      return total + studentTotalFees;
+    }, 0);
 
     // Update the student's fees
     student.fees = fees;
@@ -291,10 +299,12 @@ exports.updateStudentFees = async (req, res) => {
     await parent.save();
 
     // Check if the total fees have changed
-    const newTotalFees = parent.students.reduce(
-      (total, student) => total + student.fees,
-      0
-    );
+    const newTotalFees = parent.students.reduce((total, student) => {
+      const { admission, tuition, exams, maintenance, others } = student.fees;
+      const studentTotalFees =
+        admission + tuition + exams + maintenance + others;
+      return total + studentTotalFees;
+    }, 0);
 
     if (newTotalFees !== originalTotalFees) {
       // Calculate the difference in total fees
