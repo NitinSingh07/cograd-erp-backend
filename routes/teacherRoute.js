@@ -5,6 +5,8 @@ const {
   fetchTeacherTimeline,
   getAllTeacherList,
   getTeacherById,
+  deleteTeacherTimeline,
+  editTeacherTimeline,
 } = require("../controllers/teacherController");
 const router = express.Router();
 
@@ -13,6 +15,8 @@ router.post("/login", teacherLogin);
 router.post("/addTimeline/:id", addTimeline);
 router.get("/getAllTeachers/:adminId", getAllTeacherList);
 router.get("/getTeacherById/:id", getTeacherById);
+router.delete("/deleteTimeline/:timelineId/:teacherId", deleteTeacherTimeline);
+router.put("/editTimeline/:id", editTeacherTimeline);
 
 router.get("/fetchTimeline/:id", fetchTeacherTimeline);
 router.post("/logout", (req, res) => {

@@ -207,12 +207,79 @@ const fetchTeacherTimeline = async (req, res) => {
     const teacher = await Teacher.findById(teacherId);
 
     if (!teacher) {
-      return res.status(404).json({ error: "Teacher not found" });
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
     const timeline = teacher.timeline;
 
     res.status(200).json(timeline);
+  } catch (err) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const editTeacherTimeline = async (req, res) => {
+  try {
+    const { timelineId, startTime, endTime, subject } = req.body;
+
+    const teacherId = req.params.id;
+    if (!teacherId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // const teacherId = decodedToken.id;
+
+    const teacher = await Teacher.findById(teacherId);
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const timeline = teacher.timeline.id(timelineId);
+
+    if (!timeline) {
+      return res.status(404).json({ message: "Timeline not found" });
+    }
+
+    // Update the timeline properties
+    timeline.startTime = startTime;
+    timeline.endTime = endTime;
+    timeline.subject = subject;
+
+    // Save the teacher document to persist changes
+    await teacher.save();
+
+    res.status(200).json({ message: "Timeline updated successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const deleteTeacherTimeline = async (req, res) => {
+  try {
+    const { timelineId, teacherId } = req.params;
+
+    const teacher = await Teacher.findById(teacherId);
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const timeline = teacher.timeline.id(timelineId);
+
+    if (!timeline) {
+      return res.status(404).json({ message: "Timeline not found" });
+    }
+
+    // Remove the timeline entry from the array
+    teacher.timeline.pull(timelineId);
+
+    // Save the updated teacher document
+    await teacher.save();
+
+    // Send a success response
+    res.status(200).json({ message: "Timeline entry deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -225,4 +292,6 @@ module.exports = {
   fetchTeacherTimeline,
   getAllTeacherList,
   getTeacherById,
+  deleteTeacherTimeline,
+  editTeacherTimeline,
 };
