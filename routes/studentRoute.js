@@ -9,17 +9,19 @@ const {
   studentLogIn,
   getStudentDetail,
   studentList,
-  schoolStudentList
+  schoolStudentList,
+  deleteStudent,
 } = require("../controllers/studentController.js");
 const singleUpload = require("../middleware/multer.js");
 router.post("/register", singleUpload, studentRegister);
 router.post("/login", studentLogIn);
 router.get("/:id", getStudentDetail);
-router.get("/studentAttendance/:studentId", getStudentAttendanceById);//all the att records for a particular student
+router.get("/studentAttendance/:studentId", getStudentAttendanceById); //all the att records for a particular student
 
-router.post("/studentAttendanceMonthly", getStudentAttendanceByIdMonthly);//all the att records for a particular student
+router.post("/studentAttendanceMonthly", getStudentAttendanceByIdMonthly); //all the att records for a particular student
 router.get("/studentList/:id", studentList);
 router.get("/get/list/:id", schoolStudentList);
+router.delete("/deleteStudent/:id", deleteStudent);
 
 router.post("/logout", (req, res) => {
   // Clear the token cookie

@@ -3,6 +3,10 @@ const StudentModel = require("../models/studentSchema.js"); // Rename import to 
 const { setStudent } = require("../service/studentAuth.js");
 const { getSchool } = require("../service/schoolAuth.js");
 const getDataUri = require("../utils/dataUri.js");
+const ComplaintBox = require("../models/complaintBox.js");
+const examResultModel = require("../models/examResultModel.js");
+const studentAttendanceModel = require("../models/studentAttendanceModel.js");
+const parentModel = require("../models/parentModel.js");
 const cloudinary = require("cloudinary").v2;
 
 const studentRegister = async (req, res) => {
@@ -102,12 +106,70 @@ const getStudentDetail = async (req, res) => {
       student = await (
         await student.populate("className", "className")
       ).populate("schoolName", "schoolName");
-      res.send(student);
+      res.status(200).json(student);
     } else {
       res.status(404).send({ message: "No student found" });
     }
   } catch (err) {
     res.status(500).json(err);
+  }
+};
+
+const deleteStudent = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+
+    let student = await StudentModel.findById(studentId);
+
+    console.log(student);
+
+    if (!student) {
+      return res.status(404).json({ message: "No student found" });
+    }
+
+    await ComplaintBox.deleteMany({ studentId: studentId });
+
+    await examResultModel.findOneAndDelete({ student: studentId });
+
+    await studentAttendanceModel.deleteMany({ student: studentId });
+
+    const parent = await parentModel.findOne({
+      "students.studentId": studentId,
+    });
+
+    if (parent && parent.students.length === 1) {
+      await parentModel.findByIdAndDelete(parent._id);
+    } else if (parent && parent.students.length > 1) {
+      // Remove the student from the students array
+      const studentToRemove = parent.students.find(
+        (student) => student.studentId.toString() === studentId
+      );
+
+      const totalFees =
+        studentToRemove.fees.admission +
+        studentToRemove.fees.tuition +
+        studentToRemove.fees.exams +
+        studentToRemove.fees.maintenance +
+        studentToRemove.fees.others;
+
+      parent.students = parent.students.filter(
+        (student) => student.studentId.toString() !== studentId
+      );
+
+      // Update payments data accordingly
+      parent.payments.forEach((payment) => {
+        payment.remainingAmount -= totalFees;
+      });
+
+      await parent.save();
+    }
+
+    await StudentModel.findByIdAndDelete(student._id);
+
+    res.status(200).json({ message: "Student deleted" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server error" });
   }
 };
 
@@ -156,4 +218,5 @@ module.exports = {
   studentLogIn,
   getStudentDetail,
   schoolStudentList,
+  deleteStudent,
 };
