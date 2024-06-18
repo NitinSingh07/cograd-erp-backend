@@ -10,12 +10,13 @@ const cloudinary = require("cloudinary").v2;
 // Teacher Registration
 const teacherRegister = async (req, res) => {
   try {
-    const { name, email, password, teachSubjects, schoolId } = req.body;
+    const { name, email, password, teachSubjects, schoolId ,salary } = req.body;
 
     if (
       !name ||
       !email ||
       !password ||
+      !salary||
       !teachSubjects ||
       !teachSubjects.length
     ) {
@@ -60,6 +61,7 @@ const teacherRegister = async (req, res) => {
       teachSubjects: parsedTeachSubjects,
       password: hashedPassword,
       profile: myCloud.secure_url,
+      salary
     });
 
     let savedTeacher = await teacher.save();

@@ -15,6 +15,11 @@ const teacherSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    salary: {
+      type: Number,
+      required: true,
+    },
+    
     role: {
       type: String,
       default: "TEACHER",
