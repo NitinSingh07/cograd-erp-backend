@@ -254,14 +254,31 @@ exports.parentDetails = async (req, res) => {
       return res.status(404).json({ error: "Parent not found" });
     }
 
-    const parentWithStudentNames = parent.toObject(); // Convert Mongoose document to plain object
-
     // No need for additional student fetching, populate already did it
-    console.log({ parent: parentWithStudentNames });
-    res.status(200).json({ parent: parentWithStudentNames });
+    res.status(200).json(parent);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.deleteParent = async (req, res) => {
+  try {
+    const parentId = req.params.id;
+
+    // Find the parent document
+    const parent = await ParentModel.findById(parentId);
+
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    await ParentModel.findByIdAndDelete(parentId);
+
+    res.status(200).json({ message: "Parent deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

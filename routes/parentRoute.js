@@ -8,6 +8,7 @@ const {
   parentDetails,
   parentsList,
   updateStudentFees,
+  deleteParent,
 } = require("../controllers/parentController");
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.route("/register").post(singleUpload, parentRegister);
 router.route("/login").post(parentLogin);
 router.get("/feesDetails/:id", calculateRemainingAmount);
 router.get("/parentsList/:id", parentsList);
+router.delete("/deleteParent/:id", deleteParent);
 
 router.put("/updateStudentFees/:parentId/:studentId", updateStudentFees);
 
