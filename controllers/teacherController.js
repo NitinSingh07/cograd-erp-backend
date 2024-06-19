@@ -11,13 +11,13 @@ const cloudinary = require("cloudinary").v2;
 
 const teacherRegister = async (req, res) => {
   try {
-    const { name, email, password, teachSubjects, schoolId ,salary } = req.body;
+    const { name, email, password, teachSubjects, schoolId, salary } = req.body;
 
     if (
       !name ||
       !email ||
       !password ||
-      !salary||
+      !salary ||
       !teachSubjects ||
       !teachSubjects.length
     ) {
@@ -110,7 +110,69 @@ const teacherLogin = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+const editTeacher = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { name, email, password, teachSubjects, salary } = req.body;
 
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found." });
+    }
+
+    if (name) teacher.name = name;
+    if (email) teacher.email = email;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      teacher.password = hashedPassword;
+    }
+    if (salary) teacher.salary = salary;
+
+    if (teachSubjects) {
+      const parsedTeachSubjects = typeof teachSubjects === "string"
+        ? JSON.parse(teachSubjects)
+        : teachSubjects;
+
+      // Unassign the teacher from the old subjects
+      await Promise.all(
+        teacher.teachSubjects.map(async (subjectId) => {
+          const subject = await Subject.findById(subjectId);
+          if (subject && subject.teacher.toString() === teacher._id.toString()) {
+            subject.teacher = null;
+            await subject.save();
+          }
+        })
+      );
+
+      // Assign the teacher to the new subjects
+      teacher.teachSubjects = parsedTeachSubjects;
+      await Promise.all(
+        parsedTeachSubjects.map(async (subjectId) => {
+          const subject = await Subject.findById(subjectId);
+          if (subject) {
+            subject.teacher = teacher._id;
+            await subject.save();
+          }
+        })
+      );
+    }
+
+    if (req.file) {
+      const file = req.file;
+      const photoUri = getDataUri(file);
+      const myCloud = await cloudinary.uploader.upload(photoUri.content);
+      teacher.profile = myCloud.secure_url;
+    }
+
+    const updatedTeacher = await teacher.save();
+    updatedTeacher.password = undefined;
+
+    return res.status(200).json(updatedTeacher);
+  } catch (error) {
+    console.error("Error during teacher update:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
 const getAllTeacherList = async (req, res) => {
   try {
     // const token = req.cookies?.adminToken; // Retrieve the JWT token from the cookies
@@ -297,4 +359,5 @@ module.exports = {
   getTeacherById,
   deleteTeacherTimeline,
   editTeacherTimeline,
+  editTeacher
 };

@@ -9,9 +9,9 @@ const {
   getSchoolTeachersAttendanceByDate
 } = require("../controllers/teacherAttendanceByPrincipalController");
 
-const { teacherRegister } = require("../controllers/teacherController");
+const { teacherRegister ,editTeacher} = require("../controllers/teacherController");
 const {
-  classTeacherRegister,
+  classTeacherRegister, 
 } = require("../controllers/classTeacherController");
 const singleUpload = require("../middleware/multer");
 
@@ -24,7 +24,8 @@ router.post("/editAttendance", editTeacherAttendance); // Principal-only endpoin
 router.get("/:teacherId/:date", getTeacherAttendanceByDate);
 router.post("/getByDate", getAllTeachersAttendanceByDate);//for admin
 router.post("/getByDate2", getSchoolTeachersAttendanceByDate);//for particular school
-router.post("/register",singleUpload,teacherRegister);
+router.post("/register", singleUpload, teacherRegister);
+router.put("/edit/:teacherId", singleUpload,editTeacher);
 // http://localhost:4000/teacherReg/editAttendance
 
 // {

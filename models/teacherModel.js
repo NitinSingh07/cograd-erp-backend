@@ -43,7 +43,7 @@ const teacherSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "documents",
-        required: true,
+        // required: true,
       },
     ],
     timeline: [
