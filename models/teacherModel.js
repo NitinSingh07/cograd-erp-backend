@@ -15,6 +15,10 @@ const teacherSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    salary: {
+      type: Number,
+      required: true,
+    },
     role: {
       type: String,
       default: "TEACHER",
@@ -32,6 +36,13 @@ const teacherSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "subject",
+        required: true,
+      },
+    ],
+    documents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "documents",
         required: true,
       },
     ],

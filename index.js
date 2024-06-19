@@ -24,7 +24,7 @@ const driverRoutes = require("./routes/driverRoute");
 const adminRoutes = require("./routes/admin");
 const complaintRoute = require("./routes/complaintBoxRoute.js");
 // const upload = require("./utils/multer.js")
-
+const uploadRoute = require("./routes/documents")
 // const cloudinaryUploader = require("./utils/cloudinaryUplaoder.js")
 
 const {
@@ -95,7 +95,6 @@ app.use(express.urlencoded({ extended: false }));
 // });
 
 app.use("/parent", parentRouter);
-
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
 
@@ -109,7 +108,7 @@ app.use(checkForAdminAuthentication);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
 //for login of class teacher only
-
+app.use("/upload",uploadRoute)
 app.use("/subject", subjectRouter);
 app.use("/transaction", schoolTransactionRouter);
 app.use("/staff", staffRoutes);
