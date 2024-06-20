@@ -120,6 +120,7 @@ const editTeacher = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found." });
     }
 
+    // Update basic information
     if (name) teacher.name = name;
     if (email) teacher.email = email;
     if (password) {
@@ -128,35 +129,25 @@ const editTeacher = async (req, res) => {
     }
     if (salary) teacher.salary = salary;
 
-    if (teachSubjects) {
-      const parsedTeachSubjects = typeof teachSubjects === "string"
-        ? JSON.parse(teachSubjects)
-        : teachSubjects;
+    // Parse teachSubjects
+    const parsedTeachSubjects = typeof teachSubjects === "string"
+      ? JSON.parse(teachSubjects)
+      : teachSubjects;
+console.log(parsedTeachSubjects)
+    // Unassign the teacher from all old subjects
+    // if (parsedTeachSubjects) {
+    //   await Promise.all(
+    //     teacher.teachSubjects.map(async (subjectId) => {
+    //       const subject = await Subject.findById(subjectId);
+    //       if (subject && subject.teacher.toString() === teacher._id.toString()) {
+    //         subject.teacher = null;
+    //         await subject.save();
+    //       }
+    //     })
+    //   );
+    // }
 
-      // Unassign the teacher from the old subjects
-      await Promise.all(
-        teacher.teachSubjects.map(async (subjectId) => {
-          const subject = await Subject.findById(subjectId);
-          if (subject && subject.teacher.toString() === teacher._id.toString()) {
-            subject.teacher = null;
-            await subject.save();
-          }
-        })
-      );
-
-      // Assign the teacher to the new subjects
-      teacher.teachSubjects = parsedTeachSubjects;
-      await Promise.all(
-        parsedTeachSubjects.map(async (subjectId) => {
-          const subject = await Subject.findById(subjectId);
-          if (subject) {
-            subject.teacher = teacher._id;
-            await subject.save();
-          }
-        })
-      );
-    }
-
+    // Update profile picture if a new file is uploaded
     if (req.file) {
       const file = req.file;
       const photoUri = getDataUri(file);
@@ -164,8 +155,25 @@ const editTeacher = async (req, res) => {
       teacher.profile = myCloud.secure_url;
     }
 
+    // Clear the current teachSubjects array
+    teacher.teachSubjects = [];
+
+    // Assign the teacher to the new subjects
+    if (parsedTeachSubjects) {
+      await Promise.all(
+        parsedTeachSubjects.map(async (subjectId) => {
+          const subject = await Subject.findById(subjectId);
+          if (subject) {
+            subject.teacher = teacher._id;
+            await subject.save();
+            teacher.teachSubjects.push(subjectId);
+          }
+        })
+      );
+    }
+
     const updatedTeacher = await teacher.save();
-    updatedTeacher.password = undefined;
+    updatedTeacher.password = undefined; // Remove password from the response
 
     return res.status(200).json(updatedTeacher);
   } catch (error) {
@@ -173,6 +181,9 @@ const editTeacher = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
+
 const getAllTeacherList = async (req, res) => {
   try {
     // const token = req.cookies?.adminToken; // Retrieve the JWT token from the cookies
