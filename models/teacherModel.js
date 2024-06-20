@@ -39,13 +39,6 @@ const teacherSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    documents: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "documents",
-        // required: true,
-      },
-    ],
     timeline: [
       {
         startTime: {
@@ -57,6 +50,12 @@ const teacherSchema = new mongoose.Schema(
         subject: {
           type: String,
         },
+      },
+    ],
+    documents: [
+      {
+        name: { type: String },
+        url: { type: String },
       },
     ],
   },
