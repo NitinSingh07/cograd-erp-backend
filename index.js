@@ -76,24 +76,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 
-// app.post("/uploadAudio", upload, async (req, res) => {
-//   // check for any file validation errors from multer
-//   if (req.fileValidationError) {
-//     return res
-//       .status(400)
-//       .json({ message: `File validation error: ${req.fileValidationError}` });
-//   }
-
-//   //   invoke the uplader function to handle the upload to cloudinary
-
-//   //   we are passing the req, and res to cloudinaryUploader function
-//   const audioResponse = await cloudinaryUploader(req, res);
-
-//   //   send response with audio response from cloudinary
-
-//   return res.status(200).json({ audioResponse: audioResponse.secure_url });
-// });
-
 app.use("/parent", parentRouter);
 app.use("/examResult", resultRouter);
 app.use("/examList", examListRouter);
