@@ -16,6 +16,7 @@ const transactionSchema = new mongoose.Schema({
   },
   receipt: {
     type: String,
+    unique: true,
   },
   date: {
     type: Date,

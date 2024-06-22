@@ -2,10 +2,10 @@ const bcrypt = require("bcrypt");
 const ParentModel = require("../models/parentModel");
 const { setParent, getParent } = require("../service/parentAuth");
 const getDataUri = require("../utils/dataUri");
-const { findById } = require("../models/teacherModel");
+const Teacher = require("../models/teacherModel");
 const cloudinary = require("cloudinary").v2;
 const StudentModel = require("../models/studentSchema");
-const { Message } = require("twilio/lib/twiml/MessagingResponse");
+const Transaction = require("../models/transaction");
 
 exports.parentRegister = async (req, res) => {
   const {
@@ -96,6 +96,90 @@ exports.parentLogin = async (req, res) => {
     // Set the token in the response or in a cookie (optional)
     res.cookie("parentToken", parentToken);
     res.status(200).json(parent);
+  } catch (error) {
+    console.error("Error logging in parent:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.updateParent = async (req, res) => {
+  try {
+    const parentId = req.params.id;
+    const payload = req.body;
+    // Find parent by email
+    const parent = await ParentModel.findById(parentId);
+
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    // Update basic details
+    if (payload.name) parent.name = payload.name;
+    if (payload.email) parent.email = payload.email;
+    if (payload.password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(payload.password, salt);
+      parent.password = hashedPassword; // Make sure to hash the password before saving
+    }
+    if (payload.qualification) parent.qualification = payload.qualification;
+    if (payload.designation) parent.designation = payload.designation;
+    if (payload.contact) parent.contact = payload.contact;
+    if (payload.school) parent.school = payload.school;
+
+    // Handle profile photo change
+    if (req.file) {
+      const file = req.file;
+      const photoUri = getDataUri(file);
+      const myCloud = await cloudinary.uploader.upload(photoUri.content);
+      parent.profile = myCloud.secure_url;
+    }
+
+    // Update students and calculate total fees
+    if (payload.students) {
+      // Validate students
+      for (const student of payload.students) {
+        const fetchedStudent = await StudentModel.findById(student.studentId);
+        if (!fetchedStudent) {
+          return res.status(400).json({
+            message: `Student with ID ${student.studentId} not found`,
+          });
+        }
+      }
+
+      parent.students = payload.students.map((student) => ({
+        studentId: student.studentId,
+        fees: {
+          admission: student.fees.admission,
+          tuition: student.fees.tuition,
+          exams: student.fees.exams,
+          maintenance: student.fees.maintenance,
+          others: student.fees.others,
+        },
+      }));
+
+      // Calculate total fees
+      const totalFees = parent.students.reduce((total, student) => {
+        return (
+          total +
+          student.fees.admission +
+          student.fees.tuition +
+          student.fees.exams +
+          student.fees.maintenance +
+          student.fees.others
+        );
+      }, 0);
+
+      // Update payments with the new total fees
+      parent.payments = parent.payments.map((payment) => {
+        payment.remainingAmount = totalFees - payment.paidAmount;
+        return payment;
+      });
+    }
+
+    // Save the updated parent document
+    await parent.save();
+
+    res.status(200).json({ message: "Parent updated successfully", parent });
   } catch (error) {
     console.error("Error logging in parent:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -337,6 +421,58 @@ exports.updateStudentFees = async (req, res) => {
     }
 
     res.status(200).json({ message: "Student fees updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.paymentDelete = async (req, res) => {
+  try {
+    const { parentId, paymentId, schoolId } = req.params;
+
+    if (!schoolId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const parent = await ParentModel.findById(parentId);
+
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    const payment = parent.payments.id(paymentId);
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    // Delete the corresponding transaction
+    await Transaction.findOneAndDelete({ receipt: payment.receipt });
+
+    // Remove the payment
+    parent.payments.pull(paymentId);
+
+    // Update the remaining amount in the parent's payments
+    const totalFees = parent.students.reduce((total, student) => {
+      return (
+        total +
+        student.fees.admission +
+        student.fees.tuition +
+        student.fees.exams +
+        student.fees.maintenance +
+        student.fees.others
+      );
+    }, 0);
+
+    parent.payments.forEach((payment) => {
+      payment.remainingAmount = totalFees - payment.paidAmount;
+    });
+
+    // Save the updated parent document
+    await parent.save();
+
+    res.status(200).json({ message: "Payment deleted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });
