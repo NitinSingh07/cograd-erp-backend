@@ -58,6 +58,24 @@ const teacherSchema = new mongoose.Schema(
         url: { type: String },
       },
     ],
+    computerKnowledge: {
+      type: String,
+      required: true,
+    },
+    computerTyping: {
+      type: String,
+      required: true,
+    },
+    contact: {
+      type: String,
+      required: true,
+    },
+    qualification: {
+      type: String,
+    },
+    skills: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
