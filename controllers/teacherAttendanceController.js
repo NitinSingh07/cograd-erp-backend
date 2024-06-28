@@ -5,20 +5,7 @@ const DateTime = require("luxon").DateTime;
 
 const getTeacherAttendance = async (req, res) => {
   try {
-    //  // Retrieve the teacher's token from cookies and decode it
-    //  const token = req.cookies?.teacherToken;
-   
- 
-    //  const decodedToken = getTeacher(token);
- 
-    //  // If token decoding fails, return an unauthorized response
-    //  if (!decodedToken) {
-    //    return res.status(401).json({ message: "Unauthorized" });
-    //  }
- 
-    //  const teacherId = decodedToken.id; // Get teacher ID from the token
 
-    // Fetch attendance records for the teacher
     const teacherId = req.params.teacherId
     if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -43,30 +30,30 @@ const getTeacherAttendance = async (req, res) => {
 
 const markSelfAttendance = async (req, res) => {
   try {
-    // const token = req.cookies?.teacherToken; // Get the teacher token
-    const{ teacherId, date, status} = req.body
-    // const teacherInfo = getTeacher(token); // Validate the teacher
+    const { teacherId, date, status, schoolId } = req.body;
 
     if (!teacherId) {
-      return res.status(401).json({ message: "Unauthorized" }); // Unauthorized response
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     // Check if attendance already exists for this teacher on the given date
     const existingAttendance = await TeacherAttendance.findOne({
+      school: schoolId,
       teacher: teacherId,
       date,
-    });
+    }).populate('teacher', 'name'); // Populate the teacher field to get the name
 
     if (existingAttendance) {
       return res.status(400).json({
-        message: `Attendance already marked for ${date}`,
-        attendance: existingAttendance, // Include existing attendance in the response
+        message: `Attendance for ${existingAttendance.teacher.name} on ${date} has already been marked`,
+        attendance: existingAttendance,
       });
     }
 
     // Create new attendance record
     const newAttendance = new TeacherAttendance({
       teacher: teacherId,
+      school: schoolId,
       date,
       status,
     });
@@ -77,11 +64,11 @@ const markSelfAttendance = async (req, res) => {
     // Send a successful response with the new attendance data
     res.status(201).json({
       message: "Attendance marked successfully",
-      attendance: newAttendance, // Include the new attendance record in the response
+      attendance: newAttendance,
     });
   } catch (error) {
     console.error("Error marking attendance:", error);
-    res.status(500).json({ message: "Internal server error" }); // General error handling
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -102,7 +89,7 @@ const calculateAttendanceMonthly = async (req, res) => {
 
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
       const [recordYear, recordMonth] = record.date.split("-"); // Extract the year and month from the date (e.g., '2024-06-05')
-   
+
       return recordMonth === normalizedTargetMonth && recordYear === targetYear.toString(); // Ensure both year and month match exactly
     });
 

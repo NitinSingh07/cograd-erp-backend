@@ -11,7 +11,9 @@ const cloudinary = require("cloudinary").v2;
 
 const teacherRegister = async (req, res) => {
   try {
-    const { name, email, password, teachSubjects, schoolId, salary } = req.body;
+    const { name, email, password, teachSubjects, schoolId, salary, computerKnowledge, computerTyping, contact
+      , qualification, skills
+    } = req.body;
 
     if (
       !name ||
@@ -19,6 +21,7 @@ const teacherRegister = async (req, res) => {
       !password ||
       !salary ||
       !teachSubjects ||
+      !computerKnowledge || !computerTyping || !contact || !qualification || !skills ||
       !teachSubjects.length
     ) {
       return res.status(400).json({ message: "All fields are required." });
@@ -62,7 +65,8 @@ const teacherRegister = async (req, res) => {
       teachSubjects: parsedTeachSubjects,
       password: hashedPassword,
       profile: myCloud.secure_url,
-      salary
+      salary, computerKnowledge, computerTyping, contact
+      , qualification, skills
     });
 
     let savedTeacher = await teacher.save();
@@ -110,10 +114,12 @@ const teacherLogin = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 const editTeacher = async (req, res) => {
   try {
     const { teacherId } = req.params;
-    const { name, email, password, teachSubjects, salary } = req.body;
+    const { name, email, password, teachSubjects, salary, computerKnowledge, computerTyping, contact
+      , qualification, skills } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
@@ -127,13 +133,18 @@ const editTeacher = async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, 10);
       teacher.password = hashedPassword;
     }
+    if (computerKnowledge) teacher.computerKnowledge = computerKnowledge;
+    if (computerTyping) teacher.computerTyping = computerTyping;
+    if (contact) teacher.contact = contact;
     if (salary) teacher.salary = salary;
+    if (qualification) teacher.qualification = qualification;
+
 
     // Parse teachSubjects
     const parsedTeachSubjects = typeof teachSubjects === "string"
       ? JSON.parse(teachSubjects)
       : teachSubjects;
-console.log(parsedTeachSubjects)
+    console.log(parsedTeachSubjects)
     // Unassign the teacher from all old subjects
     // if (parsedTeachSubjects) {
     //   await Promise.all(
