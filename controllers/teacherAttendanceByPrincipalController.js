@@ -2,8 +2,8 @@ const { getSchool } = require("../service/schoolAuth");
 const TeacherAttendance = require("../models/teacherAttendanceModel");
 const School = require("../models/school");
 const Teacher = require("../models/teacherModel");
-const { DateTime } = require("luxon");
-const { getAdmin } = require("../service/adminAuth");
+// const { DateTime } = require("luxon");
+// const { getAdmin } = require("../service/adminAuth");
 
 const takeTeacherAttendance = async (req, res) => {
   try {
@@ -165,16 +165,16 @@ const editTeacherAttendance = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-//for particular school
+//for particular school date 2 
 const getSchoolTeachersAttendanceByDate = async (req, res) => {
   try {
-    const { date, id } = req.body; // Retrieve date from URL parameters
-    if (!id) {
+    const { date, schoolId, teacherId } = req.body; // Retrieve date from URL parameters
+    if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     const attendance = await TeacherAttendance.find({
       date,
-      school: id
+      school: schoolId
 
     }).populate("teacher", "name email profile"); // Populate teacher name and email
 
