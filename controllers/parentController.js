@@ -6,6 +6,14 @@ const Teacher = require("../models/teacherModel");
 const cloudinary = require("cloudinary").v2;
 const StudentModel = require("../models/studentSchema");
 const Transaction = require("../models/transaction");
+const ParentOtpModel = require("../models/parentOtpModel");
+const { sendSMS } = require("../utils/sendSMS");
+
+function generateOTP() {
+  // Generate a random number between 100000 and 999999
+  let otp = Math.floor(100000 + Math.random() * 900000).toString();
+  return otp;
+}
 
 exports.parentRegister = async (req, res) => {
   const {
@@ -72,32 +80,61 @@ exports.parentRegister = async (req, res) => {
 };
 
 exports.parentLogin = async (req, res) => {
-  const { email, password } = req.body;
+  const { phoneNumber } = req.body;
   try {
     // Find parent by email
-    const parent = await ParentModel.findOne({ email });
+    const parent = await ParentModel.findOne({ contact: phoneNumber });
 
     if (!parent) {
       return res.status(404).json({ message: "Parent not found" });
     }
 
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, parent.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    const otp = generateOTP();
 
-    // Hide the password
-    parent.password = undefined;
+    await ParentOtpModel.findOneAndDelete({ parentId: parent._id });
 
-    // Generate JWT token for the parent
-    const parentToken = setParent(parent);
+    const parentOtpModel = new ParentOtpModel({
+      parentId: parent._id,
+      otp: otp,
+    });
 
-    // Set the token in the response or in a cookie (optional)
-    res.cookie("parentToken", parentToken);
-    res.status(200).json(parent);
+    await parentOtpModel.save();
+
+    await sendSMS(phoneNumber, `Your OTP for login is ${otp}`);
+
+    res.status(200).json({ message: "success" });
   } catch (error) {
     console.error("Error logging in parent:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.verification = async (req, res) => {
+  try {
+    const { phoneNumber, otp } = req.body;
+
+    const parent = await ParentModel.findOne({ contact: phoneNumber });
+
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    const parentOtpModel = await ParentOtpModel.findOne({
+      parentId: parent._id,
+    });
+
+    if (!parentOtpModel) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    if (parentOtpModel.otp === otp) {
+      return res.status(200).json(parent);
+    } else {
+      return res
+        .status(401)
+        .json({ message: "Otp doesn't match, try again later!" });
+    }
+  } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

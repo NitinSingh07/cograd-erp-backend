@@ -18,13 +18,12 @@ const studentAttendanceRouter = require("./routes/studentAttendanceRoutes.js");
 const teacherAttendanceByPrincipalRouter = require("./routes/teacherAttendanceByPrincipalRoutes.js");
 const teacherAttendanceRouter = require("./routes/teacherAttendanceRouter.js");
 const schoolTransactionRouter = require("./routes/schoolTransactionRouter");
-const smsRouter = require("./sendSMS.js");
 const staffRoutes = require("./routes/staffRoutes");
 const driverRoutes = require("./routes/driverRoute");
 const adminRoutes = require("./routes/admin");
 const complaintRoute = require("./routes/complaintBoxRoute.js");
 // const upload = require("./utils/multer.js")
-const uploadRoute = require("./routes/documents")
+const uploadRoute = require("./routes/documents");
 // const cloudinaryUploader = require("./utils/cloudinaryUplaoder.js")
 
 const {
@@ -90,7 +89,7 @@ app.use(checkForAdminAuthentication);
 app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
 //for login of class teacher only
-app.use("/upload",uploadRoute)
+app.use("/upload", uploadRoute);
 app.use("/subject", subjectRouter);
 app.use("/transaction", schoolTransactionRouter);
 app.use("/staff", staffRoutes);
