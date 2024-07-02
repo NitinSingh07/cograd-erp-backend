@@ -11,9 +11,11 @@ const {
   studentList,
   schoolStudentList,
   deleteStudent,
+  studentEditDetails
 } = require("../controllers/studentController.js");
 const singleUpload = require("../middleware/multer.js");
 router.post("/register", singleUpload, studentRegister);
+router.put("/edit", singleUpload, studentEditDetails);
 router.post("/login", studentLogIn);
 router.get("/:id", getStudentDetail);
 router.get("/studentAttendance/:studentId", getStudentAttendanceById); //all the att records for a particular student

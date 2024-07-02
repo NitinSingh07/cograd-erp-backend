@@ -1,7 +1,6 @@
 const bcrypt = require("bcrypt");
 const StudentModel = require("../models/studentSchema.js"); // Rename import to avoid conflict
 const { setStudent } = require("../service/studentAuth.js");
-const { getSchool } = require("../service/schoolAuth.js");
 const getDataUri = require("../utils/dataUri.js");
 const ComplaintBox = require("../models/complaintBox.js");
 const examResultModel = require("../models/examResultModel.js");
@@ -72,7 +71,71 @@ const studentRegister = async (req, res) => {
     res.status(500).json(err);
   }
 };
+const studentEditDetails = async (req, res) => {
+  const {
+    id,
+    name,
+    email,
+    password,
+    className,
+    fathersName,
+    fatherEmail,
+    // Remove schoolId from here
+  } = req.body;
 
+  try {
+    // Check if the student exists
+    const existingStudent = await StudentModel.findById(id);
+
+    if (!existingStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Handle password update if provided
+    let hashedPass = existingStudent.password;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      hashedPass = await bcrypt.hash(password, salt);
+    }
+
+    // Handle photo update using multer
+    let profileUrl = existingStudent.profile;
+    const file = req.file;
+    if (file) {
+      const photoUri = getDataUri(file);
+      const myCloud = await cloudinary.uploader.upload(photoUri.content);
+      profileUrl = myCloud.secure_url;
+    }
+
+    // Update student details
+    existingStudent.name = name;
+    existingStudent.email = email;
+    existingStudent.password = hashedPass;
+    existingStudent.className = className;
+    // Do not update schoolId unless provided in req.body
+    if (req.body.schoolId) {
+      existingStudent.schoolName = req.body.schoolId;
+    }
+
+    existingStudent.fathersName = fathersName;
+    existingStudent.fatherEmail = fatherEmail;
+    existingStudent.profile = profileUrl;
+
+    // Save updated student
+    const updatedStudent = await existingStudent.save();
+    updatedStudent.password = undefined; // Remove password from response
+
+    // Populate related fields
+    // await updatedStudent.populate("className", "className").execPopulate();
+    // await updatedStudent.populate("schoolName", "schoolName").execPopulate();
+
+    // Send response
+    res.status(200).json(updatedStudent);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 const studentLogIn = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -219,4 +282,5 @@ module.exports = {
   getStudentDetail,
   schoolStudentList,
   deleteStudent,
+  studentEditDetails
 };
