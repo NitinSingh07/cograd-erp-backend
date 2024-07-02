@@ -44,6 +44,12 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  documents: [
+    {
+      name: { type: String },
+      url: { type: String },
+    },
+  ],
   // mothersName: {
   //     type: String,
   //     required: true
