@@ -5,32 +5,69 @@ const School = require("../models/school");
 const Student = require("../models/studentSchema");
 
 exports.addExamResult = async (req, res) => {
-  const { student, examName, subjects, school } = req.body;
+  const {
+    student,
+    examName,
+    subjects,
+    school,
+    readingHE,
+    writingHE,
+    tables1To20,
+    basicMathematics,
+    talkingInBasicEnglish,
+    basicGKQuestions,
+    syllabusKnowledgeSubjectwise,
+    hobbies,
+    sports,
+    culturalActivities,
+    moralBehavior,
+    specialQuality,
+  } = req.body;
 
   try {
     if (!school) {
-      return res.status(401).json({ message: "unauthorized" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const schoolExists = await School.findById(school);
-    // Check if there is any data containing the student in the ExamResult database
-    let examResult = await ExamResult.findOne({ student: student });
+    if (!schoolExists) {
+      return res.status(400).json({ message: "School doesn't exist" });
+    }
 
-    const studentExist = await Student.findOne({ _id: student });
-
-    const ExamListExistence = await ExamList.findOne({ _id: examName });
-
+    const studentExist = await Student.findById(student);
     if (!studentExist) {
       return res.status(400).json({ message: "Student doesn't exist" });
-    } else if (!ExamListExistence) {
+    }
+
+    const examListExistence = await ExamList.findById(examName);
+    if (!examListExistence) {
       return res.status(400).json({ message: "Exam doesn't exist" });
-    } else if (!schoolExists) {
-      return res.status(400).json({ message: "School doesn't exist" });
-    } else if (!examResult) {
+    }
+
+    // Check if there is any data containing the student in the ExamResult database
+    let examResult = await ExamResult.findOne({ student: student });
+    if (!examResult) {
       // If no data found, create a new ExamResult entry for the student
       examResult = new ExamResult({
         student: student,
-        exams: [{ examName, subjects }],
+        exams: [
+          {
+            examName,
+            subjects,
+            readingHE: readingHE || null,
+            writingHE: writingHE || null,
+            tables1To20: tables1To20 || null,
+            basicMathematics: basicMathematics || null,
+            talkingInBasicEnglish: talkingInBasicEnglish || null,
+            basicGKQuestions: basicGKQuestions || null,
+            syllabusKnowledgeSubjectwise: syllabusKnowledgeSubjectwise || null,
+            hobbies: hobbies || "",
+            sports: sports || "",
+            culturalActivities: culturalActivities || "",
+            moralBehavior: moralBehavior || "",
+            specialQuality: specialQuality || "",
+          },
+        ],
         school,
       });
 
@@ -52,7 +89,22 @@ exports.addExamResult = async (req, res) => {
     }
 
     // If the examName doesn't exist, push the new exam into the exams array
-    examResult.exams.push({ examName, subjects });
+    examResult.exams.push({
+      examName,
+      subjects,
+      readingHE: readingHE || null,
+      writingHE: writingHE || null,
+      tables1To20: tables1To20 || null,
+      basicMathematics: basicMathematics || null,
+      talkingInBasicEnglish: talkingInBasicEnglish || null,
+      basicGKQuestions: basicGKQuestions || null,
+      syllabusKnowledgeSubjectwise: syllabusKnowledgeSubjectwise || null,
+      hobbies: hobbies || "",
+      sports: sports || "",
+      culturalActivities: culturalActivities || "",
+      moralBehavior: moralBehavior || "",
+      specialQuality: specialQuality || "",
+    });
     await examResult.save();
 
     res.status(200).json({ message: "Exam result added successfully" });
@@ -63,7 +115,24 @@ exports.addExamResult = async (req, res) => {
 };
 
 exports.editExamResult = async (req, res) => {
-  const { student, examName, subjects, school } = req.body;
+  const {
+    student,
+    examName,
+    subjects,
+    school,
+    readingHE,
+    writingHE,
+    tables1To20,
+    basicMathematics,
+    talkingInBasicEnglish,
+    basicGKQuestions,
+    syllabusKnowledgeSubjectwise,
+    hobbies,
+    sports,
+    culturalActivities,
+    moralBehavior,
+    specialQuality,
+  } = req.body;
 
   const editMarksId = req.params.id;
 
@@ -94,7 +163,7 @@ exports.editExamResult = async (req, res) => {
       (exam) => exam._id.toString() === editMarksId
     );
 
-    //check if the examName already present for another result
+    // Check if the examName already present for another result
     const existingExam = examResult.exams.find(
       (exam) =>
         exam._id.toString() !== editMarksId &&
@@ -114,11 +183,25 @@ exports.editExamResult = async (req, res) => {
     }
 
     // Update the existing exam result
-    examResult.exams[existingExamIndex] = {
-      ...examResult.exams[existingExamIndex],
-      examName,
-      subjects,
-    };
+    const updatedExam = { ...examResult.exams[existingExamIndex] };
+    if (examName) updatedExam.examName = examName;
+    if (subjects) updatedExam.subjects = subjects;
+    if (readingHE) updatedExam.readingHE = readingHE;
+    if (writingHE) updatedExam.writingHE = writingHE;
+    if (tables1To20) updatedExam.tables1To20 = tables1To20;
+    if (basicMathematics) updatedExam.basicMathematics = basicMathematics;
+    if (talkingInBasicEnglish)
+      updatedExam.talkingInBasicEnglish = talkingInBasicEnglish;
+    if (basicGKQuestions) updatedExam.basicGKQuestions = basicGKQuestions;
+    if (syllabusKnowledgeSubjectwise)
+      updatedExam.syllabusKnowledgeSubjectwise = syllabusKnowledgeSubjectwise;
+    if (hobbies) updatedExam.hobbies = hobbies;
+    if (sports) updatedExam.sports = sports;
+    if (culturalActivities) updatedExam.culturalActivities = culturalActivities;
+    if (moralBehavior) updatedExam.moralBehavior = moralBehavior;
+    if (specialQuality) updatedExam.specialQuality = specialQuality;
+
+    examResult.exams[existingExamIndex] = updatedExam;
 
     await examResult.save();
     res.status(200).json({ message: "Exam result updated successfully" });
