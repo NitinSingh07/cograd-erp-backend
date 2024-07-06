@@ -29,6 +29,49 @@ const examResultSchema = new mongoose.Schema({
           },
         },
       ],
+      readingHE: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      writingHE: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      tables1To20: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      basicMathematics: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      talkingInBasicEnglish: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      basicGKQuestions: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      syllabusKnowledgeSubjectwise: {
+        type: String,
+        enum: ["good", "average", "improvement"],
+      },
+      hobbies: {
+        type: String,
+      },
+      sports: {
+        type: String,
+      },
+      culturalActivities: {
+        type: String,
+      },
+      moralBehavior: {
+        type: String,
+      },
+      specialQuality: {
+        type: String,
+      },
     },
   ],
   school: {
