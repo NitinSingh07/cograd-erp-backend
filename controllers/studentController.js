@@ -17,6 +17,7 @@ const studentRegister = async (req, res) => {
     fathersName,
     fatherEmail,
     schoolId,
+    dob
   } = req.body;
 
   try {
@@ -44,6 +45,7 @@ const studentRegister = async (req, res) => {
       schoolName: schoolId, // corrected from 'school'
       fathersName,
       fatherEmail,
+      dob
     });
 
     const existingStudentByEmail = await StudentModel.findOne({ email });
@@ -80,6 +82,7 @@ const studentEditDetails = async (req, res) => {
     className,
     fathersName,
     fatherEmail,
+    dob
     // Remove schoolId from here
   } = req.body;
 
@@ -109,6 +112,7 @@ const studentEditDetails = async (req, res) => {
 
     // Update student details
     existingStudent.name = name;
+    existingStudent.dob = dob;
     existingStudent.email = email;
     existingStudent.password = hashedPass;
     existingStudent.className = className;
@@ -184,7 +188,6 @@ const deleteStudent = async (req, res) => {
 
     let student = await StudentModel.findById(studentId);
 
-    console.log(student);
 
     if (!student) {
       return res.status(404).json({ message: "No student found" });

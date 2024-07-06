@@ -12,7 +12,7 @@ const cloudinary = require("cloudinary").v2;
 const teacherRegister = async (req, res) => {
   try {
     const { name, email, password, teachSubjects, schoolId, salary, computerKnowledge, computerTyping, contact
-      , qualification, skills
+      , qualification, skills,dob
     } = req.body;
 
     if (
@@ -61,6 +61,7 @@ const teacherRegister = async (req, res) => {
     const teacher = new Teacher({
       name,
       email,
+      dob,
       school: schoolId,
       teachSubjects: parsedTeachSubjects,
       password: hashedPassword,
@@ -119,7 +120,7 @@ const editTeacher = async (req, res) => {
   try {
     const { teacherId } = req.params;
     const { name, email, password, teachSubjects, salary, computerKnowledge, computerTyping, contact
-      , qualification, skills } = req.body;
+      , qualification, skills,dob } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
@@ -128,6 +129,7 @@ const editTeacher = async (req, res) => {
 
     // Update basic information
     if (name) teacher.name = name;
+    if (dob) teacher.dob = dob;
     if (email) teacher.email = email;
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
