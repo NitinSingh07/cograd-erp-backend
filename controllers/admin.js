@@ -54,7 +54,7 @@ exports.adminLogin = async (req, res) => {
     const adminToken = setAdmin(admin);
     res.cookie("adminToken", adminToken);
 
-    return res.status(200).send(admin);
+    return res.status(200).json(admin);
   } catch (error) {
     return res.status(500).send({ message: "Internal server error" });
   }
