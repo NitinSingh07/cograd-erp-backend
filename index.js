@@ -24,6 +24,7 @@ const adminRoutes = require("./routes/admin");
 const complaintRoute = require("./routes/complaintBoxRoute.js");
 // const upload = require("./utils/multer.js")
 const uploadRoute = require("./routes/documents");
+const uploadStudentRoute = require("./routes/studentDocs.js");
 // const cloudinaryUploader = require("./utils/cloudinaryUplaoder.js")
 
 const {
@@ -90,6 +91,7 @@ app.use("/student", studentRouter);
 app.use("/school", schoolRouter);
 //for login of class teacher only
 app.use("/upload", uploadRoute);
+app.use("/uploadStudent", uploadStudentRoute);
 app.use("/subject", subjectRouter);
 app.use("/transaction", schoolTransactionRouter);
 app.use("/staff", staffRoutes);

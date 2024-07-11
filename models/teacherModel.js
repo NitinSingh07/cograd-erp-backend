@@ -32,6 +32,10 @@ const teacherSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    dob: {
+      type: Date,
+      // required: true
+    },
     teachSubjects: [
       {
         type: mongoose.Schema.Types.ObjectId,

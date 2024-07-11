@@ -44,14 +44,20 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  documents: [
+    {
+      name: { type: String },
+      url: { type: String },
+    },
+  ],
   // mothersName: {
   //     type: String,
   //     required: true
   // },
-  // dob: {
-  //     type: Date,
-  //     required: true
-  // },
+  dob: {
+      type: Date,
+      // required: true
+  },
   // aadharCardNo: {
   //     type: String,
   //     required: true

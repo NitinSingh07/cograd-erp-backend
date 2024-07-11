@@ -23,6 +23,7 @@ const teacherRegister = async (req, res) => {
       contact,
       qualification,
       skills,
+      dob,
     } = req.body;
 
     if (
@@ -75,6 +76,7 @@ const teacherRegister = async (req, res) => {
     const teacher = new Teacher({
       name,
       email,
+      dob,
       school: schoolId,
       teachSubjects: parsedTeachSubjects,
       password: hashedPassword,
@@ -147,6 +149,7 @@ const editTeacher = async (req, res) => {
       contact,
       qualification,
       skills,
+      dob,
     } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
@@ -156,6 +159,7 @@ const editTeacher = async (req, res) => {
 
     // Update basic information
     if (name) teacher.name = name;
+    if (dob) teacher.dob = dob;
     if (email) teacher.email = email;
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
