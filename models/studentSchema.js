@@ -50,13 +50,36 @@ const studentSchema = new mongoose.Schema({
       url: { type: String },
     },
   ],
+  phoneNumber: { type: String },
+
+  pastFeedbacks: [
+    {
+      date: { type: Date },
+      purpose: { type: String },
+      summary: { type: String },
+      teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "teacher" }, // Adding teacherId here
+    },
+  ],
+  upcomingFeedbacks: [
+    {
+      date: { type: Date },
+      purpose: { type: String },
+      teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "teacher" }, // Adding teacherId here
+    },
+  ],
+  callHistory: [
+    {
+      time: { type: Date },
+      teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "teacher" }, // Adding teacherId here
+    },
+  ],
   // mothersName: {
   //     type: String,
   //     required: true
   // },
   dob: {
-      type: Date,
-      // required: true
+    type: Date,
+    // required: true
   },
   // aadharCardNo: {
   //     type: String,

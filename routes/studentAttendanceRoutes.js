@@ -12,6 +12,8 @@ const {
 } = require("../controllers/studentAttendanceController");
 //login to classTeacher first before taking attendance
 router.post("/mark", takeAttendance);
+router.post("/update", updateAttendance);
+
 router.get("/checkConsecutive/:id", checkConsecutiveAbsences);
 router.get("/byCT/:id", getstudentAttendanceOfClass);
 

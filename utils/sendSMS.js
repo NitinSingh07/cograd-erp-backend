@@ -11,12 +11,16 @@ const client = new twilio.Twilio(accountSid, authToken);
 // Function to send SMS
 exports.sendSMS = async (phoneNumber, message) => {
   try {
+    console.log(1)
+
     // Send SMS using Twilio API
     const response = await client.messages.create({
       body: message,
       to: `+91${phoneNumber}`, // Recipient's phone number
       from: fromNumber, // Your Twilio phone number
     });
+
+    console.log(2)
 
     return response.sid; // Return SID of the sent SMS
   } catch (error) {

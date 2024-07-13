@@ -1,18 +1,32 @@
 const bcrypt = require("bcryptjs");
 const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
+const TeacherOtpModel = require("../models/teacherOtpModel");
 const { setTeacher, getTeacher } = require("../service/teacherAuth");
 const getDataUri = require("../utils/dataUri");
 const {
   InteractionPage,
 } = require("twilio/lib/rest/proxy/v1/service/session/interaction");
+const { sendSMS } = require("../utils/sendSMS");
+const LoginTrackModel = require("../models/LoginTrackModel");
 const cloudinary = require("cloudinary").v2;
 // Teacher Registration
 
 const teacherRegister = async (req, res) => {
   try {
-    const { name, email, password, teachSubjects, schoolId, salary, computerKnowledge, computerTyping, contact
-      , qualification, skills,dob
+    const {
+      name,
+      email,
+      password,
+      teachSubjects,
+      schoolId,
+      salary,
+      computerKnowledge,
+      computerTyping,
+      contact,
+      qualification,
+      skills,
+      dob,
     } = req.body;
 
     if (
@@ -21,7 +35,11 @@ const teacherRegister = async (req, res) => {
       !password ||
       !salary ||
       !teachSubjects ||
-      !computerKnowledge || !computerTyping || !contact || !qualification || !skills ||
+      !computerKnowledge ||
+      !computerTyping ||
+      !contact ||
+      !qualification ||
+      !skills ||
       !teachSubjects.length
     ) {
       return res.status(400).json({ message: "All fields are required." });
@@ -66,8 +84,12 @@ const teacherRegister = async (req, res) => {
       teachSubjects: parsedTeachSubjects,
       password: hashedPassword,
       profile: myCloud.secure_url,
-      salary, computerKnowledge, computerTyping, contact
-      , qualification, skills
+      salary,
+      computerKnowledge,
+      computerTyping,
+      contact,
+      qualification,
+      skills,
     });
 
     let savedTeacher = await teacher.save();
@@ -116,11 +138,69 @@ const teacherLogin = async (req, res) => {
   }
 };
 
+// Teacher Login Through Phone number
+const teacherAppLogin = async (req, res) => {
+  const { phoneNumber } = req.body;
+  try {
+    // Find teacher by phone number
+    const teacher = await Teacher.findOne({ contact: phoneNumber });
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Generate token (assuming setTeacher function creates a token)
+    const token = setTeacher(teacher);
+
+    // Set token as a cookie
+    res.cookie("teacherToken", token);
+
+    // Remove password from the response
+    teacher.password = undefined;
+
+    // Return teacher data
+    return res.status(200).json(teacher);
+  } catch (error) {
+    console.error("Error logging in teacher:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const loginTrackTeacherApp = async (req, res) => {
+  const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
+
+  const newLoginTrack = new LoginTrackModel({
+    teacherId,
+    selfie,
+    latitude,
+    longitude,
+    loginTime,
+  });
+
+  try {
+    const savedLoginTrack = await newLoginTrack.save();
+    res.status(201).json(savedLoginTrack);
+  } catch (error) {
+    res.status(500).json({ message: "Error saving login track data", error });
+  }
+};
+
 const editTeacher = async (req, res) => {
   try {
     const { teacherId } = req.params;
-    const { name, email, password, teachSubjects, salary, computerKnowledge, computerTyping, contact
-      , qualification, skills,dob } = req.body;
+    const {
+      name,
+      email,
+      password,
+      teachSubjects,
+      salary,
+      computerKnowledge,
+      computerTyping,
+      contact,
+      qualification,
+      skills,
+      dob,
+    } = req.body;
 
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
@@ -141,12 +221,12 @@ const editTeacher = async (req, res) => {
     if (salary) teacher.salary = salary;
     if (qualification) teacher.qualification = qualification;
 
-
     // Parse teachSubjects
-    const parsedTeachSubjects = typeof teachSubjects === "string"
-      ? JSON.parse(teachSubjects)
-      : teachSubjects;
-    console.log(parsedTeachSubjects)
+    const parsedTeachSubjects =
+      typeof teachSubjects === "string"
+        ? JSON.parse(teachSubjects)
+        : teachSubjects;
+    console.log(parsedTeachSubjects);
     // Unassign the teacher from all old subjects
     // if (parsedTeachSubjects) {
     //   await Promise.all(
@@ -194,8 +274,6 @@ const editTeacher = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
-
-
 
 const getAllTeacherList = async (req, res) => {
   try {
@@ -383,5 +461,7 @@ module.exports = {
   getTeacherById,
   deleteTeacherTimeline,
   editTeacherTimeline,
-  editTeacher
+  editTeacher,
+  teacherAppLogin,
+  loginTrackTeacherApp
 };

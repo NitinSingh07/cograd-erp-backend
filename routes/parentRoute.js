@@ -11,13 +11,11 @@ const {
   deleteParent,
   updateParent,
   paymentDelete,
-  verification,
 } = require("../controllers/parentController");
 const router = express.Router();
 
 router.route("/register").post(singleUpload, parentRegister);
 router.route("/login").post(parentLogin);
-router.post("/verification", verification);
 router.get("/feesDetails/:id", calculateRemainingAmount);
 router.get("/parentsList/:id", parentsList);
 router.delete("/deleteParent/:id", deleteParent);
