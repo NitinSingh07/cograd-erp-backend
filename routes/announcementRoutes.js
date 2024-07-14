@@ -4,7 +4,8 @@ const {
   createAnnouncement, 
   getAnnouncementsByTeacherId,
   getAnnouncementsByParentId,
-  getAnnouncementsByClassTeacherId 
+  getAnnouncementsByClassTeacherId, 
+  getAllAnnouncements
 } = require("../controllers/announcementController");
 
 router.post("/", createAnnouncement);

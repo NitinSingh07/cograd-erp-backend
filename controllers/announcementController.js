@@ -1,4 +1,5 @@
-const Announcement = require("../models/announcementModel");
+const Announcement = require("../models/announcementModel")
+
 
 exports.createAnnouncement = async (req, res) => {
   try {
@@ -19,8 +20,6 @@ exports.getAllAnnouncements = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
-
-const Announcement = require("../models/announcementModel");
 
 exports.getAnnouncementsByTeacherId = async (req, res) => {
   try {
