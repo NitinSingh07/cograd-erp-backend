@@ -7,12 +7,17 @@ const {
   getTeacherById,
   deleteTeacherTimeline,
   editTeacherTimeline,
+  teacherAppLogin,
+  teacherRegister,
+  loginTrackTeacherApp,
 } = require("../controllers/teacherController");
 const router = express.Router();
 
-// router.post("/register", teacherRegister);
+router.post("/register", teacherRegister);
 router.post("/login", teacherLogin);
 // router.post("/login", teacherLogin);
+router.post("/app/login",teacherAppLogin);
+router.post("/app/loginTrack", loginTrackTeacherApp);
 router.post("/addTimeline/:id", addTimeline);
 router.get("/getAllTeachers/:adminId", getAllTeacherList);
 router.get("/getTeacherById/:id", getTeacherById);

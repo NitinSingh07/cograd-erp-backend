@@ -1,11 +1,14 @@
 const bcrypt = require("bcryptjs");
 const Teacher = require("../models/teacherModel");
 const Subject = require("../models/subjectModel");
+const TeacherOtpModel = require("../models/teacherOtpModel");
 const { setTeacher, getTeacher } = require("../service/teacherAuth");
 const getDataUri = require("../utils/dataUri");
 const {
   InteractionPage,
 } = require("twilio/lib/rest/proxy/v1/service/session/interaction");
+const { sendSMS } = require("../utils/sendSMS");
+const LoginTrackModel = require("../models/LoginTrackModel");
 const cloudinary = require("cloudinary").v2;
 // Teacher Registration
 
@@ -132,6 +135,53 @@ const teacherLogin = async (req, res) => {
   } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+// Teacher Login Through Phone number
+const teacherAppLogin = async (req, res) => {
+  const { phoneNumber } = req.body;
+  try {
+    // Find teacher by phone number
+    const teacher = await Teacher.findOne({ contact: phoneNumber });
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Generate token (assuming setTeacher function creates a token)
+    const token = setTeacher(teacher);
+
+    // Set token as a cookie
+    res.cookie("teacherToken", token);
+
+    // Remove password from the response
+    teacher.password = undefined;
+
+    // Return teacher data
+    return res.status(200).json(teacher);
+  } catch (error) {
+    console.error("Error logging in teacher:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const loginTrackTeacherApp = async (req, res) => {
+  const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
+
+  const newLoginTrack = new LoginTrackModel({
+    teacherId,
+    selfie,
+    latitude,
+    longitude,
+    loginTime,
+  });
+
+  try {
+    const savedLoginTrack = await newLoginTrack.save();
+    res.status(201).json(savedLoginTrack);
+  } catch (error) {
+    res.status(500).json({ message: "Error saving login track data", error });
   }
 };
 
@@ -412,4 +462,6 @@ module.exports = {
   deleteTeacherTimeline,
   editTeacherTimeline,
   editTeacher,
+  teacherAppLogin,
+  loginTrackTeacherApp
 };

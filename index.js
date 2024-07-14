@@ -25,6 +25,12 @@ const complaintRoute = require("./routes/complaintBoxRoute.js");
 // const upload = require("./utils/multer.js")
 const uploadRoute = require("./routes/documents");
 const uploadStudentRoute = require("./routes/studentDocs.js");
+const announcementRoutes = require("./routes/announcementRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const taskRoutes = require('./routes/taskRoutes');
+const classPeriodRoutes = require('./routes/classPeriodRoutes');
+const performanceFeedback = require("./routes/performanceFeedback");
+
 // const cloudinaryUploader = require("./utils/cloudinaryUplaoder.js")
 
 const {
@@ -106,6 +112,19 @@ app.use("/studentAttendance", studentAttendanceRouter);
 //teacher route contains only login , and logout route, teachelist
 app.use("/teacher", teacherRouter);
 app.use("/complains", complaintRoute);
+
+
+
+app.use("/announcements", announcementRoutes);
+app.use("/notifications", notificationRoutes);
+
+
+
+app.use('/tasks', taskRoutes);
+app.use('/classPeriods', classPeriodRoutes);
+
+app.use("/performance", performanceFeedback);
+
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);

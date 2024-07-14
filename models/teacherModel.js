@@ -43,17 +43,35 @@ const teacherSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    timeline: [
+    timetable: [
       {
-        startTime: {
-          type: Number,
-        },
-        endTime: {
-          type: Number,
-        },
-        subject: {
+        day: {
           type: String,
+          enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          required: true,
         },
+        periods: [
+          {
+            startTime: {
+              type: Number,
+              required: true,
+            },
+            endTime: {
+              type: Number,
+              required: true,
+            },
+            subject: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "subject",
+              required: true,
+            },
+            class: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "class",
+              required: true,
+            },
+          },
+        ],
       },
     ],
     documents: [
