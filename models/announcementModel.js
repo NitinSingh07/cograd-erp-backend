@@ -12,8 +12,20 @@ const announcementSchema = new mongoose.Schema(
     },
     recipient: {
       type: String,
-      enum: ['teacher', 'parent', 'class teacher', 'principal'],
+      enum: ['teacher', 'parent', 'class teacher'],
       required: true,
+    },
+    teacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Teacher',
+    },
+    parentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Parent',
+    },
+    classTeacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ClassTeacher',
     },
     date: {
       type: Date,

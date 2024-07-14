@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const {
-  createUpcomingFeedback,
   updateFeedbackToPast,
   deleteFeedback,
   getUpcomingFeedback,
   getPastFeedback
-} = require("../controllers/feedbackController");
+} = require("../controllers/performanceFeedback");
 const {
   createCall,
   getCalls
-} = require("../controllers/callController");
+} = require("../controllers/performanceFeedback");
 
 // Feedback routes
 router.post("/feedback/upcoming/:studentId", createUpcomingFeedback);

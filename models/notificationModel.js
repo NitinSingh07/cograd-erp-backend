@@ -12,8 +12,20 @@ const notificationSchema = new mongoose.Schema(
     },
     recipient: {
       type: String,
-      enum: ['teacher', 'parent', 'class teacher', 'principal'],
+      enum: ['teacher', 'parent', 'classTeacher'], // Removed 'principal'
       required: true,
+    },
+    teacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Teacher', // Reference to Teacher model if needed
+    },
+    parentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Parent', // Reference to Parent model if needed
+    },
+    classTeacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ClassTeacher', // Reference to ClassTeacher model if needed
     },
     date: {
       type: Date,
