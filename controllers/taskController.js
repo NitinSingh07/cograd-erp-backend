@@ -4,8 +4,8 @@ const Task = require('../models/taskModel');
 // Create a new task
 exports.createNewTask = async (req, res) => {
   try {
-    const { title, class: className, subject, status, remark, teacherID, date, periodID, deadline } = req.body;
-    const task = new Task({ title, class: className, subject, status, remark, teacherID, date, periodID, deadline });
+    const { title, class: className, subject,  teacherID, date, periodID, deadline } = req.body;
+    const task = new Task({ title, class: className, subject,  teacherID, date, periodID, deadline });
     await task.save();
     res.status(201).json({ message: 'Task created successfully', task });
   } catch (error) {
@@ -26,8 +26,9 @@ exports.getAllTasks= async (req, res) => {
 // Get tasks by period
 exports.getTaskByPeriod = async (req, res) => {
   try {
-    const { periodID } = req.params;
-    const tasks = await Task.find({ periodID }).sort({ date: -1 });
+    const { periodId } = req.params;
+
+    const tasks = await Task.find({ periodId });
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({ message: 'Internal Server Error', error });

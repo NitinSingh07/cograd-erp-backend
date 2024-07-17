@@ -7,21 +7,8 @@ const Student = require("../models/studentSchema");
 exports.addExamResult = async (req, res) => {
   const {
     student,
-    examName,
-    subjects,
+    exams,
     school,
-    readingHE,
-    writingHE,
-    tables1To20,
-    basicMathematics,
-    talkingInBasicEnglish,
-    basicGKQuestions,
-    syllabusKnowledgeSubjectwise,
-    hobbies,
-    sports,
-    culturalActivities,
-    moralBehavior,
-    specialQuality,
   } = req.body;
 
   try {
@@ -34,14 +21,17 @@ exports.addExamResult = async (req, res) => {
       return res.status(400).json({ message: "School doesn't exist" });
     }
 
-    const studentExist = await Student.findById(student);
-    if (!studentExist) {
+    const studentExists = await Student.findById(student);
+    if (!studentExists) {
       return res.status(400).json({ message: "Student doesn't exist" });
     }
 
-    const examListExistence = await ExamList.findById(examName);
-    if (!examListExistence) {
-      return res.status(400).json({ message: "Exam doesn't exist" });
+    // Validate each exam in the exams array
+    for (const exam of exams) {
+      const examListExists = await ExamList.findById(exam.examName);
+      if (!examListExists) {
+        return res.status(400).json({ message: `Exam ${exam.examName} doesn't exist` });
+      }
     }
 
     // Check if there is any data containing the student in the ExamResult database
@@ -50,63 +40,61 @@ exports.addExamResult = async (req, res) => {
       // If no data found, create a new ExamResult entry for the student
       examResult = new ExamResult({
         student: student,
-        exams: [
-          {
-            examName,
-            subjects,
-            readingHE: readingHE || null,
-            writingHE: writingHE || null,
-            tables1To20: tables1To20 || null,
-            basicMathematics: basicMathematics || null,
-            talkingInBasicEnglish: talkingInBasicEnglish || null,
-            basicGKQuestions: basicGKQuestions || null,
-            syllabusKnowledgeSubjectwise: syllabusKnowledgeSubjectwise || null,
-            hobbies: hobbies || "",
-            sports: sports || "",
-            culturalActivities: culturalActivities || "",
-            moralBehavior: moralBehavior || "",
-            specialQuality: specialQuality || "",
-          },
-        ],
+        exams: exams.map((exam) => ({
+          examName: exam.examName,
+          subjects: exam.subjects,
+          readingHE: exam.readingHE || null,
+          writingHE: exam.writingHE || null,
+          tables1To20: exam.tables1To20 || null,
+          basicMathematics: exam.basicMathematics || null,
+          talkingInBasicEnglish: exam.talkingInBasicEnglish || null,
+          basicGKQuestions: exam.basicGKQuestions || null,
+          syllabusKnowledgeSubjectwise: exam.syllabusKnowledgeSubjectwise || null,
+          hobbies: exam.hobbies || "",
+          sports: exam.sports || "",
+          culturalActivities: exam.culturalActivities || "",
+          moralBehavior: exam.moralBehavior || "",
+          specialQuality: exam.specialQuality || "",
+        })),
         school,
       });
 
       await examResult.save();
-      return res
-        .status(200)
-        .json({ message: "Exam result added successfully" });
+      return res.status(200).json({ message: "Exam result added successfully" });
     }
 
-    // Check if the examName already exists for the student
-    const existingExam = examResult.exams.find(
-      (exam) => exam.examName.toString() === examName
-    );
+    // Check if any of the examName already exists for the student
+    for (const exam of exams) {
+      const existingExam = examResult.exams.find(
+        (existingExam) => existingExam.examName.toString() === exam.examName
+      );
 
-    if (existingExam) {
-      return res.status(400).json({
-        message: "Exam result already exists for this student and exam",
+      if (existingExam) {
+        return res.status(400).json({
+          message: `Exam result already exists for this student and exam ${exam.examName}`,
+        });
+      }
+
+      // If the examName doesn't exist, push the new exam into the exams array
+      examResult.exams.push({
+        examName: exam.examName,
+        subjects: exam.subjects,
+        readingHE: exam.readingHE || null,
+        writingHE: exam.writingHE || null,
+        tables1To20: exam.tables1To20 || null,
+        basicMathematics: exam.basicMathematics || null,
+        talkingInBasicEnglish: exam.talkingInBasicEnglish || null,
+        basicGKQuestions: exam.basicGKQuestions || null,
+        syllabusKnowledgeSubjectwise: exam.syllabusKnowledgeSubjectwise || null,
+        hobbies: exam.hobbies || "",
+        sports: exam.sports || "",
+        culturalActivities: exam.culturalActivities || "",
+        moralBehavior: exam.moralBehavior || "",
+        specialQuality: exam.specialQuality || "",
       });
     }
 
-    // If the examName doesn't exist, push the new exam into the exams array
-    examResult.exams.push({
-      examName,
-      subjects,
-      readingHE: readingHE || null,
-      writingHE: writingHE || null,
-      tables1To20: tables1To20 || null,
-      basicMathematics: basicMathematics || null,
-      talkingInBasicEnglish: talkingInBasicEnglish || null,
-      basicGKQuestions: basicGKQuestions || null,
-      syllabusKnowledgeSubjectwise: syllabusKnowledgeSubjectwise || null,
-      hobbies: hobbies || "",
-      sports: sports || "",
-      culturalActivities: culturalActivities || "",
-      moralBehavior: moralBehavior || "",
-      specialQuality: specialQuality || "",
-    });
     await examResult.save();
-
     res.status(200).json({ message: "Exam result added successfully" });
   } catch (error) {
     console.error(error);
@@ -255,6 +243,7 @@ exports.findResultofStudent = async (req, res) => {
     })
       .populate("student", "name email")
       .populate("exams.examName", "examName"); // Populate each 'examName' field within the 'exams' array
+
     if (!studentResult) {
       return res.status(400).json({ message: "Student result not found" });
     }

@@ -141,6 +141,7 @@ const teacherLogin = async (req, res) => {
 // Teacher Login Through Phone number
 const teacherAppLogin = async (req, res) => {
   const { phoneNumber } = req.body;
+  
   try {
     // Find teacher by phone number
     const teacher = await Teacher.findOne({ contact: phoneNumber });

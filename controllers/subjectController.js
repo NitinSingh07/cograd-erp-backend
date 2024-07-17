@@ -68,6 +68,25 @@ exports.allSubjects = async (req, res) => {
   }
 };
 
+exports.getSubjectById = async(req, res) =>{
+  try {
+    const SubjectId = req.params.subjectId; // Use the school ID from the request parameters
+
+
+    const subject = await Subject.find({ _id: SubjectId });
+
+    if (!subject) {
+      res.status(400).json({ message: "Subject Not found" }); // 200 OK with no subject message
+    }else{
+      res.status(200).json(subject)
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+
+
 exports.classSubjects = async (req, res) => {
   try {
     const schoolId = req.params.schoolId; // Use the school ID from the request parameters

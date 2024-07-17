@@ -126,6 +126,13 @@ app.use('/classPeriods', classPeriodRoutes);
 app.use("/performance", performanceFeedback);
 
 
+app.get("/",(req,res)=>{
+  res.json({
+    success : true,
+    message :`Surver is running on PORT ${PORT}`
+  })
+})
+
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);
 });
