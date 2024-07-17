@@ -7,11 +7,11 @@ const taskSchema = new mongoose.Schema(
       required: true,
     },
     class: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
     subject: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
     status: {
@@ -20,6 +20,7 @@ const taskSchema = new mongoose.Schema(
     },
     remark: {
       type: String,
+      default: "",
     },
     teacherID: {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,7 +35,7 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    periodID: {
+    periodId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Period",
       required: false,

@@ -53,11 +53,11 @@ const teacherSchema = new mongoose.Schema(
         periods: [
           {
             startTime: {
-              type: Number,
+              type: String,
               required: true,
             },
             endTime: {
-              type: Number,
+              type: String,
               required: true,
             },
             subject: {

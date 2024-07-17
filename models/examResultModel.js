@@ -9,7 +9,7 @@ const examResultSchema = new mongoose.Schema({
   exams: [
     {
       examName: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "ExamList",
         required: true,
       },

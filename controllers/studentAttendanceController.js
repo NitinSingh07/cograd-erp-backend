@@ -60,12 +60,14 @@ const updateAttendance = async (req, res) => {
     }
     const { date } = req.params; // Date from the URL parameter
 
+
     // Update attendance record
     let attendanceRecord = await Attendance.findOneAndUpdate(
       { student: studentId, date },
       { status },
       { new: true }
     );
+
 
     res.status(200).json({
       message: `Attendance updated successfully for ${attendanceRecord.student} with status ${status}`,
