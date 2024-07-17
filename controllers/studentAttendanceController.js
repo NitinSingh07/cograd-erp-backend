@@ -16,10 +16,15 @@ const takeAttendance = async (req, res) => {
     }
 
     // Check if attendance already exists for this date for any student in the array
-    const existingAttendance = await Attendance.find({ date, student: { $in: studentIds } });
+    const existingAttendance = await Attendance.find({
+      date,
+      student: { $in: studentIds },
+    });
 
     if (existingAttendance.length > 0) {
-      return res.status(409).json({ message: `Attendance already recorded for ${date}` });
+      return res
+        .status(409)
+        .json({ message: `Attendance already recorded for ${date}` });
     }
 
     // Create attendance records
@@ -32,10 +37,10 @@ const takeAttendance = async (req, res) => {
 
     await Attendance.insertMany(attendanceRecords);
 
-    const populatedAttendance = await Attendance.find({ date, student: { $in: studentIds } }).populate(
-      "student",
-      "name"
-    ); // Populate student name
+    const populatedAttendance = await Attendance.find({
+      date,
+      student: { $in: studentIds },
+    }).populate("student", "name"); // Populate student name
     res.status(200).json({
       message: "Attendance recorded successfully",
       attendance: populatedAttendance,
@@ -111,9 +116,7 @@ const getstudentAttendanceOfClassAll = async (req, res) => {
     }).populate("student", "name");
 
     if (!attendance || attendance.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `.......... ${classTeacherId}` });
+      return res.status(404).json({ message: `.......... ${classTeacherId}` });
     }
     res.status(200).json(attendance);
   } catch (err) {
@@ -175,7 +178,6 @@ const checkConsecutiveAbsences = async (req, res) => {
   }
 };
 
-
 // Get last 10 days' attendance for all students in a class
 const getstudentAttendanceOfClass = async (req, res) => {
   try {
@@ -235,9 +237,9 @@ const getStudentAttendanceById = async (req, res) => {
     }).populate("student", "name");
 
     if (!attendance || attendance.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `Attendance not found for student with ID ${studentId}` });
+      return res.status(404).json({
+        message: `Attendance not found for student with ID ${studentId}`,
+      });
     }
 
     const getStudentAttendanceById = async (req, res) => {
@@ -246,28 +248,26 @@ const getStudentAttendanceById = async (req, res) => {
         const attendance = await Attendance.find({
           student: studentId,
         }).populate("student", "name");
-    
+
         if (!attendance || attendance.length === 0) {
-          return res
-            .status(404)
-            .json({ message: `Attendance not found for student with ID ${studentId}` });
+          return res.status(404).json({
+            message: `Attendance not found for student with ID ${studentId}`,
+          });
         }
-    
+
         res.status(200).json({ attendance });
       } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
       }
     };
-    
+
     res.status(200).json({ attendance });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 //particular school
 const getStudentAttOfSchool = async (req, res) => {
@@ -278,21 +278,24 @@ const getStudentAttOfSchool = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const attendance = await Attendance.find({ date })
-      .populate({
-        path: "student",
-        match: { schoolName: id },
-        select: "name",
-      });
+    const attendance = await Attendance.find({ date }).populate({
+      path: "student",
+      match: { schoolName: id },
+      select: "name",
+    });
 
-    const filteredAttendance = attendance.filter(a => a.student !== null);
+    const filteredAttendance = attendance.filter((a) => a.student !== null);
 
     if (filteredAttendance.length === 0) {
-      return res.status(404).json({ message: `No attendance found for school ${id} on date ${date}` });
+      return res.status(404).json({
+        message: `No attendance found for school ${id} on date ${date}`,
+      });
     }
 
     // Calculate the number of present students
-    const presentStudentsCount = filteredAttendance.filter(record => record.status === "p").length;
+    const presentStudentsCount = filteredAttendance.filter(
+      (record) => record.status === "p"
+    ).length;
 
     res.status(200).json({
       attendance: filteredAttendance,
@@ -311,23 +314,21 @@ const getStudentAttOfAllSchool = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const attendance = await Attendance.find({ date })
-      .populate({
-        path: "student",
-        select: "name schoolName",
-      });
+    const attendance = await Attendance.find({ date }).populate({
+      path: "student",
+      select: "name schoolName",
+    });
 
-    const filteredAttendance = attendance.filter(a => a.student !== null);
-
-    if (filteredAttendance.length === 0) {
-      return res.status(404).json({ message: `No attendance found for schools on date ${date}` });
-    }
+    const filteredAttendance = attendance.filter((a) => a.student !== null);
 
     // Calculate the number of present students in all schools
-    const presentStudentsCountinAllSchools = filteredAttendance.filter(record => record.status === "p").length;
+    const presentStudentsCountinAllSchools = filteredAttendance.filter(
+      (record) => record.status === "p"
+    ).length;
 
     // Total number of students
-    const totalStudentsCount = await Student.countDocuments({});
+    const totalStudents = await Student.find({});
+    const totalStudentsCount = totalStudents.length;
 
     res.status(200).json({
       attendance: filteredAttendance,
@@ -340,7 +341,6 @@ const getStudentAttOfAllSchool = async (req, res) => {
   }
 };
 
-
 const getStudentAttendanceByIdMonthly = async (req, res) => {
   try {
     const { studentId } = req.body;
@@ -350,25 +350,24 @@ const getStudentAttendanceByIdMonthly = async (req, res) => {
     }
     const { month: targetMonth, year: targetYear } = req.body; // Month and year from request
 
-
     const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero if single digit
-
-
-
 
     const attendanceRecords = await Attendance.find({
       student: studentId,
     }).populate("student", "name");
 
     if (!attendanceRecords || attendanceRecords.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `Attendance not found for student with ID ${studentId}` });
+      return res.status(404).json({
+        message: `Attendance not found for student with ID ${studentId}`,
+      });
     }
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
       const [recordYear, recordMonth] = record.date.split("-"); // Extract the year and month from the date (e.g., '2024-06-05')
-   
-      return recordMonth === normalizedTargetMonth && recordYear === targetYear.toString(); // Ensure both year and month match exactly
+
+      return (
+        recordMonth === normalizedTargetMonth &&
+        recordYear === targetYear.toString()
+      ); // Ensure both year and month match exactly
     });
     let presentCount = 0;
     let absentCount = 0;
@@ -390,8 +389,6 @@ const getStudentAttendanceByIdMonthly = async (req, res) => {
       }
     });
 
-
-
     res.status(200).json({
       message: "Attendance calculated successfully",
       data: {
@@ -409,7 +406,6 @@ const getStudentAttendanceByIdMonthly = async (req, res) => {
   }
 };
 
-
 module.exports = {
   updateAttendance,
   takeAttendance,
@@ -418,5 +414,7 @@ module.exports = {
   checkConsecutiveAbsences,
   getstudentAttendanceOfClassAll,
   getStudentAttendanceById,
-  getStudentAttOfSchool,getStudentAttOfAllSchool,getStudentAttendanceByIdMonthly
+  getStudentAttOfSchool,
+  getStudentAttOfAllSchool,
+  getStudentAttendanceByIdMonthly,
 };
