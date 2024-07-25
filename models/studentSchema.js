@@ -42,7 +42,6 @@ const studentSchema = new mongoose.Schema({
   },
   fatherEmail: {
     type: String,
-    required: true,
   },
   documents: [
     {
