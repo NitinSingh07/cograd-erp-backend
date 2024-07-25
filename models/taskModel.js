@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const taskSchema = new mongoose.Schema(
   {
     title: {
-      type: String,
+      type: Map,
+      of: [String], // Array of strings for tasks
       required: true,
     },
     class: {
@@ -12,6 +13,14 @@ const taskSchema = new mongoose.Schema(
     },
     subject: {
       type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+    chapter: {
+      type: String,
+      required: true,
+    },
+    day: {
+      type: String,
       required: true,
     },
     status: {
@@ -25,7 +34,6 @@ const taskSchema = new mongoose.Schema(
     teacherID: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Teacher",
-      required: true,
     },
     date: {
       type: Date,

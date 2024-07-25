@@ -203,6 +203,9 @@ const editTeacher = async (req, res) => {
       dob,
     } = req.body;
 
+
+    console.log(req.body)
+
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found." });

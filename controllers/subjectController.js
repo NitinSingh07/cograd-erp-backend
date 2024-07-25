@@ -2,6 +2,19 @@ const Subject = require("../models/subjectModel");
 const Teacher = require("../models/teacherModel");
 const mongoose = require("mongoose");
 
+
+async function recreateIndexes() {
+  await Subject.collection.dropIndexes();
+  await Subject.syncIndexes();
+}
+
+recreateIndexes().then(() => {
+  console.log("Indexes recreated successfully");
+}).catch(err => {
+  console.error("Error recreating indexes: ", err);
+});
+
+
 exports.subjectCreate = async (req, res) => {
   try {
     const { schoolId } = req.body; // Use the school ID from the request parameters
