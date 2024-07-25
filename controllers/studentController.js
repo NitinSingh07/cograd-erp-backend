@@ -73,6 +73,7 @@ const studentRegister = async (req, res) => {
     res.status(500).json(err);
   }
 };
+  
 const studentEditDetails = async (req, res) => {
   const {
     id,
@@ -104,6 +105,8 @@ const studentEditDetails = async (req, res) => {
     // Handle photo update using multer
     let profileUrl = existingStudent.profile;
     const file = req.file;
+
+    console.log(file)
     if (file) {
       const photoUri = getDataUri(file);
       const myCloud = await cloudinary.uploader.upload(photoUri.content);
@@ -140,6 +143,7 @@ const studentEditDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const studentLogIn = async (req, res) => {
   const { email, password } = req.body;
   try {

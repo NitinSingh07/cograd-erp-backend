@@ -8,7 +8,6 @@ const subjectSchema = new mongoose.Schema(
     },
     subCode: {
       type: String,
-      unique: true,
       required: true,
     },
     className: {
@@ -28,5 +27,8 @@ const subjectSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+
+subjectSchema.index({ subCode: 1, school: 1 }, { unique: true });
 
 module.exports = mongoose.model("subject", subjectSchema);

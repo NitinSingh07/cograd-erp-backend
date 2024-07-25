@@ -17,7 +17,6 @@ const teacherSchema = new mongoose.Schema(
     },
     salary: {
       type: Number,
-      required: true,
     },
     role: {
       type: String,
