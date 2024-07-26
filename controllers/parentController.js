@@ -11,8 +11,8 @@ const Transaction = require("../models/transaction");
 exports.parentRegister = async (req, res) => {
   const {
     name,
-    email,
-    password,
+    // email,
+    // password,
     qualification,
     designation,
     contact,
@@ -21,8 +21,8 @@ exports.parentRegister = async (req, res) => {
   } = req.body;
   try {
     // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedPassword = await bcrypt.hash(password, salt);
     //Done using multer
     const file = req.file;
 
@@ -39,19 +39,20 @@ exports.parentRegister = async (req, res) => {
 
     const myCloud = await cloudinary.uploader.upload(photoUri.content);
 
-    for (const student of students) {
-      const fetchedStudent = await StudentModel.findById(student.studentId);
-      if (fetchedStudent.fatherEmail !== email) {
-        return res.status(400).json({
-          message: "Email doesn't match with the student's father's email",
-        });
-      }
-    }
+      
+    // for (const student of students) {
+    //   const fetchedStudent = await StudentModel.findById(student.studentId);
+    //   if (fetchedStudent.fatherEmail !== email) {
+    //     return res.status(400).json({
+    //       message: "Email doesn't match with the student's father's email",
+    //     });
+    //   }
+    // }
 
     const parent = new ParentModel({
       name,
-      email,
-      password: hashedPassword,
+      // email,
+      // password: hashedPassword,
       qualification,
       designation,
       school: schoolId,
@@ -60,6 +61,7 @@ exports.parentRegister = async (req, res) => {
       students, // Assign the formatted students array
     });
     // Save the parent to the database
+
     const result = await parent.save();
 
     // Return success response with the token
