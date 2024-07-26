@@ -30,10 +30,10 @@ exports.parentRegister = async (req, res) => {
       return res.status(400).json({ message: "Photo is required" });
     }
 
-    const existingEmail = await ParentModel.findOne({ email });
-    if (existingEmail) {
-      return res.status(401).json({ message: "Email already exists" });
-    }
+    // const existingEmail = await ParentModel.findOne({ email });
+    // if (existingEmail) {
+    //   return res.status(401).json({ message: "Email already exists" });
+    // }
 
     const photoUri = getDataUri(file);
 

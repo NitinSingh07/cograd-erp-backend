@@ -48,13 +48,19 @@ const classTeacherRegister = async (req, res) => {
         .json({ message: "Class Teacher for this class already exists" });
     }
 
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // commenting it because we need a teacher can be class teacher of more than one class
+    /////////////////////////////////////////////////////////////////////////////////////
+
+
     // Check if the teacher is already a class teacher
-    const classTeacherExist = await classTeacherModel.findOne({ teacherId });
-    if (classTeacherExist) {
-      return res
-        .status(400)
-        .json({ message: "Teacher already a class teacher" });
-    }
+    // const classTeacherExist = await classTeacherModel.findOne({ teacherId });
+    // if (classTeacherExist) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Teacher already a class teacher" });
+    // }
 
     // Hash the password
     const salt = await bcrypt.genSalt(10);
