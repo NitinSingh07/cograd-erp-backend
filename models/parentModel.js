@@ -6,13 +6,6 @@ const parentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    email: {
-      type: String,
-      unique: true,
-    },
-    password: {
-      type: String,
-    },
     role: {
       type: String,
       default: "PARENT",
@@ -37,6 +30,7 @@ const parentSchema = new mongoose.Schema(
     contact: {
       type: String,
       required: true,
+      unique: true,
     },
     students: [
       {
@@ -95,7 +89,6 @@ const parentSchema = new mongoose.Schema(
       },
     ],
   },
-
   { timestamps: true }
 );
 

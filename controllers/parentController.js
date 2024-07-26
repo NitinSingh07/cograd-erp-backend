@@ -25,6 +25,7 @@ exports.parentRegister = async (req, res) => {
     // const hashedPassword = await bcrypt.hash(password, salt);
     //Done using multer
     const file = req.file;
+    console.log(0)
 
     if (!file) {
       return res.status(400).json({ message: "Photo is required" });
@@ -61,8 +62,10 @@ exports.parentRegister = async (req, res) => {
       students, // Assign the formatted students array
     });
     // Save the parent to the database
+    console.log(2)
 
     const result = await parent.save();
+    console.log(3)
 
     // Return success response with the token
     res.status(200).json({
@@ -70,6 +73,7 @@ exports.parentRegister = async (req, res) => {
       data: result,
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
