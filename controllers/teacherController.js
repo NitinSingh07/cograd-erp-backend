@@ -186,6 +186,29 @@ const loginTrackTeacherApp = async (req, res) => {
   }
 };
 
+// Get login track data by teacher ID and date
+const getLoginTrackByTeacherAndDate = async (req, res) => {
+  const { teacherId, date } = req.body;
+
+  try {
+    const loginTracks = await LoginTrackModel.find({
+      teacherId,
+      loginTime: {
+        $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
+        $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
+      },
+    });
+
+    if (!loginTracks.length) {
+      return res.status(404).json({ message: "No login track data found for the specified teacher and date" });
+    }
+
+    res.status(200).json(loginTracks);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching login track data", error });
+  }
+};
+
 const editTeacher = async (req, res) => {
   try {
     const { teacherId } = req.params;
@@ -467,5 +490,6 @@ module.exports = {
   editTeacherTimeline,
   editTeacher,
   teacherAppLogin,
-  loginTrackTeacherApp
+  loginTrackTeacherApp,
+  getLoginTrackByTeacherAndDate
 };

@@ -10,6 +10,7 @@ const {
   teacherAppLogin,
   teacherRegister,
   loginTrackTeacherApp,
+  getLoginTrackByTeacherAndDate,
 } = require("../controllers/teacherController");
 const router = express.Router();
 
@@ -18,6 +19,7 @@ router.post("/login", teacherLogin);
 // router.post("/login", teacherLogin);
 router.post("/app/login",teacherAppLogin);
 router.post("/app/loginTrack", loginTrackTeacherApp);
+router.post('/loginTrack/getByDate', getLoginTrackByTeacherAndDate);
 router.post("/addTimeline/:id", addTimeline);
 router.get("/getAllTeachers/:adminId", getAllTeacherList);
 router.get("/getTeacherById/:id", getTeacherById);
