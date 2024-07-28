@@ -135,8 +135,7 @@ const checkClassTeacher = async (req, res) => {
     try {
       const { teacherId } = req.params;
 
-      const classTeacher = await classTeacherModel.findOne({ teacherId });
-
+      const classTeacher = await classTeacherModel.find({ teacherId });
       if (classTeacher) {
         return res.status(200).json({ isClassTeacher: true, classTeacher });
       } else {
