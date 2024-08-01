@@ -32,6 +32,9 @@ const parentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    deviceToken:{
+      type: String,
+    },
     students: [
       {
         studentId: {

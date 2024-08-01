@@ -7,7 +7,6 @@ const cloudinary = require("cloudinary").v2;
 const StudentModel = require("../models/studentSchema");
 const Transaction = require("../models/transaction");
 
-
 exports.parentRegister = async (req, res) => {
   const {
     name,
@@ -25,7 +24,7 @@ exports.parentRegister = async (req, res) => {
     // const hashedPassword = await bcrypt.hash(password, salt);
     //Done using multer
     const file = req.file;
-    console.log(0)
+    console.log(0);
 
     if (!file) {
       return res.status(400).json({ message: "Photo is required" });
@@ -40,7 +39,6 @@ exports.parentRegister = async (req, res) => {
 
     const myCloud = await cloudinary.uploader.upload(photoUri.content);
 
-      
     // for (const student of students) {
     //   const fetchedStudent = await StudentModel.findById(student.studentId);
     //   if (fetchedStudent.fatherEmail !== email) {
@@ -62,10 +60,10 @@ exports.parentRegister = async (req, res) => {
       students, // Assign the formatted students array
     });
     // Save the parent to the database
-    console.log(2)
+    console.log(2);
 
     const result = await parent.save();
-    console.log(3)
+    console.log(3);
 
     // Return success response with the token
     res.status(200).json({
@@ -73,13 +71,13 @@ exports.parentRegister = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 exports.parentLogin = async (req, res) => {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, token } = req.body;
 
   try {
     // Find parent by phone number
@@ -87,6 +85,11 @@ exports.parentLogin = async (req, res) => {
 
     if (!parent) {
       return res.status(404).json({ message: "Parent not found" });
+    }
+
+    if (token) {
+      parent.deviceToken = token;
+      await parent.save();
     }
 
     // Return the parent details
