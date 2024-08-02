@@ -23,6 +23,10 @@ const loginTrackSchema = new Schema({
     required: true,
     default: Date.now,
   },
+  inSchool:{
+    type: Boolean,
+    default: false,
+  }
 });
 
 module.exports = mongoose.model('LoginTrack', loginTrackSchema);

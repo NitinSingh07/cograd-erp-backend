@@ -6,6 +6,11 @@ const studentAttendanceSchema = new mongoose.Schema({
     ref: "student",
     required: true,
   },
+  class: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "class",
+    required: true,
+  },
   classTeacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "classTeacher",
