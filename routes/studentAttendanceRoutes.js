@@ -8,7 +8,8 @@ const {
   getStudentAttendanceByDate,
   getstudentAttendanceOfClass,
   checkConsecutiveAbsences,
-  getstudentAttendanceOfClassAll, getStudentAttOfSchool, getStudentAttOfAllSchool
+  getstudentAttendanceOfClassAll, getStudentAttOfSchool, getStudentAttOfAllSchool,
+  getStudentAttByClassAndDate
 } = require("../controllers/studentAttendanceController");
 //login to classTeacher first before taking attendance
 router.post("/mark", takeAttendance);
@@ -22,6 +23,7 @@ router.get("/:studentId/:date", getStudentAttendanceByDate);
 router.get("/:date", getstudentAttendanceOfClassAll);
 router.get("/schoolAtt/:date/:id", getStudentAttOfSchool);
 router.get("/schoolAttAll/:date/:id", getStudentAttOfAllSchool);
+router.get('/getByClassAndDate/:date/:classId', getStudentAttByClassAndDate);
 
 
 

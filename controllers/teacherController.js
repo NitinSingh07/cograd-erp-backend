@@ -10,6 +10,34 @@ const {
 const { sendSMS } = require("../utils/sendSMS");
 const LoginTrackModel = require("../models/LoginTrackModel");
 const cloudinary = require("cloudinary").v2;
+
+const TeacherAttendance = require("../models/teacherAttendanceModel");
+
+
+const moment = require('moment');
+const geolib = require('geolib');
+
+const schoolList =[
+  {
+    SCHOOL_ID: "669d3a9a7a956fd4c7e286c0",
+    SCHOOL: "Suresh International college, Nagla Himmat, Kathua, Uttar Pradesh 206253",
+    SCHOOL_LATITUDE: 26.975703192161742,
+    SCHOOL_LONGITUDE: 79.0591269259595
+  },
+  {
+    SCHOOL_ID: "669d42a07a956fd4c7e28934",
+    SCHOOL: "Shri H. N. Public School, Ngla Sikarwar, Ghiror, Mainpuri, Uttar Pradesh 205121",
+    SCHOOL_LATITUDE: 27.19708688316965,
+    SCHOOL_LONGITUDE: 78.79602232031293
+  }
+];
+
+const SCHOOL_RADIUS = 20; // 20 meters
+const START_TIME = '08:00';
+const END_TIME = '15:00';
+
+
+
 // Teacher Registration
 
 const teacherRegister = async (req, res) => {
@@ -167,8 +195,42 @@ const teacherAppLogin = async (req, res) => {
   }
 };
 
+
+// tracking the login and attendace of teacher according to location and time
 const loginTrackTeacherApp = async (req, res) => {
   const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
+
+
+   // Check if the login time is within the allowed range
+   const loginMoment = moment(loginTime, 'HH:mm');
+   const startMoment = moment(START_TIME, 'HH:mm');
+   const endMoment = moment(END_TIME, 'HH:mm');
+
+   const teacher = await Teacher.findOne({
+    _id: teacherId
+   })
+
+   const teacherSchool = schoolList.find(school => teacher.school === school.SCHOOL_ID); 
+ 
+
+   // Check if the location is within the school radius
+   const isWithinRadius = geolib.isPointWithinRadius(
+     { latitude, longitude },
+     { latitude: teacherSchool.SCHOOL_LATITUDE, longitude: teacherSchool.SCHOOL_LONGITUDE },
+     SCHOOL_RADIUS
+   );
+
+   const inSchool = isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
+
+   if (inSchool) {
+    // Mark teacher attendance for that day 
+    await TeacherAttendance.insertOne({
+      teacher: teacher._id,
+      date: new Date(),
+      status: "p",
+      school: teacherSchool.SCHOOL_ID,
+    })
+  }
 
   const newLoginTrack = new LoginTrackModel({
     teacherId,
@@ -176,7 +238,9 @@ const loginTrackTeacherApp = async (req, res) => {
     latitude,
     longitude,
     loginTime,
+    inSchool
   });
+
 
   try {
     const savedLoginTrack = await newLoginTrack.save();
@@ -189,7 +253,6 @@ const loginTrackTeacherApp = async (req, res) => {
 // Get login track data by teacher ID and date
 const getLoginTrackByTeacherAndDate = async (req, res) => {
   const { teacherId, date } = req.body;
-
   try {
     const loginTracks = await LoginTrackModel.find({
       teacherId,

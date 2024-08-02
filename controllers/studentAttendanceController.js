@@ -60,14 +60,12 @@ const updateAttendance = async (req, res) => {
     }
     const { date } = req.params; // Date from the URL parameter
 
-
     // Update attendance record
     let attendanceRecord = await Attendance.findOneAndUpdate(
       { student: studentId, date },
       { status },
       { new: true }
     );
-
 
     res.status(200).json({
       message: `Attendance updated successfully for ${attendanceRecord.student} with status ${status}`,
@@ -269,6 +267,45 @@ const getStudentAttendanceById = async (req, res) => {
   }
 };
 
+// class attendance by date and classId
+
+const getStudentAttByClassAndDate = async (req, res) => {
+  try {
+    const { date, classId } = req.params;
+
+    if (!classId) {
+      return res.status(400).json({ message: "Class ID is required" });
+    }
+
+    const attendance = await Attendance.find({ date, class: classId })
+      .populate({
+        path: "student",
+        select: "name fathersName",
+      })
+      .populate({
+        path: "class",
+        select: "className",
+      });
+
+
+    const filteredAttendance = attendance.filter((a) => a.student !== null);
+
+    if (filteredAttendance.length === 0) {
+      return res.status(404).json({
+        message: `No attendance found for class ${classId} on date ${date}`,
+      });
+    }
+
+    res.status(200).json({
+      attendance: filteredAttendance,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 //particular school
 const getStudentAttOfSchool = async (req, res) => {
   try {
@@ -278,11 +315,16 @@ const getStudentAttOfSchool = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const attendance = await Attendance.find({ date }).populate({
-      path: "student",
-      match: { schoolName: id },
-      select: "name",
-    });
+    const attendance = await Attendance.find({ date })
+      .populate({
+        path: "student",
+        match: { schoolName: id },
+        select: "name fathersName",
+      })
+      .populate({
+        path: "class",
+        select: "className",
+      });
 
     const filteredAttendance = attendance.filter((a) => a.student !== null);
 
@@ -297,15 +339,26 @@ const getStudentAttOfSchool = async (req, res) => {
       (record) => record.status === "p"
     ).length;
 
+    const absentStudentsCount = filteredAttendance.filter(
+      (record) => record.status === "a"
+    ).length;
+
+    const leaveStudentsCount = filteredAttendance.filter(
+      (record) => record.status === "l"
+    ).length;
+
     res.status(200).json({
       attendance: filteredAttendance,
       presentStudentsCount,
+      absentStudentsCount,
+      leaveStudentsCount,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const getStudentAttOfAllSchool = async (req, res) => {
   try {
     const { date, id } = req.params;
@@ -417,4 +470,5 @@ module.exports = {
   getStudentAttOfSchool,
   getStudentAttOfAllSchool,
   getStudentAttendanceByIdMonthly,
+  getStudentAttByClassAndDate
 };
