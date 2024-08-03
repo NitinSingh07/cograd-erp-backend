@@ -3,6 +3,9 @@ const Attendance = require("../models/studentAttendanceModel");
 const ClassTeacher = require("../models/classTeacherModel");
 const Student = require("../models/studentSchema");
 const { getClassTeacher } = require("../service/classTeacherAuth");
+const admin = require("../utils/firebase");
+const Parent = require("../models/parentModel");
+const Notification = require("../models/notificationModel");
 
 // Take student attendance
 const takeAttendance = async (req, res) => {
@@ -10,8 +13,6 @@ const takeAttendance = async (req, res) => {
     const { statuses, date, id, studentIds } = req.body; // Get statuses, date, class teacher ID, and student IDs from the body
 
     const classTeacher = await ClassTeacher.findById(id);
-
-    console.log(classTeacher)
 
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
@@ -33,7 +34,7 @@ const takeAttendance = async (req, res) => {
     const attendanceRecords = studentIds.map((studentId, index) => ({
       student: studentId,
       classTeacher: classTeacher._id,
-      date, 
+      date,
       class: classTeacher.className,
       status: statuses[index],
     }));
@@ -44,6 +45,46 @@ const takeAttendance = async (req, res) => {
       date,
       student: { $in: studentIds },
     }).populate("student", "name"); // Populate student name
+
+    // Send notifications for absent students and save to the database
+    for (const record of populatedAttendance) {
+      if (record.status === "a") {
+        const parent = await Parent.findOne({
+          "students.studentId": record.student._id,
+        });
+
+        if (parent) {
+          try {
+            if (parent.deviceToken) {
+              const message = {
+                notification: {
+                  title: "Student Absence Alert",
+                  body: `Your child ${record.student.name} was absent on ${date}.`,
+                },
+                token: parent.deviceToken,
+              };
+
+              await admin.messaging().send(message);
+              console.log("Successfully sent notification:", message);
+            }
+
+            // Save the notification to the database
+            const notification = new Notification({
+              title: "Student Absence Alert",
+              content: `Your child ${record.student.name} was absent on ${date}.`,
+              recipient: "parent",
+              parentId: parent._id,
+              classTeacherId: classTeacher._id,
+            });
+
+            await notification.save();
+          } catch (error) {
+            console.error("Error sending notification:", error);
+          }
+        }
+      }
+    }
+
     res.status(200).json({
       message: "Attendance recorded successfully",
       attendance: populatedAttendance,
@@ -58,6 +99,7 @@ const takeAttendance = async (req, res) => {
 const updateAttendance = async (req, res) => {
   try {
     const { studentId, status, id } = req.body; // Get student ID and status
+
     if (!id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -69,6 +111,38 @@ const updateAttendance = async (req, res) => {
       { status },
       { new: true }
     );
+
+    // Notify parent if status is absent
+    if (attendanceRecord.status === "a") {
+      const parent = await Parent.findOne({ "students.studentId": studentId });
+      if (parent) {
+        try {
+          if (parent.deviceToken) {
+            const message = {
+              notification: {
+                title: "Student Absence Alert",
+                body: `Your child ${attendanceRecord.student.name} was marked absent on ${date}.`,
+              },
+              token: parent.deviceToken,
+            };
+
+            await admin.messaging().send(message);
+            console.log("Successfully sent notification:", message);
+          }
+
+          // Save the notification to the database
+          const notification = new Notification({
+            title: "Student Absence Alert",
+            content: `Your child ${attendanceRecord.student.name} was marked absent on ${date}.`,
+            recipient: "parent",
+            parentId: parent._id,
+          });
+          await notification.save();
+        } catch (error) {
+          console.error("Error sending notification:", error);
+        }
+      }
+    }
 
     res.status(200).json({
       message: `Attendance updated successfully for ${attendanceRecord.student} with status ${status}`,
@@ -290,7 +364,6 @@ const getStudentAttByClassAndDate = async (req, res) => {
         select: "className",
       });
 
-
     const filteredAttendance = attendance.filter((a) => a.student !== null);
 
     if (filteredAttendance.length === 0) {
@@ -307,7 +380,6 @@ const getStudentAttByClassAndDate = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 //particular school
 const getStudentAttOfSchool = async (req, res) => {
@@ -473,5 +545,5 @@ module.exports = {
   getStudentAttOfSchool,
   getStudentAttOfAllSchool,
   getStudentAttendanceByIdMonthly,
-  getStudentAttByClassAndDate
+  getStudentAttByClassAndDate,
 };
