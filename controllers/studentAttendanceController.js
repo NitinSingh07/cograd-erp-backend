@@ -11,6 +11,8 @@ const takeAttendance = async (req, res) => {
 
     const classTeacher = await ClassTeacher.findById(id);
 
+    console.log(classTeacher)
+
     if (!classTeacher) {
       return res.status(404).json({ message: "Class teacher not found" });
     }
@@ -31,7 +33,8 @@ const takeAttendance = async (req, res) => {
     const attendanceRecords = studentIds.map((studentId, index) => ({
       student: studentId,
       classTeacher: classTeacher._id,
-      date,
+      date, 
+      class: classTeacher.className,
       status: statuses[index],
     }));
 
