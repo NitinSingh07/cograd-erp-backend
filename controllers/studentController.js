@@ -245,15 +245,39 @@ const deleteStudent = async (req, res) => {
 
 const studentList = async (req, res) => {
   try {
-    const studentList = await StudentModel.find({
+    // Step 1: Fetch students based on the className
+    const students = await StudentModel.find({
       className: req.params.id,
     }).select("-password");
 
-    if (studentList.length > 0) {
-      res.send(studentList);
-    } else {
-      res.status(404).send({ message: "No student found" });
+    if (students.length === 0) {
+      return res.status(404).send({ message: "No student found" });
     }
+
+    // Extract student IDs
+    const studentIds = students.map(student => student._id);
+
+    // Step 2: Fetch parents based on the student IDs
+    const parents = await parentModel.find({
+      'students.studentId': { $in: studentIds }
+    }).select("students contact");
+
+    // Map parent contacts to student IDs
+    const parentContacts = {};
+    parents.forEach(parent => {
+      parent.students.forEach(student => {
+        parentContacts[student.studentId] = parent.contact;
+      });
+    });
+
+    // Step 3: Combine student data with parent contact information
+    const studentList = students.map(student => ({
+      ...student.toObject(),
+      parentContact: parentContacts[student._id] || null,
+    }));
+
+    // Send the combined data
+    res.send(studentList);
   } catch (err) {
     res.status(500).send(err);
   }

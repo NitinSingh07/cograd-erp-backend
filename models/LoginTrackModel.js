@@ -23,7 +23,20 @@ const loginTrackSchema = new Schema({
     required: true,
     default: Date.now,
   },
-  inSchool:{
+  logoutTime: {
+    type: Date,
+  },
+  logoutLatitude: {
+    type: Number,
+  },
+  logoutLongitude: {
+    type: Number,
+  },
+  inSchool: {
+    type: Boolean,
+    default: false,
+  },
+  inSchoolAtLogout: {
     type: Boolean,
     default: false,
   }
