@@ -13,30 +13,29 @@ const cloudinary = require("cloudinary").v2;
 
 const TeacherAttendance = require("../models/teacherAttendanceModel");
 
+const moment = require("moment");
+const geolib = require("geolib");
 
-const moment = require('moment');
-const geolib = require('geolib');
-
-const schoolList =[
+const schoolList = [
   {
     SCHOOL_ID: "669d3a9a7a956fd4c7e286c0",
-    SCHOOL: "Suresh International college, Nagla Himmat, Kathua, Uttar Pradesh 206253",
+    SCHOOL:
+      "Suresh International college, Nagla Himmat, Kathua, Uttar Pradesh 206253",
     SCHOOL_LATITUDE: 26.975703192161742,
-    SCHOOL_LONGITUDE: 79.0591269259595
+    SCHOOL_LONGITUDE: 79.0591269259595,
   },
   {
     SCHOOL_ID: "669d42a07a956fd4c7e28934",
-    SCHOOL: "Shri H. N. Public School, Ngla Sikarwar, Ghiror, Mainpuri, Uttar Pradesh 205121",
+    SCHOOL:
+      "Shri H. N. Public School, Ngla Sikarwar, Ghiror, Mainpuri, Uttar Pradesh 205121",
     SCHOOL_LATITUDE: 27.19708688316965,
-    SCHOOL_LONGITUDE: 78.79602232031293
-  }
+    SCHOOL_LONGITUDE: 78.79602232031293,
+  },
 ];
 
 const SCHOOL_RADIUS = 20; // 20 meters
-const START_TIME = '08:00';
-const END_TIME = '15:00';
-
-
+const START_TIME = "08:00";
+const END_TIME = "15:00";
 
 // Teacher Registration
 
@@ -169,7 +168,7 @@ const teacherLogin = async (req, res) => {
 // Teacher Login Through Phone number
 const teacherAppLogin = async (req, res) => {
   const { phoneNumber } = req.body;
-  
+
   try {
     // Find teacher by phone number
     const teacher = await Teacher.findOne({ contact: phoneNumber });
@@ -195,41 +194,44 @@ const teacherAppLogin = async (req, res) => {
   }
 };
 
-
 // tracking the login and attendace of teacher according to location and time
 const loginTrackTeacherApp = async (req, res) => {
   const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
 
+  // Check if the login time is within the allowed range
+  const loginMoment = moment(loginTime, "HH:mm");
+  const startMoment = moment(START_TIME, "HH:mm");
+  const endMoment = moment(END_TIME, "HH:mm");
 
-   // Check if the login time is within the allowed range
-   const loginMoment = moment(loginTime, 'HH:mm');
-   const startMoment = moment(START_TIME, 'HH:mm');
-   const endMoment = moment(END_TIME, 'HH:mm');
+  const teacher = await Teacher.findOne({
+    _id: teacherId,
+  });
 
-   const teacher = await Teacher.findOne({
-    _id: teacherId
-   })
+  const teacherSchool = schoolList.find(
+    (school) => teacher.school.toString() === school.SCHOOL_ID
+  );
 
-   const teacherSchool = schoolList.find(school => teacher.school === school.SCHOOL_ID); 
- 
+  // Check if the location is within the school radius
+  const isWithinRadius = geolib.isPointWithinRadius(
+    { latitude, longitude },
+    {
+      latitude: teacherSchool.SCHOOL_LATITUDE,
+      longitude: teacherSchool.SCHOOL_LONGITUDE,
+    },
+    SCHOOL_RADIUS
+  );
 
-   // Check if the location is within the school radius
-   const isWithinRadius = geolib.isPointWithinRadius(
-     { latitude, longitude },
-     { latitude: teacherSchool.SCHOOL_LATITUDE, longitude: teacherSchool.SCHOOL_LONGITUDE },
-     SCHOOL_RADIUS
-   );
+  const inSchool =
+    isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
 
-   const inSchool = isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
-
-   if (inSchool) {
-    // Mark teacher attendance for that day 
+  if (inSchool) {
+    // Mark teacher attendance for that day
     await TeacherAttendance.insertOne({
       teacher: teacher._id,
       date: new Date(),
       status: "p",
       school: teacherSchool.SCHOOL_ID,
-    })
+    });
   }
 
   const newLoginTrack = new LoginTrackModel({
@@ -238,15 +240,74 @@ const loginTrackTeacherApp = async (req, res) => {
     latitude,
     longitude,
     loginTime,
-    inSchool
+    inSchool,
   });
-
 
   try {
     const savedLoginTrack = await newLoginTrack.save();
     res.status(201).json(savedLoginTrack);
   } catch (error) {
     res.status(500).json({ message: "Error saving login track data", error });
+  }
+};
+// tracking the logout of teacher according to location and time
+const logoutTrackTeacherApp = async (req, res) => {
+  const { teacherId, logoutTime, latitude, longitude } = req.body;
+
+  try {
+    const logoutMoment = moment(logoutTime, "HH:mm");
+    const startMoment = moment(START_TIME, "HH:mm");
+    const endMoment = moment(END_TIME, "HH:mm");
+
+    const teacher = await Teacher.findOne({ _id: teacherId });
+    const teacherSchool = schoolList.find(
+      (school) => teacher.school.toString() === school.SCHOOL_ID
+    );
+
+    // Check if the logout time is within the allowed range
+    const isWithinLogoutTime = logoutMoment.isBetween(
+      startMoment,
+      endMoment,
+      null,
+      "[]"
+    );
+
+    // Check if the location is within the school radius at logout
+    const isWithinRadius = geolib.isPointWithinRadius(
+      { latitude, longitude },
+      {
+        latitude: teacherSchool.SCHOOL_LATITUDE,
+        longitude: teacherSchool.SCHOOL_LONGITUDE,
+      },
+      SCHOOL_RADIUS
+    );
+
+    const inSchoolAtLogout = isWithinLogoutTime && isWithinRadius;
+
+    // Find the latest active login track
+    const loginTrack = await LoginTrackModel.findOne({
+      teacherId: teacherId,
+      logoutTime: null,
+    }).sort({ loginTime: -1 });
+     
+    if (loginTrack) {
+      loginTrack.logoutTime = logoutTime;
+      loginTrack.logoutLatitude = latitude;
+      loginTrack.logoutLongitude = longitude;
+      loginTrack.inSchoolAtLogout = inSchoolAtLogout;
+
+      await loginTrack.save();
+      res.status(200).json(loginTrack);
+    } else {
+      res
+        .status(404)
+        .json({ message: "No active login found for this teacher." });
+    }
+
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating logout track data", error });
   }
 };
 
@@ -263,7 +324,12 @@ const getLoginTrackByTeacherAndDate = async (req, res) => {
     });
 
     if (!loginTracks.length) {
-      return res.status(404).json({ message: "No login track data found for the specified teacher and date" });
+      return res
+        .status(404)
+        .json({
+          message:
+            "No login track data found for the specified teacher and date",
+        });
     }
 
     res.status(200).json(loginTracks);
@@ -289,8 +355,7 @@ const editTeacher = async (req, res) => {
       dob,
     } = req.body;
 
-
-    console.log(req.body)
+    console.log(req.body);
 
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) {
@@ -554,5 +619,6 @@ module.exports = {
   editTeacher,
   teacherAppLogin,
   loginTrackTeacherApp,
-  getLoginTrackByTeacherAndDate
+  logoutTrackTeacherApp,
+  getLoginTrackByTeacherAndDate,
 };
