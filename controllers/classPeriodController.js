@@ -1,6 +1,51 @@
 const express = require("express");
 const ClassPeriod = require("../models/classPeriodModel");
 
+//create a time table
+exports.createTimeTable = async (req, res) => {
+  const { classId, subjectId, teacherId, timePeriod, day } = req.body;
+
+  const newEntry = new Timetable({
+    classId,
+    subjectId,
+    teacherId,
+    timePeriod,
+    day,
+  });
+
+  try {
+    const savedEntry = await newEntry.save();
+    res.status(200).json(savedEntry);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+
+// Update a timetable entry
+exports.updateTimeTable = async (req, res) => {
+  const { id } = req.params;
+  const { classId, subjectId, teacherId, timePeriod, day } = req.body;
+
+  try {
+    const updatedEntry = await Timetable.findByIdAndUpdate(
+      id,
+      { classId, subjectId, teacherId, timePeriod, day },
+      { new: true }
+    );
+
+    if (!updatedEntry) {
+      return res.status(404).json({ message: "Timetable entry not found" });
+    }
+
+    res.status(200).json(updatedEntry);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+
+
 // Create a new class period
 exports.createNewPeriod = async (req, res) => {
   try {
@@ -62,12 +107,12 @@ exports.getClassPeriodByTeacher = async (req, res) => {
 
     const endOfDay = new Date(currentDate);
     endOfDay.setHours(23, 59, 59, 999);
-    
+
     // Find class periods by teacher ID and date range
     const classPeriods = await ClassPeriod.find({
       teacherID,
       date: { $gte: startOfDay, $lte: endOfDay },
-    })
+    });
     res.status(200).json(classPeriods);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving class periods", error });
@@ -81,9 +126,13 @@ exports.updatePeriod = async (req, res) => {
 
   try {
     // Find the class period by ID and update it
-    const classPeriod = await ClassPeriod.findByIdAndUpdate(periodId, updateData, {
-      new: true,
-    })
+    const classPeriod = await ClassPeriod.findByIdAndUpdate(
+      periodId,
+      updateData,
+      {
+        new: true,
+      }
+    );
 
     // If the class period is not found, return a 404 error
     if (!classPeriod) {

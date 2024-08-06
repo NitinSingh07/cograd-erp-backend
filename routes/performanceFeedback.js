@@ -14,13 +14,10 @@ const {
 
 // Feedback routes
 router.post("/feedback/upcoming/", createUpcomingFeedback);
-router.put("/feedback/:feedbackId/", updateFeedbackToPast);
-router.delete("/feedback/:studentId/:feedbackId", deleteFeedback);
-router.get("/feedback/upcoming/:studentId", getUpcomingFeedback);
-router.get("/feedback/past/:studentId", getPastFeedback);
+router.post("/feedback/:studentId/:teacherId/", updateFeedbackToPast);
 
 // Call routes
 router.post("/calls/", createCall);
-router.get("/calls/:studentId", getCalls);
+router.get("/calls/:studentId/:teacherId", getCalls);
 
 module.exports = router;

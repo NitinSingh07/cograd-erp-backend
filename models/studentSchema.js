@@ -69,6 +69,7 @@ const studentSchema = new mongoose.Schema({
   callHistory: [
     {
       time: { type: Date },
+      purpose: { type: String, default: "Call" },
       teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "teacher" }, // Adding teacherId here
     },
   ],

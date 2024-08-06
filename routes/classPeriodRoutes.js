@@ -9,10 +9,14 @@ const {
   getArrangementById,
   updateArrangement,
   deleteArrangement,
+  createTimeTable,
+  updateTimeTable,
 } = require("../controllers/classPeriodController");
 const router = express.Router();
 
 router.post("/", createNewPeriod);
+router.post('/timetable', createTimeTable);
+router.put('/timetable/:id', updateTimeTable);
 router.get("/allPeriods", getAllPeriods);
 router.get("/getAll/:teacherID", getClassPeriodByTeacher);
 router.put("/:periodId", updatePeriod);
