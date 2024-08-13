@@ -4,7 +4,7 @@ const taskSchema = new mongoose.Schema(
   {
     title: {
       type: Map,
-      of: [String], // Array of strings for tasks
+      of: [String], 
       required: true,
     },
     class: {
@@ -16,7 +16,7 @@ const taskSchema = new mongoose.Schema(
       required: true,
     },
     chapter: {
-      type: String,
+      type: Number,
       required: true,
     },
     day: {
@@ -33,7 +33,7 @@ const taskSchema = new mongoose.Schema(
     },
     teacherID: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Teacher",
+      ref: "teacher",
     },
     date: {
       type: Date,
@@ -43,13 +43,8 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    periodId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Period",
-      required: false,
-    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Task", taskSchema);
+module.exports = mongoose.model("task", taskSchema);

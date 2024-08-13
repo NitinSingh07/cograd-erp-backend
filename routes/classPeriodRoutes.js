@@ -11,18 +11,31 @@ const {
   deleteArrangement,
   createTimeTable,
   updateTimeTable,
+  getTimetableByClass,
+  getTimetableByTeacher,
+  getAvailableTeachers,
+  getArrangementsBySchoolId,
+  getClassPeriodProgress,
 } = require("../controllers/classPeriodController");
 const router = express.Router();
 
-router.post("/", createNewPeriod);
+
+//Routes realated to timetable
 router.post('/timetable', createTimeTable);
-router.put('/timetable/:id', updateTimeTable);
+router.get('/timetable/:classId',getTimetableByClass)
+router.get('/timetable/teacher/:teacherId', getTimetableByTeacher);
+
+//Routes realated to class period
+router.post("/", createNewPeriod);
 router.get("/allPeriods", getAllPeriods);
-router.get("/getAll/:teacherID", getClassPeriodByTeacher);
+router.get("/classPeriodProgress/:schoolId",getClassPeriodProgress)
+router.get("/getAll/:teacherId", getClassPeriodByTeacher);
 router.put("/:periodId", updatePeriod);
 router.delete("/:periodId", deletePeriod);
 router.post("/arrangement", createArrangement);
 router.get("/arrangement/:teacherId", getArrangementById);
+router.get('/arrangements/school/:schoolId', getArrangementsBySchoolId);
+router.get("/teachers/available",getAvailableTeachers)
 router.put("/arrangement/:teacherId", updateArrangement);
 router.delete("/arrangement/periodId",deleteArrangement);
 

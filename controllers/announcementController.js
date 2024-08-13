@@ -3,14 +3,15 @@ const Announcement = require("../models/announcementModel")
 
 exports.createAnnouncement = async (req, res) => {
   try {
-    const { title, content, recipient, teacherId, parentId, classTeacherId } = req.body;
-    const announcement = new Announcement({ title, content, recipient, teacherId, parentId, classTeacherId });
+    const { title, content, recipient } = req.body;
+    const announcement = new Announcement({ title, content, recipient });
     await announcement.save();
     res.status(201).json({ message: "Announcement created successfully", announcement });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
+
 
 exports.getAllAnnouncements = async (req, res) => {
   try {

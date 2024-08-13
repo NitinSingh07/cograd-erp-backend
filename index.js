@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cron = require("node-cron");
 const app = express();
 const cookieParser = require("cookie-parser");
 const teacherRouter = require("./routes/teacherRoute.js");
@@ -27,11 +28,15 @@ const uploadRoute = require("./routes/documents");
 const uploadStudentRoute = require("./routes/studentDocs.js");
 const announcementRoutes = require("./routes/announcementRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const taskRoutes = require('./routes/taskRoutes');
-const classPeriodRoutes = require('./routes/classPeriodRoutes');
+const taskRoutes = require("./routes/taskRoutes");
+const classPeriodRoutes = require("./routes/classPeriodRoutes");
 const performanceFeedback = require("./routes/performanceFeedback");
 
 // const cloudinaryUploader = require("./utils/cloudinaryUplaoder.js")
+
+const ClassPeriod = require("./models/classPeriodModel.js");
+const Teacher = require("./models/teacherModel.js");
+const Timetable = require("./models/timeTableModel.js");
 
 const {
   checkForAuthentication,
@@ -43,6 +48,7 @@ const {
   checkForAdminAuthentication,
   restrictClassTeacherTo,
 } = require("./middleware/auth.js");
+const { createClassPeriodsForToday } = require("./controllers/classPeriodController.js");
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 8080;
@@ -113,25 +119,33 @@ app.use("/studentAttendance", studentAttendanceRouter);
 app.use("/teacher", teacherRouter);
 app.use("/complains", complaintRoute);
 
-
-
 app.use("/announcements", announcementRoutes);
 app.use("/notifications", notificationRoutes);
 
-
-
-app.use('/tasks', taskRoutes);
-app.use('/classPeriods', classPeriodRoutes);
+app.use("/tasks", taskRoutes);
+app.use("/classPeriods", classPeriodRoutes);
 
 app.use("/performance", performanceFeedback);
 
-
-app.get("/",(req,res)=>{
+app.get("/", (req, res) => {
   res.json({
-    success : true,
-    message :`Surver is running on PORT ${PORT}`
-  })
-})
+    success: true,
+    message: `Surver is running on PORT ${PORT}`,
+  });
+});
+
+
+
+
+
+// Schedule the cron job for testing (every minute)
+cron.schedule("* * * * *", () => {
+  console.log("Running cron job to create class periods for today");
+  createClassPeriodsForToday();
+});
+
+// Alternatively, you can schedule the cron job for production (every day at midnight)
+// cron.schedule('0 0 * * *', createClassPeriodsForToday);
 
 app.listen(PORT, () => {
   console.log(`Server started at port no. ${PORT}`);

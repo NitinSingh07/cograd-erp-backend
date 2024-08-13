@@ -35,6 +35,9 @@ const teacherSchema = new mongoose.Schema(
       type: Date,
       // required: true
     },
+    deviceToken:{
+      type: String,
+    },
     teachSubjects: [
       {
         type: mongoose.Schema.Types.ObjectId,

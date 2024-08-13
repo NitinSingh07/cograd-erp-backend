@@ -307,7 +307,8 @@ exports.complaintsReferredToTeacher = async (req, res) => {
       referredTo: teacherId,
     })
       .populate("parentId")
-      .populate("studentId");
+      .populate("studentId")
+      .populate("parentId.students.studentId");
 
     if (!complaints || complaints.length === 0) {
       return res
