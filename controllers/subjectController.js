@@ -9,7 +9,7 @@ async function recreateIndexes() {
 }
 
 recreateIndexes().then(() => {
-  console.log("Indexes recreated successfully");
+  // console.log("Indexes recreated successfully");
 }).catch(err => {
   console.error("Error recreating indexes: ", err);
 });

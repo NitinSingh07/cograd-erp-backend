@@ -167,7 +167,7 @@ const teacherLogin = async (req, res) => {
 
 // Teacher Login Through Phone number
 const teacherAppLogin = async (req, res) => {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, deviceToken } = req.body;
 
   try {
     // Find teacher by phone number
@@ -177,14 +177,20 @@ const teacherAppLogin = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-    // Generate token (assuming setTeacher function creates a token)
-    const token = setTeacher(teacher);
 
-    // Set token as a cookie
-    res.cookie("teacherToken", token);
+    // // Generate token (assuming setTeacher function creates a token)
+    // const token = setTeacher(teacher);
 
-    // Remove password from the response
-    teacher.password = undefined;
+    // // Set token as a cookie
+    // res.cookie("teacherToken", token);
+
+    // // Remove password from the response
+    // teacher.password = undefined;
+
+    if (deviceToken) {
+      teacher.deviceToken = deviceToken;
+      await teacher.save();
+    }
 
     // Return teacher data
     return res.status(200).json(teacher);
