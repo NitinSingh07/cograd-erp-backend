@@ -22,7 +22,6 @@ exports.createNewTask = async (req, res) => {
           subject: subjectID,
           chapter: chapterName,
           day: day,
-          date: new Date() // Or use a specific date if required
         });
       }
 
@@ -34,7 +33,6 @@ exports.createNewTask = async (req, res) => {
           subject: subjectID,
           chapter: chapterName,
           day: day,
-          date: new Date() // Or use a specific date if required
         });
       }
     }
