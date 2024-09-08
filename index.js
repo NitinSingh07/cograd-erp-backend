@@ -140,7 +140,7 @@ app.get("/", (req, res) => {
 
 // Schedule the cron job for testing (every minute)
 cron.schedule("* * * * *", () => {
-  console.log("Running cron job to create class periods for today");
+  //console.log("Running cron job to create class periods for today");
   createClassPeriodsForToday();
 });
 

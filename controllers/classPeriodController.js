@@ -108,6 +108,18 @@ exports.createClassPeriodsForToday = async () => {
       });
 
       if (!existingClassPeriod && timetable.timePeriod !== "X") {
+        // Find the lowest chapter number for this class and subject
+        const lowestChapterTask = await Task.findOne({
+          class: timetable.classId._id,
+          subject: timetable.subjectId._id,
+        })
+          .sort({ chapter: 1 }) // Ascending order to get the lowest chapter
+          .select("chapter");
+
+        const startingChapter = lowestChapterTask
+          ? lowestChapterTask.chapter
+          : 1; // Default to 1 if no tasks exist
+
         // Retrieve or initialize progress for the current class and subject
         let progress = await ClassSubjectProgress.findOne({
           class: timetable.classId._id,
@@ -118,9 +130,11 @@ exports.createClassPeriodsForToday = async () => {
         const tasksForToday = await Task.find({
           class: timetable.classId._id,
           subject: timetable.subjectId._id,
-          chapter: progress ? progress.currentChapter : 1,
+          chapter: progress ? progress.currentChapter : startingChapter,
           day: `Day ${progress ? progress.currentDayInChapter : 1}`,
         });
+
+        console.log("tasksForToday", tasksForToday.length);
 
         // Check for any incomplete tasks from previous days
         const incompleteTasks = await Task.find({
@@ -129,6 +143,8 @@ exports.createClassPeriodsForToday = async () => {
           status: false,
           date: { $lt: new Date(today) },
         });
+
+        console.log("incompleteTasks", incompleteTasks.length);
 
         // Combine today's tasks with incomplete tasks from previous days
         const combinedTasks = [...tasksForToday, ...incompleteTasks];
@@ -139,7 +155,7 @@ exports.createClassPeriodsForToday = async () => {
             progress = new ClassSubjectProgress({
               class: timetable.classId._id,
               subject: timetable.subjectId._id,
-              currentChapter: 1,
+              currentChapter: startingChapter,
               currentDayInChapter: 1,
             });
             await progress.save();
@@ -160,7 +176,13 @@ exports.createClassPeriodsForToday = async () => {
           // Advance to the next day in the chapter or move to the next chapter
           await updateProgress(progress);
 
-          console.log("Class periods created for today");
+          // Update tasks with today's date
+          await Task.updateMany(
+            { _id: { $in: combinedTasks.map((task) => task._id) } },
+            { $set: { date: today } }
+          );
+
+          console.log("Class periods created and tasks updated for today");
         } else {
           const classPeriod = new ClassPeriod({
             subject: timetable.subjectId._id,
@@ -316,8 +338,7 @@ exports.getClassPeriodProgress = async (req, res) => {
     Object.keys(progressData).forEach((teacherId) => {
       const data = progressData[teacherId];
       if (data.totalTasks > 0) {
-        data.progressPercentage =
-          (data.completedTasks / data.totalTasks) * 100;
+        data.progressPercentage = (data.completedTasks / data.totalTasks) * 100;
       } else {
         data.progressPercentage = 0; // No tasks assigned
       }
@@ -332,7 +353,6 @@ exports.getClassPeriodProgress = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
-
 
 // Get class periods by teacher and day
 exports.getClassPeriodByTeacher = async (req, res) => {
@@ -492,8 +512,6 @@ exports.getArrangementById = async (req, res) => {
       .populate("teacherID")
       .exec();
 
-  
-      
     if (!arrangements || arrangements.length === 0) {
       return res.status(404).json({
         message:
