@@ -141,7 +141,7 @@ exports.createClassPeriodsForToday = async () => {
           class: timetable.classId._id,
           subject: timetable.subjectId._id,
           status: false,
-          date: { $lt: new Date(today) },
+          date: { $exists: true, $lt: new Date(today) },
         });
 
         console.log("incompleteTasks", incompleteTasks.length);
