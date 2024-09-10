@@ -15,6 +15,7 @@ const TeacherAttendance = require("../models/teacherAttendanceModel");
 
 const moment = require("moment");
 const geolib = require("geolib");
+const momentTZ = require("moment-timezone");
 
 const schoolList = [
   {
@@ -205,9 +206,11 @@ const loginTrackTeacherApp = async (req, res) => {
   const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
 
   // Check if the login time is within the allowed range
-  const loginMoment = moment(loginTime, "HH:mm");
-  const startMoment = moment(START_TIME, "HH:mm");
-  const endMoment = moment(END_TIME, "HH:mm");
+  const TIMEZONE = "Asia/Kolkata";
+
+  const loginMoment = momentTZ.tz(loginTime, "HH:mm", TIMEZONE); // Parse loginTime in IST
+  const startMoment = momentTZ.tz(START_TIME, "HH:mm", TIMEZONE); // Start time in IST
+  const endMoment = momentTZ.tz(END_TIME, "HH:mm", TIMEZONE); 
 
   const teacher = await Teacher.findOne({
     _id: teacherId,
