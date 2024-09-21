@@ -100,10 +100,12 @@ exports.createClassPeriodsForToday = async () => {
 
     for (const timetable of timetables) {
       // Check if a class period already exists for today
+
+
       const existingClassPeriod = await ClassPeriod.findOne({
-        subject: timetable.timePeriod !== "X" ? timetable.subjectId._id : null,
-        class: timetable.classId._id,
-        teacherID: timetable.teacherId._id,
+        subject: timetable.timePeriod !== "X" ? timetable.subjectId : null,
+        class: timetable.classId,
+        teacherID: timetable.teacherId,
         date: today,
       });
 
