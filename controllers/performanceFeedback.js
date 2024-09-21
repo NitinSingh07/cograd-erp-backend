@@ -1,5 +1,8 @@
 const Student = require("../models/studentSchema");
 const Teacher = require("../models/teacherModel");
+const admin = require("../utils/firebase");
+const Notification = require("../models/notificationModel");
+
 
 // Create upcoming feedback
 const createUpcomingFeedback = async (req, res) => {
@@ -31,6 +34,38 @@ const createUpcomingFeedback = async (req, res) => {
     // Add the new feedback
     student.upcomingFeedbacks.push({ date, purpose, teacherId });
     await student.save();
+
+    // Notify the teacher about the upcoming feedback
+    const teacher = await Teacher.findById(teacherId);
+
+    if (teacher) {
+      try {
+        if (teacher.deviceToken) {
+          const message = {
+            notification: {
+              title: "New Feedback Scheduled",
+              body: `Feedback scheduled for ${student.name} on ${date.split("T")[0]} with the purpose: ${purpose}.`,
+            },
+            token: teacher.deviceToken,
+          };
+
+          await admin.messaging().send(message);
+        }
+
+        // Save the notification to the database
+        const notification = new Notification({
+          title: "New Feedback Scheduled",
+          content: `Feedback scheduled for ${student.name} on ${date.split("T")[0]} with the purpose: ${purpose}.`,
+          recipient: "teacher",
+          teacherId: teacher._id,
+        });
+
+        await notification.save();
+      } catch (error) {
+        console.error("Error sending notification:", error);
+      }
+    }
+
 
     res.status(201).json(student.upcomingFeedbacks);
   } catch (error) {

@@ -270,6 +270,7 @@ exports.referComplaint = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 exports.resolveComplaint = async (req, res) => {
   try {
     const { complaintId, note } = req.body;

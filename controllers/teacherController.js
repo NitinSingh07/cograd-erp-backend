@@ -22,8 +22,8 @@ const schoolList = [
     SCHOOL_ID: "669d3a9a7a956fd4c7e286c0",
     SCHOOL:
       "Suresh International college, Nagla Himmat, Kathua, Uttar Pradesh 206253",
-    SCHOOL_LATITUDE: 28.564258507666857,
-    SCHOOL_LONGITUDE: 77.42190281534539,
+      SCHOOL_LATITUDE: 26.975703192161742,
+      SCHOOL_LONGITUDE: 79.0591269259595,
   },
   {
     SCHOOL_ID: "669d42a07a956fd4c7e28934",
@@ -178,7 +178,6 @@ const teacherAppLogin = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-
     // // Generate token (assuming setTeacher function creates a token)
     // const token = setTeacher(teacher);
 
@@ -206,7 +205,9 @@ const loginTrackTeacherApp = async (req, res) => {
   const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
   const TIMEZONE = "Asia/Kolkata";
 
-  const loginMoment = momentTZ.tz(loginTime, "HH:mm", TIMEZONE);
+  // Parse loginTime as ISO if possible or ensure proper format
+  const loginMoment = momentTZ.tz(loginTime, TIMEZONE);
+
   const startMoment = momentTZ.tz(START_TIME, "HH:mm", TIMEZONE);
   const endMoment = momentTZ.tz(END_TIME, "HH:mm", TIMEZONE);
 
@@ -228,16 +229,25 @@ const loginTrackTeacherApp = async (req, res) => {
     SCHOOL_RADIUS
   );
 
-  const inSchool = isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
+  const inSchool =
+    isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
 
   if (inSchool) {
     try {
-      await TeacherAttendance.insertOne({
-        teacher: teacher._id,
-        date: new Date(),
-        status: "p",
-        school: teacherSchool.SCHOOL_ID,
-      });
+      const today = momentTZ().tz(TIMEZONE).format("YYYY-MM-DD");
+
+      // Check if attendance already exists for today
+      const attendance = await TeacherAttendance.findOneAndUpdate(
+        {
+          teacher: teacher._id,
+          date: today, // Use the formatted date string
+          school: teacherSchool.SCHOOL_ID,
+        },
+        { status: "p" }, // Update status to "p" if found
+        { new: true, upsert: true } // Create a new one if it doesn't exist
+      );
+
+      console.log("Attendance updated or created:", attendance);
     } catch (error) {
       console.error("Error marking attendance:", error);
       return res.status(500).json({ message: "Error marking attendance" });
@@ -300,7 +310,7 @@ const logoutTrackTeacherApp = async (req, res) => {
       teacherId: teacherId,
       logoutTime: null,
     }).sort({ loginTime: -1 });
-     
+
     if (loginTrack) {
       loginTrack.logoutTime = logoutTime;
       loginTrack.logoutLatitude = latitude;
@@ -314,7 +324,6 @@ const logoutTrackTeacherApp = async (req, res) => {
         .status(404)
         .json({ message: "No active login found for this teacher." });
     }
-
   } catch (error) {
     res
       .status(500)
@@ -335,12 +344,9 @@ const getLoginTrackByTeacherAndDate = async (req, res) => {
     });
 
     if (!loginTracks.length) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "No login track data found for the specified teacher and date",
-        });
+      return res.status(404).json({
+        message: "No login track data found for the specified teacher and date",
+      });
     }
 
     res.status(200).json(loginTracks);
