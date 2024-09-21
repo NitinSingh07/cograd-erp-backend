@@ -101,11 +101,14 @@ exports.createClassPeriodsForToday = async () => {
     for (const timetable of timetables) {
       // Check if a class period already exists for today
 
+      if (!timetable.classId || !timetable.subjectId || !timetable.teacherId) {
+        continue; // Skip to the next timetable
+      }
 
       const existingClassPeriod = await ClassPeriod.findOne({
-        subject: timetable.timePeriod !== "X" ? timetable.subjectId : null,
-        class: timetable.classId,
-        teacherID: timetable.teacherId,
+        subject: timetable.timePeriod !== "X" ? timetable.subjectId._id : null,
+        class: timetable.classId._id,
+        teacherID: timetable.teacherId._id,
         date: today,
       });
 
@@ -136,7 +139,6 @@ exports.createClassPeriodsForToday = async () => {
           day: `Day ${progress ? progress.currentDayInChapter : 1}`,
         });
 
-        console.log("tasksForToday", tasksForToday.length);
 
         // Check for any incomplete tasks from previous days
         const incompleteTasks = await Task.find({
@@ -146,7 +148,6 @@ exports.createClassPeriodsForToday = async () => {
           date: { $exists: true, $lt: new Date(today) },
         });
 
-        console.log("incompleteTasks", incompleteTasks.length);
 
         // Combine today's tasks with incomplete tasks from previous days
         const combinedTasks = [...tasksForToday, ...incompleteTasks];
