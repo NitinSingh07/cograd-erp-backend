@@ -22,8 +22,8 @@ const schoolList = [
     SCHOOL_ID: "669d3a9a7a956fd4c7e286c0",
     SCHOOL:
       "Suresh International college, Nagla Himmat, Kathua, Uttar Pradesh 206253",
-    SCHOOL_LATITUDE: 26.975703192161742,
-    SCHOOL_LONGITUDE: 79.0591269259595,
+    SCHOOL_LATITUDE: 28.564258507666857,
+    SCHOOL_LONGITUDE: 77.42190281534539,
   },
   {
     SCHOOL_ID: "669d42a07a956fd4c7e28934",
@@ -34,8 +34,8 @@ const schoolList = [
   },
 ];
 
-const SCHOOL_RADIUS = 20; // 20 meters
-const START_TIME = "08:00";
+const SCHOOL_RADIUS = 200; // 100 meters
+const START_TIME = "07:50";
 const END_TIME = "15:00";
 
 // Teacher Registration
@@ -204,23 +204,21 @@ const teacherAppLogin = async (req, res) => {
 // tracking the login and attendace of teacher according to location and time
 const loginTrackTeacherApp = async (req, res) => {
   const { teacherId, selfie, latitude, longitude, loginTime } = req.body;
-
-  // Check if the login time is within the allowed range
   const TIMEZONE = "Asia/Kolkata";
 
-  const loginMoment = momentTZ.tz(loginTime, "HH:mm", TIMEZONE); // Parse loginTime in IST
-  const startMoment = momentTZ.tz(START_TIME, "HH:mm", TIMEZONE); // Start time in IST
-  const endMoment = momentTZ.tz(END_TIME, "HH:mm", TIMEZONE); 
+  const loginMoment = momentTZ.tz(loginTime, "HH:mm", TIMEZONE);
+  const startMoment = momentTZ.tz(START_TIME, "HH:mm", TIMEZONE);
+  const endMoment = momentTZ.tz(END_TIME, "HH:mm", TIMEZONE);
 
-  const teacher = await Teacher.findOne({
-    _id: teacherId,
-  });
-
+  const teacher = await Teacher.findOne({ _id: teacherId });
   const teacherSchool = schoolList.find(
     (school) => teacher.school.toString() === school.SCHOOL_ID
   );
 
-  // Check if the location is within the school radius
+  if (!teacherSchool) {
+    return res.status(404).json({ message: "School not found" });
+  }
+
   const isWithinRadius = geolib.isPointWithinRadius(
     { latitude, longitude },
     {
@@ -230,17 +228,20 @@ const loginTrackTeacherApp = async (req, res) => {
     SCHOOL_RADIUS
   );
 
-  const inSchool =
-    isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
+  const inSchool = isWithinRadius && loginMoment.isBetween(startMoment, endMoment);
 
   if (inSchool) {
-    // Mark teacher attendance for that day
-    await TeacherAttendance.insertOne({
-      teacher: teacher._id,
-      date: new Date(),
-      status: "p",
-      school: teacherSchool.SCHOOL_ID,
-    });
+    try {
+      await TeacherAttendance.insertOne({
+        teacher: teacher._id,
+        date: new Date(),
+        status: "p",
+        school: teacherSchool.SCHOOL_ID,
+      });
+    } catch (error) {
+      console.error("Error marking attendance:", error);
+      return res.status(500).json({ message: "Error marking attendance" });
+    }
   }
 
   const newLoginTrack = new LoginTrackModel({
@@ -259,6 +260,7 @@ const loginTrackTeacherApp = async (req, res) => {
     res.status(500).json({ message: "Error saving login track data", error });
   }
 };
+
 // tracking the logout of teacher according to location and time
 const logoutTrackTeacherApp = async (req, res) => {
   const { teacherId, logoutTime, latitude, longitude } = req.body;

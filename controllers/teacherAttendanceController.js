@@ -81,18 +81,16 @@ const calculateAttendanceMonthly = async (req, res) => {
 
     const { month: targetMonth, year: targetYear } = req.body; // Month and year from request
 
-
     const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero if single digit
 
 
     const attendanceRecords = await TeacherAttendance.find({ teacher: teacherId });
 
+
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
       const [recordYear, recordMonth] = record.date.split("-"); // Extract the year and month from the date (e.g., '2024-06-05')
-
       return recordMonth === normalizedTargetMonth && recordYear === targetYear.toString(); // Ensure both year and month match exactly
     });
-
 
     let presentCount = 0;
     let absentCount = 0;
