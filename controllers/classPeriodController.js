@@ -83,7 +83,7 @@ exports.createClassPeriodsForToday = async () => {
   const currentDay = new Date().toLocaleString("en-US", { weekday: "long" });
 
   // Check if today is a Sunday or a holiday
-  if (currentDay === "Sunday" || holidays.includes(today)) {
+  if (currentDay ==="Sunday" || holidays.includes(today)) {
     console.log(
       "Today is a holiday or Sunday. No class periods will be created."
     );
