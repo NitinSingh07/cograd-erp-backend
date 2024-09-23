@@ -17,6 +17,8 @@ const moment = require("moment");
 const geolib = require("geolib");
 const momentTZ = require("moment-timezone");
 
+// SCHOOL_LATITUDE: 26.975703192161742,
+// SCHOOL_LONGITUDE: 79.0591269259595,
 const schoolList = [
   {
     SCHOOL_ID: "669d3a9a7a956fd4c7e286c0",
@@ -34,7 +36,7 @@ const schoolList = [
   },
 ];
 
-const SCHOOL_RADIUS = 200; // 100 meters
+const SCHOOL_RADIUS = 2000; // 200 meters
 const START_TIME = "07:50";
 const END_TIME = "15:00";
 
