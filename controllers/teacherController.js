@@ -36,7 +36,7 @@ const schoolList = [
   },
 ];
 
-const SCHOOL_RADIUS = 2000; // 200 meters
+const SCHOOL_RADIUS = 2000; // 2000 meters
 const START_TIME = "07:50";
 const END_TIME = "15:00";
 
@@ -276,16 +276,22 @@ const loginTrackTeacherApp = async (req, res) => {
 // tracking the logout of teacher according to location and time
 const logoutTrackTeacherApp = async (req, res) => {
   const { teacherId, logoutTime, latitude, longitude } = req.body;
+  const TIMEZONE = "Asia/Kolkata";
 
   try {
-    const logoutMoment = moment(logoutTime, "HH:mm");
-    const startMoment = moment(START_TIME, "HH:mm");
-    const endMoment = moment(END_TIME, "HH:mm");
+    // Parse logoutTime as ISO if possible or ensure proper format
+    const logoutMoment = momentTZ.tz(logoutTime, TIMEZONE);
+    const startMoment = momentTZ.tz(START_TIME, "HH:mm", TIMEZONE);
+    const endMoment = momentTZ.tz(END_TIME, "HH:mm", TIMEZONE);
 
     const teacher = await Teacher.findOne({ _id: teacherId });
     const teacherSchool = schoolList.find(
       (school) => teacher.school.toString() === school.SCHOOL_ID
     );
+
+    if (!teacherSchool) {
+      return res.status(404).json({ message: "School not found" });
+    }
 
     // Check if the logout time is within the allowed range
     const isWithinLogoutTime = logoutMoment.isBetween(
@@ -314,24 +320,23 @@ const logoutTrackTeacherApp = async (req, res) => {
     }).sort({ loginTime: -1 });
 
     if (loginTrack) {
-      loginTrack.logoutTime = logoutTime;
+      loginTrack.logoutTime = logoutMoment.toISOString(); // Save as ISO format
       loginTrack.logoutLatitude = latitude;
       loginTrack.logoutLongitude = longitude;
       loginTrack.inSchoolAtLogout = inSchoolAtLogout;
 
-      await loginTrack.save();
-      res.status(200).json(loginTrack);
+      // Save updated login track
+      const updatedLoginTrack = await loginTrack.save();
+      res.status(200).json(updatedLoginTrack);
     } else {
-      res
-        .status(404)
-        .json({ message: "No active login found for this teacher." });
+      res.status(404).json({ message: "No active login found for this teacher." });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error updating logout track data", error });
+    console.error("Error updating logout track data:", error);
+    res.status(500).json({ message: "Error updating logout track data", error });
   }
 };
+
 
 // Get login track data by teacher ID and date
 const getLoginTrackByTeacherAndDate = async (req, res) => {
