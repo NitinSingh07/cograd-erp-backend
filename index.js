@@ -88,9 +88,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 
-app.use("/parent", parentRouter);
-app.use("/examResult", resultRouter);
-app.use("/examList", examListRouter);
+app.use("/api/parent", parentRouter);
+app.use("/api/examResult", resultRouter);
+app.use("/api/examList", examListRouter);
 
 // app.use("/sms", smsRouter);
 app.use(checkForClassTeacherAuthentication);
@@ -99,35 +99,35 @@ app.use(checkForTeacherAuthentication);
 app.use(checkForParentAuthentication);
 app.use(checkForAdminAuthentication);
 //student route also contains particular attendance
-app.use("/student", studentRouter);
-app.use("/school", schoolRouter);
+app.use("/api/student", studentRouter);
+app.use("/api/school", schoolRouter);
 //for login of class teacher only
-app.use("/upload", uploadRoute);
-app.use("/uploadStudent", uploadStudentRoute);
-app.use("/subject", subjectRouter);
-app.use("/transaction", schoolTransactionRouter);
-app.use("/staff", staffRoutes);
-app.use("/driver", driverRoutes);
-app.use("/class", classRouter);
-app.use("/admin", adminRouter);
-app.use("/classTeacher", classTeacher);
+app.use("/api/upload", uploadRoute);
+app.use("/api/uploadStudent", uploadStudentRoute);
+app.use("/api/subject", subjectRouter);
+app.use("/api/transaction", schoolTransactionRouter);
+app.use("/api/staff", staffRoutes);
+app.use("/api/driver", driverRoutes);
+app.use("/api/class", classRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/classTeacher", classTeacher);
 //teacherReg route contains registration and attendance, and class teacher registration also restricted by principal
-app.use("/teacherReg", teacherAttendanceByPrincipalRouter);
-app.use("/teacherAttendance", teacherAttendanceRouter);
-app.use("/studentAttendance", studentAttendanceRouter);
+app.use("/api/teacherReg", teacherAttendanceByPrincipalRouter);
+app.use("/api/teacherAttendance", teacherAttendanceRouter);
+app.use("/api/studentAttendance", studentAttendanceRouter);
 //teacher route contains only login , and logout route, teachelist
-app.use("/teacher", teacherRouter);
-app.use("/complains", complaintRoute);
+app.use("/api/teacher", teacherRouter);
+app.use("/api/complains", complaintRoute);
 
-app.use("/announcements", announcementRoutes);
-app.use("/notifications", notificationRoutes);
+app.use("/api/announcements", announcementRoutes);
+app.use("/api/notifications", notificationRoutes);
 
-app.use("/tasks", taskRoutes);
-app.use("/classPeriods", classPeriodRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/classPeriods", classPeriodRoutes);
 
-app.use("/performance", performanceFeedback);
+app.use("/api/performance", performanceFeedback);
 
-app.get("/", (req, res) => {
+app.get("/api/", (req, res) => {
   res.json({
     success: true,
     message: `Surver is running on PORT ${PORT}`,
