@@ -2,20 +2,24 @@ const TeacherAttendance = require("../models/teacherAttendanceModel");
 const { getTeacher } = require("../service/teacherAuth");
 const DateTime = require("luxon").DateTime;
 
-
 const getTeacherAttendance = async (req, res) => {
   try {
-
-    const teacherId = req.params.teacherId
+    const teacherId = req.params.teacherId;
     if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     const attendanceRecords = await TeacherAttendance.find({
-      teacher: teacherId
+      teacher: teacherId,
+      date: {
+        $gte: `${targetYear}-${normalizedTargetMonth}-01`,
+        $lt: `${targetYear}-${(parseInt(normalizedTargetMonth) + 1)
+          .toString()
+          .padStart(2, "0")}-01`,
+      },
     });
 
     if (!attendanceRecords || attendanceRecords.length === 0) {
-      return res.status(404).json({ message: "No attendance records found" }); // Return 404 if no records found
+      return res.status(404).json({ message: "No attendance records found" });
     }
 
     res.status(200).json({
@@ -24,7 +28,7 @@ const getTeacherAttendance = async (req, res) => {
     });
   } catch (error) {
     console.error("Error retrieving attendance:", error);
-    res.status(500).json({ message: "Internal server error" }); // Handle general errors
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -36,32 +40,39 @@ const markSelfAttendance = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Check if attendance already exists for this teacher on the given date
     const existingAttendance = await TeacherAttendance.findOne({
       school: schoolId,
       teacher: teacherId,
       date,
-    }).populate('teacher', 'name'); // Populate the teacher field to get the name
+    }).populate("teacher", "name");
 
     if (existingAttendance) {
-      return res.status(400).json({
-        message: `Attendance for ${existingAttendance.teacher.name} on ${date} has already been marked`,
+      const previousStatus = existingAttendance.status;
+
+      console.log(
+        `Attendance for ${existingAttendance.teacher.name} on ${date} has been updated. Previous status: ${previousStatus}, New status: ${status}`
+      );
+
+      existingAttendance.status = status;
+      await existingAttendance.save();
+
+      return res.status(200).json({
+        message: `Attendance updated successfully for ${existingAttendance.teacher.name} on ${date}`,
         attendance: existingAttendance,
       });
     }
 
-    // Create new attendance record
     const newAttendance = new TeacherAttendance({
       teacher: teacherId,
       school: schoolId,
       date,
       status,
     });
-
-    // Save the new attendance record to the database
     await newAttendance.save();
-
-    // Send a successful response with the new attendance data
+    await newAttendance.populate("teacher", "name");
+    console.log(
+      `New attendance marked for ${newAttendance.teacher.name} on ${date}. Status: ${status}`
+    );
     res.status(201).json({
       message: "Attendance marked successfully",
       attendance: newAttendance,
@@ -79,17 +90,20 @@ const calculateAttendanceMonthly = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { month: targetMonth, year: targetYear } = req.body; // Month and year from request
+    const { month: targetMonth, year: targetYear } = req.body;
 
-    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0"); // Ensure leading zero if single digit
+    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0");
 
-
-    const attendanceRecords = await TeacherAttendance.find({ teacher: teacherId });
-
+    const attendanceRecords = await TeacherAttendance.find({
+      teacher: teacherId,
+    });
 
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
-      const [recordYear, recordMonth] = record.date.split("-"); // Extract the year and month from the date (e.g., '2024-06-05')
-      return recordMonth === normalizedTargetMonth && recordYear === targetYear.toString(); // Ensure both year and month match exactly
+      const [recordYear, recordMonth] = record.date.split("-");
+      return (
+        recordMonth === normalizedTargetMonth &&
+        recordYear === targetYear.toString()
+      );
     });
 
     let presentCount = 0;
@@ -112,8 +126,6 @@ const calculateAttendanceMonthly = async (req, res) => {
       }
     });
 
-
-
     res.status(200).json({
       message: "Attendance calculated successfully",
       data: {
@@ -122,7 +134,7 @@ const calculateAttendanceMonthly = async (req, res) => {
         presentCount,
         absentCount,
         leaveCount,
-        attendanceRecords: matchingAttendanceRecords, // Include attendance data
+        attendanceRecords: matchingAttendanceRecords,
       },
     });
   } catch (error) {
@@ -131,9 +143,8 @@ const calculateAttendanceMonthly = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
-  markSelfAttendance, calculateAttendanceMonthly, getTeacherAttendance
-  // Other existing exports
+  markSelfAttendance,
+  calculateAttendanceMonthly,
+  getTeacherAttendance,
 };

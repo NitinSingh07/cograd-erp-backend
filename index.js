@@ -48,7 +48,9 @@ const {
   checkForAdminAuthentication,
   restrictClassTeacherTo,
 } = require("./middleware/auth.js");
-const { createClassPeriodsForToday } = require("./controllers/classPeriodController.js");
+const {
+  createClassPeriodsForToday,
+} = require("./controllers/classPeriodController.js");
 const cloudinary = require("cloudinary").v2;
 
 const PORT = process.env.PORT || 8080;
@@ -133,10 +135,6 @@ app.get("/api/", (req, res) => {
     message: `Surver is running on PORT ${PORT}`,
   });
 });
-
-
-
-
 
 // Schedule the cron job for testing (every minute)
 cron.schedule("* * * * *", () => {
