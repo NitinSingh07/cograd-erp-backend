@@ -19,14 +19,14 @@ const examResultSchema = new mongoose.Schema({
             type: String,
             required: true,
           },
-          marksObtain: {
-            type: Number,
-            required: true,
-          },
-          totalMarks: {
-            type: Number,
-            required: true,
-          },
+          // marksObtain: {
+          //   type: Number,
+          //   required: true,
+          // },
+          // totalMarks: {
+          //   type: Number,
+          //   required: true,
+          // },
         },
       ],
       readingHE: {

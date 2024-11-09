@@ -5,11 +5,8 @@ const School = require("../models/school");
 const Student = require("../models/studentSchema");
 
 exports.addExamResult = async (req, res) => {
-  const {
-    student,
-    exams,
-    school,
-  } = req.body;
+  const { student, exams, school } = req.body;
+  console.log(req.body);
 
   try {
     if (!school) {
@@ -21,35 +18,43 @@ exports.addExamResult = async (req, res) => {
       return res.status(400).json({ message: "School doesn't exist" });
     }
 
-    const studentExists = await Student.findById(student);
+    // Find student by name instead of ID
+    const studentExists = await Student.findOne({ name: student });
     if (!studentExists) {
       return res.status(400).json({ message: "Student doesn't exist" });
     }
 
     // Validate each exam in the exams array
     for (const exam of exams) {
-      const examListExists = await ExamList.findById(exam.examName);
+      const examListExists = await ExamList.findOne({
+        examName: exam.examName,
+      });
+      console.log(exam.examName);
+      console.log(examListExists);
       if (!examListExists) {
-        return res.status(400).json({ message: `Exam ${exam.examName} doesn't exist` });
+        return res
+          .status(400)
+          .json({ message: `Exam ${exam.examName} doesn't exist` });
       }
     }
-
+    console.log("4");
     // Check if there is any data containing the student in the ExamResult database
-    let examResult = await ExamResult.findOne({ student: student });
+    let examResult = await ExamResult.findOne({ student: studentExists._id });
     if (!examResult) {
       // If no data found, create a new ExamResult entry for the student
       examResult = new ExamResult({
-        student: student,
+        student: studentExists._id,
         exams: exams.map((exam) => ({
           examName: exam.examName,
-          subjects: exam.subjects,
+          subjects: exam.subject,
           readingHE: exam.readingHE || null,
           writingHE: exam.writingHE || null,
           tables1To20: exam.tables1To20 || null,
           basicMathematics: exam.basicMathematics || null,
           talkingInBasicEnglish: exam.talkingInBasicEnglish || null,
           basicGKQuestions: exam.basicGKQuestions || null,
-          syllabusKnowledgeSubjectwise: exam.syllabusKnowledgeSubjectwise || null,
+          syllabusKnowledgeSubjectwise:
+            exam.syllabusKnowledgeSubjectwise || null,
           hobbies: exam.hobbies || "",
           sports: exam.sports || "",
           culturalActivities: exam.culturalActivities || "",
@@ -60,7 +65,10 @@ exports.addExamResult = async (req, res) => {
       });
 
       await examResult.save();
-      return res.status(200).json({ message: "Exam result added successfully" });
+
+      return res
+        .status(200)
+        .json({ message: "Exam result added successfully" });
     }
 
     // Check if any of the examName already exists for the student
