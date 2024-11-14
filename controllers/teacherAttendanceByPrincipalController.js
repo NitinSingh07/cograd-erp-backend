@@ -115,7 +115,7 @@ const getTeacherAttendanceByDate = async (req, res) => {
 
 const getTeachersBySchool = async (req, res) => {
   try {
-    const schoolId = req.params.id
+    const schoolId = req.params.id;
 
     const teachers = await Teacher.find({
       school: schoolId,
@@ -153,7 +153,9 @@ const editTeacherAttendance = async (req, res) => {
     });
 
     if (!attendance) {
-      return res.status(404).json({ message: "Teacher hasn't marked his attendance " });
+      return res
+        .status(404)
+        .json({ message: "Teacher hasn't marked his attendance " });
     }
 
     attendance.status = status; // Update attendance status
@@ -165,18 +167,18 @@ const editTeacherAttendance = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-//for particular school date 2 
+//for particular school date 2
 const getSchoolTeachersAttendanceByDate = async (req, res) => {
   try {
-    const { date, schoolId, teacherId } = req.body; // Retrieve date from URL parameters
+    const { date, schoolId } = req.body;
     if (!schoolId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+
     const attendance = await TeacherAttendance.find({
       date,
-      school: schoolId
-
-    }).populate("teacher", "name email profile"); // Populate teacher name and email
+      school: schoolId,
+    }).populate("teacher", "name email profile"); // Populate teacher name, email, and profile
 
     if (!attendance || attendance.length === 0) {
       return res
@@ -184,14 +186,30 @@ const getSchoolTeachersAttendanceByDate = async (req, res) => {
         .json({ message: `No attendance found for ${date}` });
     }
 
-    // Calculate the number of teachers present
-    const presentTeachersCount = attendance.filter(
+    // Calculate attendance counts based on status
+    const presentCount = attendance.filter(
       (record) => record.status === "p"
+    ).length;
+    const absentCount = attendance.filter(
+      (record) => record.status === "a"
+    ).length;
+    const lateCount = attendance.filter(
+      (record) => record.status === "l"
+    ).length;
+    const shortLeaveCount = attendance.filter(
+      (record) => record.status === "sl"
+    ).length;
+    const halfDayCount = attendance.filter(
+      (record) => record.status === "hd"
     ).length;
 
     return res.status(200).json({
       attendance,
-      presentTeachersCount,
+      presentCount,
+      absentCount,
+      lateCount,
+      shortLeaveCount,
+      halfDayCount,
     });
   } catch (error) {
     console.error("Error fetching attendance:", error);
@@ -199,32 +217,47 @@ const getSchoolTeachersAttendanceByDate = async (req, res) => {
   }
 };
 
-
 const getAllTeachersAttendanceByDate = async (req, res) => {
   try {
-    // console.log(req.body.todayDate)
-    const { todayDate, adminId } = req.body; // Retrieve date from URL parameters
+    const { todayDate, adminId } = req.body;
     if (!adminId) {
-      return res.status(401).json({ message: "Only accesible to Admin" });
+      return res.status(401).json({ message: "Only accessible to Admin" });
     }
+
     const attendance = await TeacherAttendance.find({
-      date:todayDate,
-    }).populate("teacher", "name email"); // Populate teacher name and email
+      date: todayDate,
+    }).populate("teacher", "name email");
 
     if (!attendance || attendance.length === 0) {
       return res
         .status(404)
-        .json({ message: `No attendance found for ${date}` });
+        .json({ message: `No attendance found for ${todayDate}` });
     }
 
-    // Calculate the number of teachers present
-    const presentTeachersCount = attendance.filter(
+    // Calculate attendance counts based on status
+    const presentCount = attendance.filter(
       (record) => record.status === "p"
+    ).length;
+    const absentCount = attendance.filter(
+      (record) => record.status === "a"
+    ).length;
+    const lateCount = attendance.filter(
+      (record) => record.status === "l"
+    ).length;
+    const shortLeaveCount = attendance.filter(
+      (record) => record.status === "sl"
+    ).length;
+    const halfDayCount = attendance.filter(
+      (record) => record.status === "hd"
     ).length;
 
     return res.status(200).json({
       attendance,
-      presentTeachersCount,
+      presentCount,
+      absentCount,
+      lateCount,
+      shortLeaveCount,
+      halfDayCount,
     });
   } catch (error) {
     console.error("Error fetching attendance:", error);
@@ -233,13 +266,10 @@ const getAllTeachersAttendanceByDate = async (req, res) => {
 };
 
 module.exports = {
-  getAllTeachersAttendanceByDate,
   takeTeacherAttendance,
   getTeachersBySchool,
   getTeacherAttendanceByDate,
-  getAllTeachersAttendanceByDate,
   editTeacherAttendance,
-  getAllTeachersAttendanceByDate,
-  //for a particular school 
-  getSchoolTeachersAttendanceByDate
+  getSchoolTeachersAttendanceByDate,
+  getAllTeachersAttendanceByDate, // Ensure this is only included once
 };

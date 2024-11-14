@@ -8,8 +8,8 @@ const teacherAttendanceSchema = new mongoose.Schema({
   },
   school: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'school',
-    required: true
+    ref: "school",
+    required: true,
   },
   date: {
     type: String,
@@ -17,7 +17,7 @@ const teacherAttendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["p", "a", "l"],
+    enum: ["p", "a", "l", "sl", "hd"], // "p" (Present), "a" (Absent), "l" (Late), "sl" (Short Leave), "hd" (Half Day)
     default: "a",
   },
 });

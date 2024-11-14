@@ -8,11 +8,15 @@ const getTeacherAttendance = async (req, res) => {
     if (!teacherId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+
+    const { year, month } = req.query;
+    const normalizedMonth = month.toString().padStart(2, "0");
+
     const attendanceRecords = await TeacherAttendance.find({
       teacher: teacherId,
       date: {
-        $gte: `${targetYear}-${normalizedTargetMonth}-01`,
-        $lt: `${targetYear}-${(parseInt(normalizedTargetMonth) + 1)
+        $gte: `${year}-${normalizedMonth}-01`,
+        $lt: `${year}-${(parseInt(normalizedMonth) + 1)
           .toString()
           .padStart(2, "0")}-01`,
       },
@@ -40,6 +44,15 @@ const markSelfAttendance = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const validStatuses = ["p", "a", "l", "sl", "hd"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Invalid status. Allowed values: ${validStatuses.join(", ")}`,
+      });
+    }
+
+    console.log(`Teacher ID: ${teacherId}, Date: ${date}, Status: ${status}`); // Debug log
+
     const existingAttendance = await TeacherAttendance.findOne({
       school: schoolId,
       teacher: teacherId,
@@ -52,9 +65,8 @@ const markSelfAttendance = async (req, res) => {
       console.log(
         `Attendance for ${existingAttendance.teacher.name} on ${date} has been updated. Previous status: ${previousStatus}, New status: ${status}`
       );
-
       existingAttendance.status = status;
-      await existingAttendance.save();
+      await existingAttendance.save(); // Ensure this saves correctly
 
       return res.status(200).json({
         message: `Attendance updated successfully for ${existingAttendance.teacher.name} on ${date}`,
@@ -90,9 +102,8 @@ const calculateAttendanceMonthly = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { month: targetMonth, year: targetYear } = req.body;
-
-    const normalizedTargetMonth = targetMonth.toString().padStart(2, "0");
+    const { month, year } = req.body;
+    const normalizedMonth = month.toString().padStart(2, "0");
 
     const attendanceRecords = await TeacherAttendance.find({
       teacher: teacherId,
@@ -100,15 +111,14 @@ const calculateAttendanceMonthly = async (req, res) => {
 
     const matchingAttendanceRecords = attendanceRecords.filter((record) => {
       const [recordYear, recordMonth] = record.date.split("-");
-      return (
-        recordMonth === normalizedTargetMonth &&
-        recordYear === targetYear.toString()
-      );
+      return recordMonth === normalizedMonth && recordYear === year.toString();
     });
 
     let presentCount = 0;
     let absentCount = 0;
-    let leaveCount = 0;
+    let lateCount = 0;
+    let shortleaveCount = 0;
+    let halfdayCount = 0;
 
     matchingAttendanceRecords.forEach((record) => {
       switch (record.status) {
@@ -119,7 +129,13 @@ const calculateAttendanceMonthly = async (req, res) => {
           absentCount++;
           break;
         case "l":
-          leaveCount++;
+          lateCount++;
+          break;
+        case "sl":
+          shortleaveCount++;
+          break;
+        case "hd":
+          halfdayCount++;
           break;
         default:
           console.log("Unknown status:", record.status);
@@ -129,11 +145,13 @@ const calculateAttendanceMonthly = async (req, res) => {
     res.status(200).json({
       message: "Attendance calculated successfully",
       data: {
-        month: normalizedTargetMonth,
-        year: targetYear,
+        month: normalizedMonth,
+        year,
         presentCount,
         absentCount,
-        leaveCount,
+        lateCount,
+        shortleaveCount,
+        halfdayCount,
         attendanceRecords: matchingAttendanceRecords,
       },
     });
