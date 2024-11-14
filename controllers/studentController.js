@@ -17,7 +17,7 @@ const studentRegister = async (req, res) => {
     fathersName,
     fatherEmail,
     schoolId,
-    dob
+    dob,
   } = req.body;
 
   try {
@@ -45,7 +45,7 @@ const studentRegister = async (req, res) => {
       schoolName: schoolId, // corrected from 'school'
       fathersName,
       fatherEmail,
-      dob
+      dob,
     });
 
     const existingStudentByEmail = await StudentModel.findOne({ email });
@@ -73,7 +73,7 @@ const studentRegister = async (req, res) => {
     res.status(500).json(err);
   }
 };
-  
+
 const studentEditDetails = async (req, res) => {
   const {
     id,
@@ -83,7 +83,7 @@ const studentEditDetails = async (req, res) => {
     className,
     fathersName,
     fatherEmail,
-    dob
+    dob,
     // Remove schoolId from here
   } = req.body;
 
@@ -106,7 +106,7 @@ const studentEditDetails = async (req, res) => {
     let profileUrl = existingStudent.profile;
     const file = req.file;
 
-    console.log(file)
+    console.log(file);
     if (file) {
       const photoUri = getDataUri(file);
       const myCloud = await cloudinary.uploader.upload(photoUri.content);
@@ -135,7 +135,7 @@ const studentEditDetails = async (req, res) => {
     // Populate related fields
     // await updatedStudent.populate("className", "className").execPopulate();
     // await updatedStudent.populate("schoolName", "schoolName").execPopulate();
-
+    console.log("5", updatedStudent);
     // Send response
     res.status(200).json(updatedStudent);
   } catch (err) {
@@ -191,7 +191,6 @@ const deleteStudent = async (req, res) => {
     const studentId = req.params.id;
 
     let student = await StudentModel.findById(studentId);
-
 
     if (!student) {
       return res.status(404).json({ message: "No student found" });
@@ -255,23 +254,25 @@ const studentList = async (req, res) => {
     }
 
     // Extract student IDs
-    const studentIds = students.map(student => student._id);
+    const studentIds = students.map((student) => student._id);
 
     // Step 2: Fetch parents based on the student IDs
-    const parents = await parentModel.find({
-      'students.studentId': { $in: studentIds }
-    }).select("students contact");
+    const parents = await parentModel
+      .find({
+        "students.studentId": { $in: studentIds },
+      })
+      .select("students contact");
 
     // Map parent contacts to student IDs
     const parentContacts = {};
-    parents.forEach(parent => {
-      parent.students.forEach(student => {
+    parents.forEach((parent) => {
+      parent.students.forEach((student) => {
         parentContacts[student.studentId] = parent.contact;
       });
     });
 
     // Step 3: Combine student data with parent contact information
-    const studentList = students.map(student => ({
+    const studentList = students.map((student) => ({
       ...student.toObject(),
       parentContact: parentContacts[student._id] || null,
     }));
@@ -313,5 +314,5 @@ module.exports = {
   getStudentDetail,
   schoolStudentList,
   deleteStudent,
-  studentEditDetails
+  studentEditDetails,
 };
