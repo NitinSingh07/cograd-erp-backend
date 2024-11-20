@@ -24,8 +24,8 @@ const schoolList = [
     SCHOOL_ID: "669d3a9a7a956fd4c7e286c0",
     SCHOOL:
       "Suresh International college, Nagla Himmat, Kathua, Uttar Pradesh 206253",
-      SCHOOL_LATITUDE: 26.975703192161742,
-      SCHOOL_LONGITUDE: 79.0591269259595,
+    SCHOOL_LATITUDE: 26.975703192161742,
+    SCHOOL_LONGITUDE: 79.0591269259595,
   },
   {
     SCHOOL_ID: "669d42a07a956fd4c7e28934",
@@ -329,14 +329,17 @@ const logoutTrackTeacherApp = async (req, res) => {
       const updatedLoginTrack = await loginTrack.save();
       res.status(200).json(updatedLoginTrack);
     } else {
-      res.status(404).json({ message: "No active login found for this teacher." });
+      res
+        .status(404)
+        .json({ message: "No active login found for this teacher." });
     }
   } catch (error) {
     console.error("Error updating logout track data:", error);
-    res.status(500).json({ message: "Error updating logout track data", error });
+    res
+      .status(500)
+      .json({ message: "Error updating logout track data", error });
   }
 };
-
 
 // Get login track data by teacher ID and date
 const getLoginTrackByTeacherAndDate = async (req, res) => {
@@ -386,38 +389,20 @@ const editTeacher = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found." });
     }
 
-    // Update basic information
-    if (name) teacher.name = name;
-    if (dob) teacher.dob = dob;
-    if (email) teacher.email = email;
-    if (password) {
+    if (name !== undefined) teacher.name = name;
+    if (dob !== undefined) teacher.dob = dob;
+    if (email !== undefined) teacher.email = email;
+    if (password !== undefined) {
       const hashedPassword = await bcrypt.hash(password, 10);
       teacher.password = hashedPassword;
     }
-    if (computerKnowledge) teacher.computerKnowledge = computerKnowledge;
-    if (computerTyping) teacher.computerTyping = computerTyping;
-    if (contact) teacher.contact = contact;
-    if (salary) teacher.salary = salary;
-    if (qualification) teacher.qualification = qualification;
-
-    // Parse teachSubjects
-    const parsedTeachSubjects =
-      typeof teachSubjects === "string"
-        ? JSON.parse(teachSubjects)
-        : teachSubjects;
-    console.log(parsedTeachSubjects);
-    // Unassign the teacher from all old subjects
-    // if (parsedTeachSubjects) {
-    //   await Promise.all(
-    //     teacher.teachSubjects.map(async (subjectId) => {
-    //       const subject = await Subject.findById(subjectId);
-    //       if (subject && subject.teacher.toString() === teacher._id.toString()) {
-    //         subject.teacher = null;
-    //         await subject.save();
-    //       }
-    //     })
-    //   );
-    // }
+    if (computerKnowledge !== undefined)
+      teacher.computerKnowledge = computerKnowledge;
+    if (computerTyping !== undefined) teacher.computerTyping = computerTyping;
+    if (contact !== undefined) teacher.contact = contact;
+    if (salary !== undefined) teacher.salary = salary;
+    if (qualification !== undefined) teacher.qualification = qualification;
+    if (skills !== undefined) teacher.skills = skills;
 
     // Update profile picture if a new file is uploaded
     if (req.file) {
@@ -427,23 +412,32 @@ const editTeacher = async (req, res) => {
       teacher.profile = myCloud.secure_url;
     }
 
-    // Clear the current teachSubjects array
-    teacher.teachSubjects = [];
+    // Handle teachSubjects update
+    if (teachSubjects !== undefined) {
+      const parsedTeachSubjects =
+        typeof teachSubjects === "string"
+          ? JSON.parse(teachSubjects)
+          : teachSubjects;
 
-    // Assign the teacher to the new subjects
-    if (parsedTeachSubjects) {
-      await Promise.all(
-        parsedTeachSubjects.map(async (subjectId) => {
-          const subject = await Subject.findById(subjectId);
-          if (subject) {
-            subject.teacher = teacher._id;
-            await subject.save();
-            teacher.teachSubjects.push(subjectId);
-          }
-        })
-      );
+      if (Array.isArray(parsedTeachSubjects)) {
+        // Clear the current teachSubjects array
+        teacher.teachSubjects = [];
+
+        // Assign the teacher to the new subjects
+        await Promise.all(
+          parsedTeachSubjects.map(async (subjectId) => {
+            const subject = await Subject.findById(subjectId);
+            if (subject) {
+              subject.teacher = teacher._id;
+              await subject.save();
+              teacher.teachSubjects.push(subjectId);
+            }
+          })
+        );
+      }
     }
 
+    // Save the updated teacher
     const updatedTeacher = await teacher.save();
     updatedTeacher.password = undefined; // Remove password from the response
 
