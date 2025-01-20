@@ -143,7 +143,7 @@ exports.updateParent = async (req, res) => {
           });
         }
       }
-
+      console.log("s",payload.students);
       parent.students = payload.students.map((student) => ({
         studentId: student.studentId,
         fees: {

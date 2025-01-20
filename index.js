@@ -31,6 +31,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const classPeriodRoutes = require("./routes/classPeriodRoutes");
 const performanceFeedback = require("./routes/performanceFeedback");
+const NoticeRoutes = require("./routes/noticeRoutes.js");
 
 // const cloudinaryUploader = require("./utils/cloudinaryUplaoder.js")
 
@@ -122,6 +123,7 @@ app.use("/api/teacher", teacherRouter);
 app.use("/api/complains", complaintRoute);
 
 app.use("/api/announcements", announcementRoutes);
+app.use("/api/notices", NoticeRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/tasks", taskRoutes);
